@@ -4,6 +4,48 @@
 
 ---
 
+### Graphical abstract
+
+```mermaid
+flowchart LR
+    A["Cyclops syndrome<br/>fibrous nodule on ACL graft"] --> B["Extension deficit<br/>flexion contracture (flexum)"]
+    B --> C["Increased patellofemoral<br/>contact pressure"]
+    C --> D["Progression of PF<br/>chondral lesions<br/>trochlea + patella"]
+    E["Controls:<br/>two meniscal surgeries"] -.->|"compared with"| D
+    classDef case fill:#e8f0fe,stroke:#3b6db5,color:#11233f;
+    classDef ctrl fill:#f3f3f3,stroke:#888,color:#222;
+    class A,B,C,D case;
+    class E ctrl;
+```
+
+*Mechanistic chain under test, with the methodological spine: the decision rests on a conservative knee-wide estimand ($\bar{\delta}$); the patellofemoral localisation is a derived, non-circular, exploratory readout.*
+
+---
+
+### Contents
+
+- [Abstract](#abstract)
+- [1. Introduction](#1-introduction)
+- [2. Methods](#2-methods)
+  - [2.1 Design and population](#21-design-and-population)
+  - [2.2 Outcomes, scale, and integrity of hypothesis status](#22-outcomes-scale-and-integrity-of-hypothesis-status)
+  - [2.3 Statistical analysis](#23-statistical-analysis)
+- [3. Results](#3-results)
+  - [3.1 Cohort and baseline balance](#31-cohort-and-baseline-balance-figure-1)
+  - [3.2 Primary estimand: knee-wide mean effect](#32-primary-estimand-knee-wide-mean-effect-figure-5)
+  - [3.3 Patellofemoral localisation and topographic structure](#33-patellofemoral-localisation-and-topographic-structure-figures-2-3-4-5-6-s1)
+  - [3.4 Full disclosure of all six compartments, and the dilution effect](#34-full-disclosure-of-all-six-compartments-and-the-dilution-effect-figure-3)
+  - [3.5 Refutation of the pre-registered compartmental hypothesis](#35-refutation-of-the-pre-registered-compartmental-hypothesis)
+  - [3.6 Effect-size robustness](#36-effect-size-robustness-firth-odds-ratio-co-primary-sexage-adjustment-e-value)
+  - [3.7 Inter-surgery delay: time-at-risk, not a mediator](#37-inter-surgery-delay-time-at-risk-not-a-mediator-and-a-strengthened-conclusion-figure-7)
+- [4. Discussion](#4-discussion)
+- [5. Conclusions](#5-conclusions)
+- [Figure legends](#figure-legends)
+- [Data, code, and reproducibility](#data-code-and-reproducibility)
+- [Pre-registration and integrity statement](#pre-registration-and-integrity-statement)
+
+---
+
 ## Abstract
 
 **Background.** Cyclops syndrome — a fibrous nodule on the anterior cruciate ligament (ACL) graft causing an extension deficit — is hypothesised to accelerate cartilage degeneration through chronic flexion contracture and increased patellofemoral loading. We tested whether patients who developed a cyclops between two knee surgeries show greater, and topographically localised, **progression of patellofemoral chondral lesions** than a control cohort undergoing two successive meniscal procedures.
@@ -15,6 +57,19 @@
 **Conclusions.** A conservative knee-wide test was inconclusive, as expected when a mechanically localised signal is averaged over the whole joint; the progression of chondral lesions **localised to the patellofemoral compartment** in cyclops cases, read without circularity from a neutral exchangeable model and consistent with an extension-deficit mechanism. Because the pre-registered compartmental prediction was refuted, the patellofemoral finding is **exploratory** and requires prospective replication. Associations are not causal given the observational, non-randomised design and baseline imbalances in age and sex.
 
 **Keywords:** cyclops syndrome; anterior cruciate ligament; patellofemoral chondral lesions; chondropathy; extension deficit; Bayesian hierarchical ordinal model; case–control.
+
+> [!NOTE]
+> **Headline numbers at a glance** (all values are restated verbatim from the Results above).
+>
+> | Quantity | Cases | Controls | Effect / probability |
+> |---|---:|---:|---|
+> | Primary knee-wide estimand δ̄ | — | — | +0.233 [−0.872, +1.453]; P>0 = 0.660 → **inconclusive** |
+> | Derived PF contrast (exchangeable) | — | — | +2.28 [+0.85, +3.81]; P>0 = 0.997 |
+> | PF worsening (Δ_PF > 0) | 57.1% (28/49) | 5.0% (1/20) | Cliff's δ = +0.535; perm. p = 0.0002 |
+> | Within-case: PF vs FT worsening | 28 vs 1 | — | Wilcoxon p = 2×10⁻⁶ |
+> | Firth OR for PF worsening | — | — | 17.2 [2.9, 103.5] |
+> | Sex+age-adjusted OR (co-primary) | — | — | 13.5 [2.3, 80.1]; p = 0.004; E-value 7.77 |
+> | Inter-surgery delay (median, days) | 240 | 528 | p < 0.0001; within-case ρ = −0.03 |
 
 ---
 
@@ -37,21 +92,88 @@ Retrospective, paired case–control study. Each patient contributes two correla
 
 Patient identifiers are reused across the two source sheets; the patient key is therefore the composite `(group, anonyme)`.
 
+```mermaid
+flowchart TB
+    subgraph CASES["Cases — cyclops · n = 49 (98 rows)"]
+        direction LR
+        C1["S1<br/>ACL reconstruction"] -->|"cyclops develops"| C2["S2<br/>nodule excision"]
+    end
+    subgraph CTRL["Controls — meniscus · n = 20 (40 rows)"]
+        direction LR
+        K1["S1<br/>meniscal surgery"] --> K2["S2<br/>meniscal surgery"]
+    end
+    C2 --> SCORE["Each surgery scored on<br/>6 cartilage compartments (0–3)<br/>Δ = S2 − S1"]
+    K2 --> SCORE
+    SCORE --> KEY["Patient key = (group, anonyme)<br/>within-patient correlation via paired Δ<br/>+ random intercept u_i"]
+    KEY --> ANALYS["Analysable n = 69<br/>complete 6-compartment outcomes at S1 and S2"]
+    classDef case fill:#e8f0fe,stroke:#3b6db5,color:#11233f;
+    classDef ctrl fill:#f3f3f3,stroke:#888,color:#222;
+    class C1,C2 case;
+    class K1,K2 ctrl;
+```
+
+*Study design and cohort flow. The paired Δ within each patient is compared between groups.*
+
 ### 2.2 Outcomes, scale, and integrity of hypothesis status
 
 **Cartilage scoring.** Six compartments — trochlea, patella, PTE (lateral tibial plateau), PTI (medial tibial plateau), CFE (lateral femoral condyle), CFI (medial femoral condyle) — graded 0–3 (Outerbridge/ICRS). Empirically the scale is sparse: **grade 3 occurs only twice in the whole dataset** (one trochlea, one patella). For the two patellofemoral compartments (patella, trochlea) we therefore collapsed grades to **{0, 1, ≥2}** — a merge justified by the **rarity** of grade 3, not by any claim of "information neutrality". The four femorotibial compartments carry ≤2 events at grade ≥2 each (PTI and CFI carry none), so a second cut-point would be prior-driven; they are modelled as **binary {0,1}** (Bernoulli). The native 0–3 scale was retained for description and sensitivity.
 
 **Anatomical blocks.** Patellofemoral **PF = {trochlea, patella}**; femorotibial **FT = {PTE, PTI, CFE, CFI}**. (PTE/PTI are tibial plateaus and belong to FT.)
 
-**Primary estimand (knee-wide, directional, conservative).** The knee-wide mean Group × Time effect **δ̄ = (1/6) Σ_c δ_c**, where δ_c is the compartment-specific interaction from the **exchangeable** hierarchical model. δ̄ is **invariant to any anatomical partition** and therefore cannot be inflated by selecting a block post hoc; it is the unbiased global test of the pre-registered directional H1, reported as deliberately **conservative**.
+```mermaid
+flowchart TB
+    KNEE["Knee — 6 cartilage compartments<br/>graded 0–3 (Outerbridge/ICRS)"]
+    KNEE --> PF["PF block — patellofemoral<br/>scale collapsed to {0, 1, ≥2}<br/>cumulative logit"]
+    KNEE --> FT["FT block — femorotibial<br/>binarised {0, 1}<br/>Bernoulli"]
+    PF --> T["Trochlea"]
+    PF --> P["Patella"]
+    FT --> PTE["PTE · lateral tibial plateau"]
+    FT --> PTI["PTI · medial tibial plateau"]
+    FT --> CFE["CFE · lateral femoral condyle"]
+    FT --> CFI["CFI · medial femoral condyle"]
+    classDef pf fill:#e8f0fe,stroke:#3b6db5,color:#11233f;
+    classDef ft fill:#fdeee8,stroke:#b5703b,color:#3f2411;
+    class PF,T,P pf;
+    class FT,PTE,PTI,CFE,CFI ft;
+```
 
-**Patellofemoral localisation (exploratory, derived, non-circular).** A linear contrast (PF − FT) of the same exchangeable δ_c — a posterior that never "saw" the partition — together with the descriptive Δ_PF = (trochlea + patella) at S2 minus S1. Read two-sided.
+*Compartment map and the heterogeneous likelihood: ordinal {0, 1, ≥2} for the two PF compartments, binary {0, 1} for the four FT compartments.*
 
-**Topographic structure (a result, not an assumption).** Three pooling structures (exchangeable, two-block PF/FT, three-cluster) are compared by **LOO**; the PF/FT partition is therefore tested rather than hard-coded.
+> [!IMPORTANT]
+> **Primary estimand (knee-wide, directional, conservative).** The knee-wide mean Group × Time effect **δ̄ = (1/6) Σ_c δ_c**, where δ_c is the compartment-specific interaction from the **exchangeable** hierarchical model. δ̄ is **invariant to any anatomical partition** and therefore cannot be inflated by selecting a block post hoc; it is the unbiased global test of the pre-registered directional H1, reported as deliberately **conservative**.
+
+$$\bar{\delta} \;=\; \frac{1}{6}\sum_{c=1}^{6} \delta_c \qquad\text{(partition-invariant; decision on the one-sided rule)}$$
+
+> [!NOTE]
+> **Patellofemoral localisation (exploratory, derived, non-circular).** A linear contrast (PF − FT) of the same exchangeable δ_c — a posterior that never "saw" the partition — together with the descriptive Δ_PF = (trochlea + patella) at S2 minus S1. Read two-sided.
+
+$$\text{contrast}_{\mathrm{PF}-\mathrm{FT}} \;=\; \tfrac{1}{2}\!\!\sum_{c\,\in\,\mathrm{PF}}\!\!\delta_c \;-\; \tfrac{1}{4}\!\!\sum_{c\,\in\,\mathrm{FT}}\!\!\delta_c \qquad\text{(derived; read two-sided)}$$
+
+> [!NOTE]
+> **Topographic structure (a result, not an assumption).** Three pooling structures (exchangeable, two-block PF/FT, three-cluster) are compared by **LOO**; the PF/FT partition is therefore tested rather than hard-coded.
 
 **Descriptive secondary.** The six-compartment sum (`lesion_total`), reported but **not decision-bearing**, to document signal dilution.
 
-**Integrity chronology (anti-HARKing).** The pre-registered hypotheses were H1 (greater *total* progression, directional) and H2 (preferential **medial-posterior** PTI/CFI signal). Exploratory analysis showed that (a) the whole-knee effect is small and diluted, (b) the signal is patellofemoral, and (c) H2 is refuted. Rather than promote the patellofemoral block to a confirmatory primary outcome — which would be a **selection bias** (choosing the winning block after seeing it) — we kept the directional primary estimand **knee-wide (δ̄)** and report the patellofemoral finding as a **derived, exploratory / hypothesis-generating** localisation, mechanistically pre-justified and requiring replication. All six compartments are disclosed.
+> [!WARNING]
+> **Integrity chronology (anti-HARKing).** The pre-registered hypotheses were H1 (greater *total* progression, directional) and H2 (preferential **medial-posterior** PTI/CFI signal). Exploratory analysis showed that (a) the whole-knee effect is small and diluted, (b) the signal is patellofemoral, and (c) H2 is refuted. Rather than promote the patellofemoral block to a confirmatory primary outcome — which would be a **selection bias** (choosing the winning block after seeing it) — we kept the directional primary estimand **knee-wide (δ̄)** and report the patellofemoral finding as a **derived, exploratory / hypothesis-generating** localisation, mechanistically pre-justified and requiring replication. All six compartments are disclosed.
+
+```mermaid
+flowchart TB
+    PRE["Pre-registered<br/>H1: greater TOTAL progression (directional)<br/>H2: medial-posterior PTI/CFI signal"] --> DATA["Confront the data<br/>(exploratory analysis)"]
+    DATA --> R1["Whole-knee effect is small & diluted"]
+    DATA --> R2["Signal is patellofemoral"]
+    DATA --> R3["H2 refuted"]
+    R1 --> DEC{"Reporting decision<br/>(avoid HARKing / selection bias)"}
+    R2 --> DEC
+    R3 --> DEC
+    DEC --> A1["KEEP knee-wide δ̄ as the primary estimand<br/>partition-invariant · conservative · one-sided"]
+    DEC --> A2["PF localisation = derived & exploratory<br/>non-circular · two-sided"]
+    DEC --> A3["Topographic partition tested by LOO<br/>not hard-coded"]
+    classDef pre fill:#fff4e5,stroke:#b5873b,color:#3f2f11;
+    class PRE pre;
+```
+
+*Integrity chronology: how a refuted pre-registration was reported without converting a post-hoc winner into a confirmatory claim.*
 
 ### 2.3 Statistical analysis
 
@@ -59,17 +181,56 @@ Patient identifiers are reused across the two source sheets; the patient key is 
 
 **Bayesian inference (primary model, M3).** Hierarchical ordinal model with a **heterogeneous likelihood**: cumulative logit on {0, 1, ≥2} for **patella and trochlea**; Bernoulli for the four femorotibial compartments (**PTE, PTI, CFE, CFI**), which carry too few events at grade ≥2 to identify a second cut-point. Linear predictor
 
-η(i,t,c) = β_c · t + γ · g_i + δ_c · t · g_i + u_i,
+$$\eta_{(i,t,c)} \;=\; \beta_c\, t \;+\; \gamma\, g_i \;+\; \delta_c\, t\, g_i \;+\; u_i,$$
 
 with t ∈ {−0.5, +0.5} coding S1/S2 (so β_c · t is, with only two time points, an S2 − S1 contrast, **not** a per-unit-time slope), g_i the group indicator, and u_i a patient random intercept. Crucially, the Group × Time interaction is **compartment-specific (δ_c)**. In the **primary (exchangeable) model**, the six δ_c share a single hierarchical mean (δ_c ~ Student-t(3, μ_δ, σ_δ)); cut-points are free per compartment (they encode baseline prevalence — pooling is on the *effect*, not the *measurement*). From this neutral posterior we form, **without imposing any partition**, the primary estimand **δ̄ = (1/6) Σ_c δ_c** and the **derived patellofemoral contrast** (½ Σ_{PF} δ_c − ¼ Σ_{FT} δ_c). The PF/FT partition is **not assumed**: two further pooling structures (two-block, three-cluster) are fitted and **compared by LOO** (PSIS); the two-block model exposes the candidate δ_PF, δ_FT and their contrast for description only. Sampling: PyMC, 4 chains, target_accept = 0.95, seed = 42; convergence thresholds R̂ ≤ 1.01, ESS_bulk ≥ 400, 0 divergences. A Beta-binomial model (M1) summarises PF worsening proportions.
 
-**Decision rule.** A single Bayesian rule. The **directional, one-sided** rule — P(effect > 0 | data) ≥ 0.95 — is **reserved for the pre-registered primary estimand δ̄** (H1 was directional). **All post-hoc patellofemoral quantities** (derived contrast, two-block contrast, odds ratios) are read **two-sided / full 94% HDI**, because their direction came from the data; a one-sided rule there would itself be a decision bias. Frequentist permutation results are reported as **support, not as a decision threshold**; the previous conjunctive "p < 0.05 AND P > 0.95" rule was removed.
+```mermaid
+flowchart TB
+    M["Exchangeable hierarchical ordinal model (M3)<br/>δ_c ~ Student-t(3, μ_δ, σ_δ)<br/>free cut-points per compartment"]
+    M --> DC["6 compartment-specific<br/>Group × Time effects δ_c<br/>(neutral — partition never seen)"]
+    DC --> PRIM["PRIMARY estimand<br/>δ̄ = (1/6) Σ δ_c<br/>partition-invariant · one-sided"]
+    DC --> CON["DERIVED PF contrast<br/>½ Σ_PF δ_c − ¼ Σ_FT δ_c<br/>exploratory · two-sided"]
+    M --> LOO["Tested by LOO (PSIS):<br/>exchangeable vs two-block vs three-cluster"]
+    LOO --> TB["Two-block model<br/>exposes δ_PF, δ_FT for description only"]
+    classDef prim fill:#e8f0fe,stroke:#3b6db5,color:#11233f;
+    class PRIM prim;
+```
+
+*From one neutral exchangeable posterior: the partition-invariant decision estimand δ̄ and the derived (non-circular) PF contrast; the partition is tested, not assumed.*
+
+> [!TIP]
+> **Decision rule.** A single Bayesian rule. The **directional, one-sided** rule — P(effect > 0 | data) ≥ 0.95 — is **reserved for the pre-registered primary estimand δ̄** (H1 was directional). **All post-hoc patellofemoral quantities** (derived contrast, two-block contrast, odds ratios) are read **two-sided / full 94% HDI**, because their direction came from the data; a one-sided rule there would itself be a decision bias. Frequentist permutation results are reported as **support, not as a decision threshold**; the previous conjunctive "p < 0.05 AND P > 0.95" rule was removed.
+
+```mermaid
+flowchart TB
+    Q{"Which quantity is being judged?"}
+    Q -->|"Primary estimand δ̄<br/>(H1 was directional)"| ONE["One-sided rule<br/>P(δ̄ > 0 | data) ≥ 0.95"]
+    Q -->|"Post-hoc PF quantities<br/>(direction came from data)"| TWO["Two-sided<br/>full 94% HDI"]
+    classDef one fill:#e8f0fe,stroke:#3b6db5,color:#11233f;
+    classDef two fill:#eef7ee,stroke:#4a8a4a,color:#13391a;
+    class ONE one;
+    class TWO two;
+```
+
+$$P(\bar{\delta} > 0 \mid \text{data}) \;\ge\; 0.95 \quad\text{(reserved for }\bar{\delta}\text{ only)}$$
 
 **Odds ratios (Firth).** The crude maximum-likelihood odds ratio for PF worsening was **quasi-separated** (control cell = 1/20), producing an unstable, implausibly large value; all odds ratios are therefore estimated with **Firth penalisation**, and inference is led by Cliff's δ and the model posterior rather than by the odds ratio.
 
 **Baseline balance, sex+age adjustment, and E-value.** Balance is judged by standardized mean differences (SMD, Austin) and, for the PF baseline, by a **two one-sided tests (TOST) equivalence** test. Because sex is imbalanced **and maps specifically onto the patellofemoral block**, a **sex+age-adjusted odds ratio is reported as co-primary** (not merely a sensitivity analysis); an **E-value** quantifies the unmeasured-confounding strength needed to explain it away. BMI (derived from height/weight, the source column being empty), exclusion of date anomalies, and pivot/physical-work covariates ("with and without" plan) are further sensitivity analyses.
 
 **Causal structure and the inter-surgery delay.** A directed acyclic graph (DAG) places the inter-surgery delay (`inter_surgery_d`) **downstream** of group (cases are re-operated sooner): it is the **observation window / time-at-risk**, not a confounder and **not a biological mediator** — a reading we falsify by showing that PF worsening is unrelated to the delay within cases (Spearman ρ ≈ 0). It is **excluded** from the primary progression model (conditioning on a post-group variable would be over-adjustment). Because the window is *shorter* in cases, adjusting for it can only *increase* the effect. H4 studies the delay as an *outcome* (a distinct question), using a Weibull AFT (M4, lifelines MLE) and a LogNormal model (M5, Bayesian).
+
+```mermaid
+flowchart LR
+    G["Group<br/>cyclops vs meniscus"] --> DELAY["Inter-surgery delay<br/>observation window / time-at-risk"]
+    G --> PFP["PF chondral progression"]
+    DELAY -.->|"not a mediator (within-case ρ ≈ 0)"| PFP
+    classDef g fill:#e8f0fe,stroke:#3b6db5,color:#11233f;
+    class G g;
+```
+
+*Causal DAG. The delay is downstream of group, so it is excluded from the primary model (conditioning on it would be over-adjustment); being shorter in cases, it can only inflate — never explain away — the effect.*
 
 **Multiplicity.** Benjamini–Hochberg FDR (q = 0.10) on the frequentist families; hierarchical shrinkage on the Bayesian side. The decisional multiplicity is minimal **and non-selective** by construction: a single, partition-invariant global estimand (δ̄) carries the decision, not the best of six compartments.
 
@@ -142,19 +303,35 @@ A deliberately conservative, partition-invariant knee-wide test was **inconclusi
 
 **Figure 1. Baseline balance.** Standardized mean differences (cases − controls) for baseline covariates, and the equivalence of S1 cartilage scores (median 0 vs 0; Mann–Whitney p = 0.662). Age (SMD +0.48) and sex (SMD +0.37) are imbalanced; baseline lesion scores are not. (`figures/fig1_baseline_balance.png`)
 
+![Figure 1. Baseline balance.](../figures/fig1_baseline_balance.png)
+
 **Figure 2. Patellofemoral localisation (descriptive).** Distribution of Δ_PF (S2 − S1, trochlea + patella) by group; PF worsening 57.1% (cases) vs 5.0% (controls); Cliff's δ = +0.535; permutation p = 0.0002. (`figures/fig2_pf_progression.png`)
+
+![Figure 2. Patellofemoral localisation.](../figures/fig2_pf_progression.png)
 
 **Figure 3. Per-compartment worsening and dilution.** Percentage worsening by compartment, grouped into PF and FT blocks; shows the patellofemoral concentration of the signal and why both the six-compartment sum and the knee-wide δ̄ dilute it. (`figures/fig3_per_compartment.png`)
 
+![Figure 3. Per-compartment worsening and dilution.](../figures/fig3_per_compartment.png)
+
 **Figure 4. Within-case localisation.** Paired comparison of PF versus FT worsening within cases: 28 patients worsen in PF versus 1 in FT (Wilcoxon p = 2×10⁻⁶). (`figures/fig4_topographic_specificity.png`)
+
+![Figure 4. Within-case localisation.](../figures/fig4_topographic_specificity.png)
 
 **Figure 5. Hierarchical model posteriors.** Posterior distributions (94% HDI) from the exchangeable model: the primary knee-wide mean δ̄ = +0.233 [−0.872, +1.453] (P>0 = 0.660, inconclusive) and the derived patellofemoral contrast = +2.28 [+0.85, +3.81] (P>0 = 0.997); baseline offset γ = −3.14. Inset: LOO comparison of exchangeable / two-block / three-cluster pooling (two-block rank 0, ΔELPD ≈ 2–3, Pareto-k̂ warnings → indicative). (`figures/fig5_m3_forest.png`)
 
+![Figure 5. Hierarchical model posteriors.](../figures/fig5_m3_forest.png)
+
 **Figure 6. Model convergence.** Trace and rank plots for the hierarchical model (max R̂ = 1.003, min ESS_bulk = 1607, 0 divergences). (`figures/fig6_m3_diagnostics.png`)
+
+![Figure 6. Model convergence.](../figures/fig6_m3_diagnostics.png)
 
 **Figure 7. Inter-surgery delay (H4).** Empirical ECDF of the inter-surgery delay by group with LogNormal fit; cases are re-operated sooner (median 240 vs 528 days), identifying the delay as the observation window (time-at-risk), with PF worsening unrelated to the delay within cases (ρ = −0.03). (`figures/fig7_h4_delay.png`)
 
+![Figure 7. Inter-surgery delay.](../figures/fig7_h4_delay.png)
+
 **Figure S1 (supplementary). Patellofemoral slopegraph.** Per-patient PF score from S1 to S2 by group. (`figures/figS1_slopegraph_pf.png`)
+
+![Figure S1. Patellofemoral slopegraph.](../figures/figS1_slopegraph_pf.png)
 
 ---
 
