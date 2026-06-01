@@ -573,6 +573,20 @@ def test_firth_or_finite_under_separation(wide):
     assert res["min_cell"] <= 1  # quasi-separation (single meniscus PF event)
 
 
+def test_evalue_or_monotone_and_null_crossing():
+    """E-value grows with OR; a CI bound crossing the null gives E-value 1."""
+    e_small = tf.evalue_or(2.0)["evalue_point"]
+    e_big = tf.evalue_or(16.0)["evalue_point"]
+    assert e_big > e_small > 1.0
+    assert tf.evalue_or(3.0, or_ci_lo=0.8)["evalue_ci"] == 1.0
+
+
+# --- Baseline balance & equivalence (MWU + SMD + TOST) ---------------------
+# All three S1 levels — global 6-sum, PF block, FT block — go through the SAME
+# baseline_block_balance (MWU difference + SMD magnitude + TOST equivalence).
+# Only PF is positively equivalent; the 6-sum and FT are non-significant on MWU
+# yet fail TOST at n = 20 (absence of evidence is not evidence of absence).
+
 def test_tost_equivalence_basic():
     """TOST: equal samples are equivalent within a modest bound; far apart aren't."""
     rng = np.random.default_rng(RANDOM_SEED)
@@ -582,26 +596,39 @@ def test_tost_equivalence_basic():
     assert far["tost_p"] > 0.05  # cannot conclude equivalence
 
 
-def test_evalue_or_monotone_and_null_crossing():
-    """E-value grows with OR; a CI bound crossing the null gives E-value 1."""
-    e_small = tf.evalue_or(2.0)["evalue_point"]
-    e_big = tf.evalue_or(16.0)["evalue_point"]
-    assert e_big > e_small > 1.0
-    assert tf.evalue_or(3.0, or_ci_lo=0.8)["evalue_ci"] == 1.0
+def test_smd_continuous_sign():
+    """smd_continuous: sign follows (x − y), magnitude scales with the gap.
+
+    Dedicated cover for the SMD primitive shared by every baseline check
+    (previously exercised only implicitly via the balance dicts)."""
+    rng = np.random.default_rng(RANDOM_SEED)
+    y = rng.normal(0.0, 1.0, 200)
+    assert abs(tf.smd_continuous(rng.normal(0.0, 1.0, 200), y)) < 0.3   # same dist → ~0
+    assert tf.smd_continuous(rng.normal(1.0, 1.0, 200), y) > 0.5        # x up → +large
+    assert tf.smd_continuous(y, rng.normal(1.0, 1.0, 200)) < -0.5       # antisymmetric
 
 
-def test_baseline_pf_balance_keys():
+def test_baseline_pf_balance_keys(wide):
     """baseline_pf_balance returns MWU p, SMD, and a TOST equivalence verdict."""
-    df = loaders.load_combined()
-    df = pp.apply_date_hygiene(df)
-    df = pp.add_derived(df)
-    wide = pp.to_wide(df)
     res = tf.baseline_pf_balance(wide)
     for k in ("mwu_p", "smd", "tost_p", "equivalent", "tost_bound"):
         assert k in res
 
 
-def test_baseline_block_balance_ft_not_equivalent():
+def test_baseline_total_equivalent_keys(wide):
+    """The global 6-sum now gets the SAME unified treatment as the blocks.
+
+    Confirms baseline_block_balance runs on lesion_total_S1 and returns the full
+    key schema. Like FT (and unlike PF), the 6-sum is non-significant on MWU yet
+    NOT established as equivalent by TOST at n = 20."""
+    res = tf.baseline_block_balance(wide, col="lesion_total_S1")
+    for k in ("mwu_p", "smd", "tost_p", "tost_bound", "equivalent",
+              "median_cyclops", "median_meniscus"):
+        assert k in res
+    assert res["mwu_p"] > 0.05            # no difference *detected* overall
+
+
+def test_baseline_block_balance_ft_not_equivalent(wide):
     """FT block is NOT proven equivalent at S1 — the 'absence of evidence is not
     evidence of absence' case that motivates testing FT symmetrically to PF.
 
@@ -610,16 +637,14 @@ def test_baseline_block_balance_ft_not_equivalent():
     femorotibial lesion (positive SMD). This is the baseline gap that makes the
     PF−FT topographic contrast exploratory rather than cleanly causal.
     """
-    df = loaders.load_combined()
-    df = pp.apply_date_hygiene(df)
-    df = pp.add_derived(df)
-    wide = pp.to_wide(df)
     ft = tf.baseline_block_balance(wide, col="lesion_ft_S1")
     assert ft["col"] == "lesion_ft_S1"
     assert ft["mwu_p"] > 0.05            # no difference *detected*
     assert ft["equivalent"] is False     # ...but equivalence NOT established
     assert ft["smd"] > 0.147             # at least a "small" imbalance (cyclops higher)
 
+
+# --- Bayesian model structure ----------------------------------------------
 
 def test_pooling_grouping_structures():
     """_pooling_grouping yields 1/2/3 groups covering all six sites."""
@@ -632,7 +657,7 @@ def test_pooling_grouping_structures():
         bm._pooling_grouping("nonsense", SITES)
 
 
-def test_build_m3_three_poolings():
+def test_build_m3_three_poolings(df_long):
     """All three pooling structures build and expose the right named estimands."""
     import bayes_models as bm
     long = bm._melt_long_long(df_long, SITES, "anonyme", "group", collapse=True)

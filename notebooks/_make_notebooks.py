@@ -338,7 +338,7 @@ fig  # display inline
        "not a regression-to-baseline artefact — and this is asserted positively, "
        "not inferred from a non-significant difference."),
     code("""\
-pf_bal = tf.baseline_pf_balance(wide, col='lesion_pf_S1')
+pf_bal = tf.baseline_block_balance(wide, col='lesion_pf_S1')
 print('Baseline PF block at S1 (cyclops vs meniscus):')
 print(f"  n            : {pf_bal['n_cyclops']} cyclops / {pf_bal['n_meniscus']} meniscus")
 print(f"  medians      : {pf_bal['median_cyclops']:.1f} / {pf_bal['median_meniscus']:.1f}")
@@ -347,6 +347,26 @@ print(f"  SMD          : {pf_bal['smd']:+.3f}")
 print(f"  TOST bound   : +/- {pf_bal['tost_bound']:.3f} (pooled-SD margin)")
 print(f"  TOST p (equiv): {pf_bal['tost_p']:.3f}")
 print(f"  => equivalent: {pf_bal['equivalent']}  (TOST p < 0.05 establishes equivalence)")
+"""),
+    md("## 2c. Baseline equivalence on the FT block + global 6-sum (symmetric to PF)\n\n"
+       "By **symmetry**, the same MWU + SMD + TOST is applied to the **femorotibial "
+       "block** and the **global 6-sum**, so all three S1 levels get the *same* "
+       "treatment (`tf.baseline_block_balance`). This matters because the **PF−FT "
+       "topographic contrast** (§03 / §05) compares PF vs FT progression: reading it "
+       "causally needs *both* blocks balanced at S1. Result: only the **PF** block is "
+       "positively equivalent; the **FT block and the 6-sum** show no *detected* "
+       "difference (MWU) yet **fail TOST** (SMD +0.26 and +0.19) — the "
+       "'absence of evidence is not evidence of absence' lesson, and the reason the "
+       "PF−FT localisation is reported as **exploratory** (regression-to-mean may "
+       "mask an FT signal). The primary knee-wide δ̄ and the PF reading are unaffected."),
+    code("""\
+for level, col in [('TOTAL (6-sum)', 'lesion_total_S1'),
+                   ('PF block', 'lesion_pf_S1'),
+                   ('FT block', 'lesion_ft_S1')]:
+    b = tf.baseline_block_balance(wide, col=col)
+    print(f"{level:14s}: MWU p={b['mwu_p']:.3f}  SMD={b['smd']:+.3f}  "
+          f"TOST p={b['tost_p']:.3f} (+/-{b['tost_bound']:.2f})  "
+          f"=> equivalent={b['equivalent']}")
 """),
     md("## 3. Per-test baseline detail (continuous MWU; categorical Fisher)"),
     code("""\
@@ -589,7 +609,12 @@ fig
     md("## 3. Topographic specificity — within-patient Δ`lesion_pf` vs Δ`lesion_ft`\n\n"
        "Paired Wilcoxon within the cyclops group: does the PF block worsen more "
        "than the FT block in the **same** patient? (Mechanistic specificity, "
-       "point B.)"),
+       "point B.)\n\n"
+       "> **Read as exploratory.** The FT block is **not** equivalent at baseline "
+       "(notebook `01`, §2c: TOST p = 0.186, SMD +0.26), so this PF−FT contrast is "
+       "hypothesis-generating, not a clean causal split: a baseline FT excess in the "
+       "cyclops group plus regression-to-mean could blunt an FT signal and make the "
+       "effect look more PF-specific than it truly is."),
     code("""\
 spec = tf.paired_pf_vs_ft(wide)
 for k, v in spec.items():

@@ -4,6 +4,7 @@ Tu pars d'une question clinique simple : quand un **cyclops** (nodule fibreux su
 
 > [!IMPORTANT]
 > **Le fil rouge de toute l'étude**
+>
 > 1. On vérifie d'abord si les deux groupes sont **comparables** — avec la **SMD**, le **Cliff δ** et le **TOST**.
 > 2. Réponse : **NON** — le sexe et l'âge sont déséquilibrés (mais l'état cartilagineux de départ, lui, est équivalent).
 > 3. Donc on **adapte la méthode** — une analyse **ajustée sexe + âge** (pénalisée Firth), co-primaire — pour vérifier l'hypothèse fémoro-patellaire **malgré** ce déséquilibre.
@@ -31,32 +32,32 @@ flowchart TB
 - [00 · EDA descriptif](#00--eda-descriptif)
 - [01 · Équilibre baseline (S1)](#01--équilibre-baseline-s1)
 - [02 · Effet fémoro-patellaire](#02--effet-fémoro-patellaire)
-- [03 · Par compartiment & dilution](#03--par-compartiment--dilution)
-- [04 · Facteurs de risque & ajustement](#04--facteurs-de-risque--ajustement)
+- [03 · Par compartiment &amp; dilution](#03--par-compartiment--dilution)
+- [04 · Facteurs de risque &amp; ajustement](#04--facteurs-de-risque--ajustement)
 - [05 · Modèle bayésien hiérarchique (M3)](#05--modèle-bayésien-hiérarchique-m3)
 - [06 · Délai inter-chirurgical (H4)](#06--délai-inter-chirurgical-h4)
 - [Synthèse — le fil rouge récapitulé](#synthèse--le-fil-rouge-récapitulé)
 
 ## Notation
 
-| Symbole | Signification |
-|---|---|
-| **S1 / S2** | Les deux chirurgies de chaque patient, ordonnées par date (S1 = première, S2 = seconde) |
-| **Δ = S2 − S1** | Changement intra-patient d'un score entre les deux chirurgies (le « delta apparié ») |
-| **PF = {trochlée, rotule}** | Bloc fémoro-patellaire — là où on prédit la progression |
-| **FT = {pte, pti, cfe, cfi}** | Bloc fémoro-tibial — plateaux tibiaux externe/interne et condyles fémoraux externe/interne |
-| **SMD** | Différence moyenne standardisée — mesure de déséquilibre (seuils Austin : <0,10 négligeable, ≥0,25 notable) |
-| **MWU / U** | Test de Mann–Whitney U (= **Wilcoxon rank-sum**, somme des rangs) — comparaison non paramétrique de **deux groupes indépendants** (cyclops vs méniscus) |
-| **Wilcoxon signed-rank** | Test **apparié** (sur les différences intra-sujet) — *à ne pas confondre* avec le rank-sum/MWU ci-dessus ; ici : ΔPF vs ΔFT chez le même patient |
-| **TOST** | Test d'équivalence (two one-sided tests) — sert à prouver que deux groupes sont **équivalents**, pas juste « non différents » |
-| **Cliff δ** | Effet ordinal : proportion de « duels gagnés − perdus » entre les deux groupes, entre −1 et +1 |
-| **Firth** | Régression logistique pénalisée — stabilise l'OR en cas de quasi-séparation (cellule méniscus = 1/20) |
-| **OR** | Odds ratio — rapport des cotes de progression PF, cyclops vs méniscus |
-| **E-value** | Force minimale d'un facteur de confusion non mesuré qui pourrait expliquer l'association |
-| **δ̄** | Effet knee-wide **moyen** : δ̄ = (1/6) Σ δ_c — l'estimand primaire, conservateur et invariant par partition |
-| **δ_c** | Effet Groupe × Temps **par compartiment** (l'interaction propre à chaque zone du genou) |
-| **η** | Prédicteur linéaire du modèle hiérarchique (η = β_c·t + γ·g_i + δ_c·t·g_i + u_i) |
-| **LOO / ELPD** | Comparaison de modèles par validation croisée (leave-one-out) ; l'ELPD classe les structures de pooling |
+| Symbole                             | Signification                                                                                                                                                           |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **S1 / S2**                   | Les deux chirurgies de chaque patient, ordonnées par date (S1 = première, S2 = seconde)                                                                               |
+| **Δ = S2 − S1**             | Changement intra-patient d'un score entre les deux chirurgies (le « delta apparié »)                                                                                 |
+| **PF = {trochlée, rotule}**  | Bloc fémoro-patellaire — là où on prédit la progression                                                                                                            |
+| **FT = {pte, pti, cfe, cfi}** | Bloc fémoro-tibial — plateaux tibiaux externe/interne et condyles fémoraux externe/interne                                                                           |
+| **SMD**                       | Différence moyenne standardisée — mesure de déséquilibre (seuils Austin : <0,10 négligeable, ≥0,25 notable)                                                      |
+| **MWU / U**                   | Test de Mann–Whitney U (=**Wilcoxon rank-sum**, somme des rangs) — comparaison non paramétrique de **deux groupes indépendants** (cyclops vs méniscus) |
+| **Wilcoxon signed-rank**      | Test**apparié** (sur les différences intra-sujet) — *à ne pas confondre* avec le rank-sum/MWU ci-dessus ; ici : ΔPF vs ΔFT chez le même patient          |
+| **TOST**                      | Test d'équivalence (two one-sided tests) — sert à prouver que deux groupes sont**équivalents**, pas juste « non différents »                               |
+| **Cliff δ**                  | Effet ordinal : proportion de « duels gagnés − perdus » entre les deux groupes, entre −1 et +1                                                                     |
+| **Firth**                     | Régression logistique pénalisée — stabilise l'OR en cas de quasi-séparation (cellule méniscus = 1/20)                                                             |
+| **OR**                        | Odds ratio — rapport des cotes de progression PF, cyclops vs méniscus                                                                                                 |
+| **E-value**                   | Force minimale d'un facteur de confusion non mesuré qui pourrait expliquer l'association                                                                               |
+| **δ̄**                      | Effet knee-wide**moyen** : δ̄ = (1/6) Σ δ_c — l'estimand primaire, conservateur et invariant par partition                                                   |
+| **δ_c**                      | Effet Groupe × Temps**par compartiment** (l'interaction propre à chaque zone du genou)                                                                          |
+| **η**                        | Prédicteur linéaire du modèle hiérarchique (η = β_c·t + γ·g_i + δ_c·t·g_i + u_i)                                                                            |
+| **LOO / ELPD**                | Comparaison de modèles par validation croisée (leave-one-out) ; l'ELPD classe les structures de pooling                                                               |
 
 ---
 
@@ -96,14 +97,14 @@ Pas de formule lourde ici : l'outil, c'est une simple **table de fréquences par
 
 Voici l'idée, schématisée (les chiffres exacts sont dans le notebook ; ce qui compte ici, c'est la *forme*) :
 
-| Compartiment | Bloc | Événements grade ≥2 | Échelle retenue |
-| ------------ | ---- | ------------------: | --------------- |
+| Compartiment | Bloc |              Événements grade ≥2 | Échelle retenue    |
+| ------------ | ---- | ----------------------------------: | ------------------- |
 | Rotule       | PF   | quelques-uns (dont le seul grade 3) | ordinal {0, 1, ≥2} |
-| Trochlée     | PF   | quelques-uns (dont le seul grade 3) | ordinal {0, 1, ≥2} |
-| PTE          | FT   | ≤2                  | binaire {0, 1}  |
-| PTI          | FT   | **0**               | binaire {0, 1}  |
-| CFE          | FT   | ≤2                  | binaire {0, 1}  |
-| CFI          | FT   | **0**               | binaire {0, 1}  |
+| Trochlée    | PF   | quelques-uns (dont le seul grade 3) | ordinal {0, 1, ≥2} |
+| PTE          | FT   |                                 ≤2 | binaire {0, 1}      |
+| PTI          | FT   |                         **0** | binaire {0, 1}      |
+| CFE          | FT   |                                 ≤2 | binaire {0, 1}      |
+| CFI          | FT   |                         **0** | binaire {0, 1}      |
 
 Pourquoi **2 événements ne peuvent pas identifier un seuil ordinal supérieur** ? Parce qu'un seuil, statistiquement, c'est une frontière qu'on estime à partir du nombre de patients qui la franchissent. Pour situer correctement la frontière « ≥2 » par rapport à « ≥1 », il faut une *masse* de patients de chaque côté. Avec 0, 1 ou 2 patients au-dessus, l'estimation n'a aucune assise : la frontière « flotte », totalement déterminée par le hasard de ces 2 points (ou par le prior si on en met un). On ne mesure plus rien — on devine.
 
@@ -171,6 +172,7 @@ Le piège classique serait de tout mélanger dans un seul « test global ». Non
 
 > [!TIP]
 > **Convention d'Austin pour lire une SMD.**
+>
 > - $|\text{SMD}| < 0{,}10$ → différence **négligeable** (zone verte).
 > - $|\text{SMD}| \ge 0{,}25$ → **déséquilibre notable** (point rouge), à corriger.
 > - Entre les deux : zone tampon, à surveiller.
@@ -188,11 +190,15 @@ Avant la SMD et le TOST, chaque ligne des tableaux ci-dessous affiche un **MWU $
 
 **Théorie — un test de *rangs*, pas de moyennes.** On veut comparer **deux groupes indépendants** (cyclops vs méniscus) sans supposer la normalité. On met les $n_x + n_y$ observations **en commun**, on les classe par rang $1\ldots N$ (rangs moyens en cas d'ex æquo), on somme les rangs d'un groupe → $R_x$, puis :
 
-$$U_x = R_x - \frac{n_x(n_x+1)}{2}$$
+$$
+U_x = R_x - \frac{n_x(n_x+1)}{2}
+$$
 
 $U_x$ **compte**, sur les $n_x\times n_y$ paires (cyclops $i$, méniscus $j$), combien de fois une valeur cyclops dépasse une valeur méniscus (ex æquo comptés $\tfrac12$) :
 
-$$U_x = \#\{(i,j): x_i > y_j\} + \tfrac12\,\#\{x_i = y_j\}$$
+$$
+U_x = \#\{(i,j): x_i > y_j\} + \tfrac12\,\#\{x_i = y_j\}
+$$
 
 **Hypothèse nulle.** $H_0$ : les deux distributions sont **les mêmes** — de façon équivalente $P(X>Y)=P(Y>X)=\tfrac12$ (aucune **dominance stochastique**, ni groupe ne tend à être plus haut). La **$p$-value** = probabilité, sous $H_0$, d'observer un $U$ aussi extrême que le nôtre.
 
@@ -200,6 +206,7 @@ $$U_x = \#\{(i,j): x_i > y_j\} + \tfrac12\,\#\{x_i = y_j\}$$
 
 > [!TIP]
 > **Wilcoxon — deux tests homonymes à ne pas confondre.**
+>
 > - **Wilcoxon rang-somme = Mann–Whitney U** : **deux groupes indépendants** (cyclops vs méniscus). C'est celui d'ici, et des 6 tests inter-groupes du §03.
 > - **Wilcoxon signed-rank** : **apparié**, un seul échantillon de **différences** $S2-S1$ du *même* patient. C'est celui du §02 ($\Delta_{\text{PF}}$ intra-patient). Même nom de famille, mécanique différente : l'un classe des **valeurs entre groupes**, l'autre des **différences appariées**.
 
@@ -208,20 +215,24 @@ $$U_x = \#\{(i,j): x_i > y_j\} + \tfrac12\,\#\{x_i = y_j\}$$
 > [!IMPORTANT]
 > **MWU exige un ORDRE — d'où il sert, et où Fisher/chi² prennent le relais.** Le pipeline route chaque variable selon son type (`reporting.py`) ; le sexe **n'est PAS testé par MWU** :
 >
-> | Type de variable | Test utilisé | Effet rapporté |
-> |---|---|---|
-> | Continu (âge, IMC, taille, poids) | **MWU** (`mannwhitneyu`) | SMD (Cohen) |
-> | Binaire 2 niveaux (sexe H/F, tabac, pivot…) | **Fisher exact** 2×2 | SMD binaire (Austin) |
-> | Nominal ≥ 3 niveaux non ordonnés | **chi²** (`chi2_contingency`) | — |
-> | Scores lésionnels ordinaux (PF / FT / global) | **MWU** + Cliff δ + TOST | Cliff δ |
+> | Type de variable                               | Test utilisé                          | Effet rapporté      |
+> | ---------------------------------------------- | -------------------------------------- | -------------------- |
+> | Continu (âge, IMC, taille, poids)             | **MWU** (`mannwhitneyu`)       | SMD (Cohen)          |
+> | Binaire 2 niveaux (sexe H/F, tabac, pivot…)   | **Fisher exact** 2×2            | SMD binaire (Austin) |
+> | Nominal ≥ 3 niveaux non ordonnés             | **chi²** (`chi2_contingency`) | —                   |
+> | Scores lésionnels ordinaux (PF / FT / global) | **MWU** + Cliff δ + TOST        | Cliff δ             |
 
 **Le cas binaire 0/1 (sexe H/F) en détail.** MWU *peut* tourner sur du 0/1 (ordre trivial $0<1$), mais il **dégénère en test de proportions**. Avec 2 valeurs distinctes, le classement n'a que **deux blocs d'ex æquo** : les $m$ zéros prennent le rang moyen $(m+1)/2$, les $k$ uns le rang moyen $m+(k+1)/2$. La paire $x>y$ n'arrive que pour $x=1,\,y=0$, d'où :
 
-$$U_x = n_{x1}\,n_{y0} + \tfrac12\big(n_{x1}n_{y1} + n_{x0}n_{y0}\big)$$
+$$
+U_x = n_{x1}\,n_{y0} + \tfrac12\big(n_{x1}n_{y1} + n_{x0}n_{y0}\big)
+$$
 
 ($n_{x1}$ = cyclops à 1, $n_{y0}$ = méniscus à 0…). En posant $p_x, p_y$ les proportions de « 1 » dans chaque groupe, l'effet se simplifie **exactement** en :
 
-$$\text{Cliff's }\delta = p_x - p_y$$
+$$
+\text{Cliff's }\delta = p_x - p_y
+$$
 
 Avec la variance **corrigée des ex æquo**, l'approximation normale du MWU devient **asymptotiquement équivalente au test $z$ de deux proportions / au chi²** (sans correction de continuité). Autrement dit, **MWU sur 0/1 est un test de proportions déguisé** — autant prendre **Fisher** directement (exact, standard de Table 1). C'est exactement le choix du pipeline.
 
@@ -232,11 +243,15 @@ Avec la variance **corrigée des ex æquo**, l'approximation normale du MWU devi
 
 **La SMD (covariable continue, ex. l'âge)** est la différence des moyennes divisée par l'écart-type combiné :
 
-$$\text{SMD} = \frac{\bar{x}_{\text{cyclops}} - \bar{x}_{\text{méniscus}}}{s_{\text{pooled}}}$$
+$$
+\text{SMD} = \frac{\bar{x}_{\text{cyclops}} - \bar{x}_{\text{méniscus}}}{s_{\text{pooled}}}
+$$
 
 Pour une covariable **binaire** (le sexe, par exemple), Austin remplace l'écart-type par la forme proportion :
 
-$$\text{SMD}_{\text{binaire}} = \frac{p_1 - p_2}{\sqrt{\bar{p}\,(1-\bar{p})}}$$
+$$
+\text{SMD}_{\text{binaire}} = \frac{p_1 - p_2}{\sqrt{\bar{p}\,(1-\bar{p})}}
+$$
 
 où $p_1, p_2$ sont les proportions dans chaque groupe et $\bar p$ leur moyenne.
 
@@ -247,7 +262,9 @@ où $p_1, p_2$ sont les proportions dans chaque groupe et $\bar p$ leur moyenne.
 
 **D'où vient $\Delta = 0{,}292$ ?** La marge n'est **pas** choisie à la main : elle est **dérivée des données** du sous-score PF à S1. La règle est « une **demi-déviation standard** », appliquée à l'écart-type combiné des deux groupes :
 
-$$\Delta = 0{,}5 \times s_{\text{pooled}}, \qquad s_{\text{pooled}} = \sqrt{\frac{(n_x-1)\,s_x^2 + (n_y-1)\,s_y^2}{n_x + n_y - 2}}$$
+$$
+\Delta = 0{,}5 \times s_{\text{pooled}}, \qquad s_{\text{pooled}} = \sqrt{\frac{(n_x-1)\,s_x^2 + (n_y-1)\,s_y^2}{n_x + n_y - 2}}
+$$
 
 où $x$ = `lesion_pf_S1` (cyclops) et $y$ = `lesion_pf_S1` (méniscus). Numériquement, $s_{\text{pooled}} \approx 0{,}584$ unités-lésion, donc $\Delta = 0{,}5 \times 0{,}584 \approx 0{,}292$. *(Source : `tests_freq.py`, `baseline_pf_balance` → `bound = 0.5 * sp`.)*
 
@@ -259,11 +276,11 @@ où $x$ = `lesion_pf_S1` (cyclops) et $y$ = `lesion_pf_S1` (méniscus). Numériq
 
 **Exemple chiffré réel — le bloc PF à S1.**
 
-| Mesure | Valeur | Lecture |
-|---|---|---|
-| MWU $p$ (test de différence) | $0{,}818$ | aucune différence détectée |
-| SMD | $-0{,}009$ | point quasi **pile au centre** de la boîte |
-| TOST $p$ (équivalence) | $0{,}034 < 0{,}05$ | **équivalent = True** ✅ |
+| Mesure                         | Valeur               | Lecture                                          |
+| ------------------------------ | -------------------- | ------------------------------------------------ |
+| MWU$p$ (test de différence) | $0{,}818$          | aucune différence détectée                    |
+| SMD                            | $-0{,}009$         | point quasi**pile au centre** de la boîte |
+| TOST$p$ (équivalence)       | $0{,}034 < 0{,}05$ | **équivalent = True** ✅                  |
 
 La SMD de $-0{,}009$ veut dire que le point estimé de la différence est **quasiment exactement au milieu** de la boîte $[-0{,}292\,;\,+0{,}292]$ : on ne peut pas rêver mieux comme ligne de départ commune.
 
@@ -273,11 +290,11 @@ La SMD de $-0{,}009$ veut dire que le point estimé de la différence est **quas
 
 **Contre-exemple réel — le bloc FT à S1.** Le même test, appliqué par symétrie à l'autre bloc (`baseline_block_balance(wide, col="lesion_ft_S1")`), donne un verdict **opposé** — et c'est précisément ce qui rend l'exercice instructif :
 
-| Mesure | Valeur | Lecture |
-|---|---|---|
-| MWU $p$ (test de différence) | $0{,}770$ | aucune différence **détectée** |
-| SMD | $+0{,}262$ | déséquilibre « petit » — cyclops **plus** lésés en FT au départ |
-| TOST $p$ (équivalence, borne $\Delta = 0{,}437$) | $0{,}186 > 0{,}05$ | **équivalent = False** ❌ |
+| Mesure                                               | Valeur               | Lecture                                                                      |
+| ---------------------------------------------------- | -------------------- | ---------------------------------------------------------------------------- |
+| MWU$p$ (test de différence)                       | $0{,}770$          | aucune différence**détectée**                                       |
+| SMD                                                  | $+0{,}262$         | déséquilibre « petit » — cyclops**plus** lésés en FT au départ |
+| TOST$p$ (équivalence, borne $\Delta = 0{,}437$) | $0{,}186 > 0{,}05$ | **équivalent = False** ❌                                             |
 
 C'est exactement le piège du `[!WARNING]` du §2 : le MWU non-significatif ($0{,}770$) **ne prouve pas** l'équivalence. Le TOST, lui, **échoue** ($0{,}186$) parce que le centre n'est **pas** collé à zéro (SMD $+0{,}26$) : les cyclops démarrent avec un léger excès de lésion fémorotibiale. Détail subtil : la borne FT ($\Delta = 0{,}437$) est **plus large** que la PF ($0{,}292$) car le bloc FT est intrinsèquement plus dispersé ($s_{\text{pooled}} \approx 0{,}87$ contre $0{,}58$) — et **malgré** cette boîte plus généreuse, la différence n'y tient pas.
 
@@ -288,22 +305,22 @@ C'est exactement le piège du `[!WARNING]` du §2 : le MWU non-significatif ($0{
 
 **Covariables patient (SMD signée, Cyclops − Méniscus) :**
 
-| Covariable | SMD | Verdict Austin |
-|---|---:|---|
-| Âge au trauma (médianes 30,9 vs 24,9 ans) | $+0{,}484$ | 🔴 déséquilibre notable |
-| Sexe (féminin) | $\approx +0{,}37$ | 🔴 déséquilibre notable |
-| Sport pivot/contact | $\approx +0{,}35$ | 🔴 déséquilibre notable |
-| Métier physique | $-0{,}28$ | 🔴 notable |
-| Tabac | $-0{,}14$ | 🟠 modéré |
-| IMC (médianes 24,4 vs 24,8) | $\approx -0{,}08$ | 🟢 négligeable |
+| Covariable                                  |                 SMD | Verdict Austin            |
+| ------------------------------------------- | ------------------: | ------------------------- |
+| Âge au trauma (médianes 30,9 vs 24,9 ans) |        $+0{,}484$ | 🔴 déséquilibre notable |
+| Sexe (féminin)                             | $\approx +0{,}37$ | 🔴 déséquilibre notable |
+| Sport pivot/contact                         | $\approx +0{,}35$ | 🔴 déséquilibre notable |
+| Métier physique                            |         $-0{,}28$ | 🔴 notable                |
+| Tabac                                       |         $-0{,}14$ | 🟠 modéré               |
+| IMC (médianes 24,4 vs 24,8)                | $\approx -0{,}08$ | 🟢 négligeable           |
 
 **État cartilagineux à S1 (équivalence).** Les **trois niveaux** (global 6-sum, PF, FT) passent par le **même** test unifié (`baseline_block_balance` : MWU + SMD + TOST) :
 
-| Niveau | MWU $p$ | SMD | TOST $p$ (borne) | Verdict |
-|---|---:|---:|---|---|
-| Global (6-sum) | $0{,}662$ | $+0{,}191$ | $0{,}124$ ($\pm0{,}585$) | ❌ non équivalent |
-| **PF** (porte l'outcome) | $0{,}818$ | $-0{,}009$ | $0{,}034$ ($\pm0{,}292$) | ✅ **équivalent** |
-| **FT** | $0{,}770$ | $+0{,}262$ | $0{,}186$ ($\pm0{,}437$) | ❌ non équivalent |
+| Niveau                         |    MWU$p$ |          SMD | TOST$p$ (borne)            | Verdict                 |
+| ------------------------------ | ----------: | -----------: | ---------------------------- | ----------------------- |
+| Global (6-sum)                 | $0{,}662$ | $+0{,}191$ | $0{,}124$ ($\pm0{,}585$) | ❌ non équivalent      |
+| **PF** (porte l'outcome) | $0{,}818$ | $-0{,}009$ | $0{,}034$ ($\pm0{,}292$) | ✅**équivalent** |
+| **FT**                   | $0{,}770$ | $+0{,}262$ | $0{,}186$ ($\pm0{,}437$) | ❌ non équivalent      |
 
 **Seul le bloc PF** est positivement équivalent. Le global et le FT montrent une différence **non détectée** par le MWU mais **échouent le TOST** (SMD non négligeables, $+0{,}19$ et $+0{,}26$) — c'est *exactement* le piège « absence de preuve ≠ preuve d'absence », maintenant visible à **tous les niveaux non-PF**.
 
@@ -354,7 +371,9 @@ La question centrale de l'étude : **l'effet fémoro-patellaire (PF) existe-t-il
 
 On définit pour chaque patient sa progression PF :
 
-$$\Delta_{\mathrm{PF}} \;=\; \text{score PF à S2} \;-\; \text{score PF à S1} \qquad (\text{PF} = \text{trochlée} + \text{rotule})$$
+$$
+\Delta_{\mathrm{PF}} \;=\; \text{score PF à S2} \;-\; \text{score PF à S1} \qquad (\text{PF} = \text{trochlée} + \text{rotule})
+$$
 
 Un $\Delta_{\mathrm{PF}} > 0$ veut dire que le cartilage fémoro-patellaire s'est **dégradé** entre les deux chirurgies. On veut savoir si les **cyclops** s'aggravent davantage que les **méniscus**, autrement dit si $\Delta_{\mathrm{PF}}$ est systématiquement plus grand dans le groupe cyclops. C'est la vérification directe de l'hypothèse mécanique (le flexum surcharge la rotule).
 
@@ -372,7 +391,9 @@ Trois choix, chacun motivé par la nature des données.
 
 **La théorie.** Cliff δ se dérive de la statistique $U$ de Mann–Whitney. Avec $R_1$ la somme des rangs du groupe 1 :
 
-$$U_1 = R_1 - \frac{n_1(n_1+1)}{2}\qquad \delta = \frac{\#(x>y) - \#(x<y)}{n_1 n_2} = \frac{2U}{n_1 n_2} - 1$$
+$$
+U_1 = R_1 - \frac{n_1(n_1+1)}{2}\qquad \delta = \frac{\#(x>y) - \#(x<y)}{n_1 n_2} = \frac{2U}{n_1 n_2} - 1
+$$
 
 Autrement dit : on forme **tous** les couples (un cyclops, un méniscus), on compte combien de fois le cyclops est pire ($x>y$), combien de fois il est mieux ($x<y$), et δ est la différence normalisée. δ va de $-1$ (toujours mieux) à $+1$ (toujours pire), $0$ = match nul.
 
@@ -381,10 +402,10 @@ Autrement dit : on forme **tous** les couples (un cyclops, un méniscus), on com
 >
 > Distribution de $\Delta_{\mathrm{PF}}$ :
 >
-> | Groupe | 0 | 1 | 2 | 3 | 4 | n |
-> |---|---:|---:|---:|---:|---:|---:|
-> | Cyclops (49) | 21 | 15 | 9 | 3 | 1 | 49 |
-> | Méniscus (20) | 19 | 1 | — | — | — | 20 |
+> | Groupe         |  0 |  1 |  2 |  3 |  4 |  n |
+> | -------------- | -: | -: | -: | -: | -: | -: |
+> | Cyclops (49)   | 21 | 15 |  9 |  3 |  1 | 49 |
+> | Méniscus (20) | 19 |  1 | — | — | — | 20 |
 >
 > On organise un tournoi : chaque cyclops affronte chaque méniscus, soit **49 × 20 = 980 duels**.
 >
@@ -394,11 +415,15 @@ Autrement dit : on forme **tous** les couples (un cyclops, un méniscus), on com
 >
 > Vérification : $545 + 21 + 414 = 980$. ✓
 >
-> $$\delta = \frac{545 - 21}{980} = \frac{524}{980} = \boldsymbol{+0{,}5347}$$
+> $$
+> \delta = \frac{545 - 21}{980} = \frac{524}{980} = \boldsymbol{+0{,}5347}
+> $$
 
 **Le lien avec la probabilité de supériorité.** Si on tire un cyclops et un méniscus au hasard, la probabilité que le cyclops soit pire (égalités comptées pour moitié) est
 
-$$\frac{U}{n_1 n_2} = \frac{545 + 414/2}{980} = 0{,}7673,$$
+$$
+\frac{U}{n_1 n_2} = \frac{545 + 414/2}{980} = 0{,}7673,
+$$
 
 et $\delta = 2 \cdot 0{,}7673 - 1 = 0{,}5347$ : exactement la même information, juste **recentrée sur 0** au lieu de 0,5.
 
@@ -410,15 +435,15 @@ et $\delta = 2 \cdot 0{,}7673 - 1 = 0{,}5347$ : exactement la même information,
 
 La figure (raincloud) montre tout : à gauche, le nuage **cyclops** s'étale du sol ($\Delta = 0$) jusqu'à 4, avec une masse importante au-dessus de 0 (médiane à 1, boîte montant à 2) — **57 % aggravés**. À droite, le nuage **méniscus** est écrasé sur la ligne $\Delta = 0$, un seul point isolé vers 1 — **5 % aggravés**. Deux populations visiblement différentes.
 
-| Quantité | Valeur |
-|---|---|
-| Cliff δ | **+0,535** (effet large) |
-| Probabilité de supériorité | 0,767 |
-| MWU p | 0,0001 |
-| Permutation p | 0,0002 |
-| **BCa 95 %** | **[0,367 ; 0,684]** |
-| IC d'inversion 95 % | [0,357 ; 0,675] |
-| Aggravation PF | **28/49 (57,1 %) cyclops** vs **1/20 (5,0 %) méniscus** |
+| Quantité                     | Valeur                                                               |
+| ----------------------------- | -------------------------------------------------------------------- |
+| Cliff δ                      | **+0,535** (effet large)                                       |
+| Probabilité de supériorité | 0,767                                                                |
+| MWU p                         | 0,0001                                                               |
+| Permutation p                 | 0,0002                                                               |
+| **BCa 95 %**            | **[0,367 ; 0,684]**                                            |
+| IC d'inversion 95 %           | [0,357 ; 0,675]                                                      |
+| Aggravation PF                | **28/49 (57,1 %) cyclops** vs **1/20 (5,0 %) méniscus** |
 
 **Modèle beta-binomial (M1).** Probabilité d'aggravation PF estimée à **0,569 [0,438 ; 0,695]** chez les cyclops vs **0,091 [0,013 ; 0,230]** chez les méniscus — **intervalles non chevauchants**.
 
@@ -479,18 +504,22 @@ $$
 
 **Table des % d'aggravation par compartiment** (cyclops vs méniscus), avec la décision BH :
 
-| Compartiment | Bloc | Cyclops | Méniscus | Cliff δ | BH |
-|---|---|---:|---:|---:|---|
-| Rotule | PF | 55.1% | 5.0% | +0.507 | Oui (cyclops) |
-| Trochlée | PF | 20.4% | 0.0% | +0.204 | Oui (cyclops) |
-| PTE | FT | 2.0% | 10.0% | −0.080 | Non |
-| PTI | FT | 2.0% | 25.0% | −0.230 | **Oui (méniscus)** |
-| CFE | FT | 0.0% | 10.0% | −0.100 | **Oui (méniscus)** |
-| CFI | FT | 0.0% | 5.0% | −0.050 | Non |
+| Compartiment | Bloc | Cyclops | Méniscus | Cliff δ | BH                        |
+| ------------ | ---- | ------: | --------: | -------: | ------------------------- |
+| Rotule       | PF   |   55.1% |      5.0% |   +0.507 | Oui (cyclops)             |
+| Trochlée    | PF   |   20.4% |      0.0% |   +0.204 | Oui (cyclops)             |
+| PTE          | FT   |    2.0% |     10.0% |  −0.080 | Non                       |
+| PTI          | FT   |    2.0% |     25.0% |  −0.230 | **Oui (méniscus)** |
+| CFE          | FT   |    0.0% |     10.0% |  −0.100 | **Oui (méniscus)** |
+| CFI          | FT   |    0.0% |      5.0% |  −0.050 | Non                       |
 
 > [!NOTE]
 > **Exemple de dilution — pourquoi la somme efface le signal.** Additionne les 6 compartiments en un score unique (`lesion_total`). Tu mélanges **2 compartiments actifs** (PF, où les cyclops s'aggravent franchement) avec **4 compartiments inertes ou inversés** (FT, où ce sont parfois les méniscus qui s'aggravent). Résultat : l'effet est rétréci à
-> $$\text{Cliff } \bar\delta_{6} = +0.204, \qquad p_{\text{deux-côtés}} = 0.156, \qquad p_{\text{un-côté}} = 0.078.$$
+>
+> $$
+> \text{Cliff } \bar\delta_{6} = +0.204, \qquad p_{\text{deux-côtés}} = 0.156, \qquad p_{\text{un-côté}} = 0.078.
+> $$
+>
 > Aucun de ces p n'est décisionnel. Le vrai signal PF a été **noyé** par la moyenne.
 
 #### 4 · Résultat
@@ -562,7 +591,9 @@ Le modèle est une **régression logistique pénalisée Firth** sur l'aggravatio
 
 **De la cote (odds) à l'odds ratio.** La *cote* d'aggraver dans un groupe = (nombre qui empirent) / (nombre stables). Sur nos données :
 
-$$\text{odds}_{\text{cyclops}} = \frac{28}{21} = 1{,}33, \qquad \text{odds}_{\text{méniscus}} = \frac{1}{19} = 0{,}053, \qquad \text{OR} = \frac{1{,}33}{0{,}053} = 25{,}33$$
+$$
+\text{odds}_{\text{cyclops}} = \frac{28}{21} = 1{,}33, \qquad \text{odds}_{\text{méniscus}} = \frac{1}{19} = 0{,}053, \qquad \text{OR} = \frac{1{,}33}{0{,}053} = 25{,}33
+$$
 
 L'**odds ratio** (OR) est le rapport de ces deux cotes — *à ne pas confondre* avec le **risque relatif** (RR), qui compare des probabilités (voir plus bas).
 
@@ -578,45 +609,57 @@ L'**odds ratio** (OR) est le rapport de ces deux cotes — *à ne pas confondre*
 
 1. **Composante aléatoire (la loi).** Conditionnellement aux covariables, les réponses sont des **Bernoulli indépendantes** :
 
-$$Y_i \mid \mathbf{x}_i \;\sim\; \mathrm{Bernoulli}(p_i), \qquad p_i \equiv \mathbb{P}(Y_i = 1 \mid \mathbf{x}_i), \qquad i = 1,\dots,n \text{ indépendants.}$$
+$$
+Y_i \mid \mathbf{x}_i \;\sim\; \mathrm{Bernoulli}(p_i), \qquad p_i \equiv \mathbb{P}(Y_i = 1 \mid \mathbf{x}_i), \qquad i = 1,\dots,n \text{ indépendants.}
+$$
 
   Aucune hypothèse de **normalité** ni de variance libre : pour une Bernoulli, $\mathbb{E}[Y_i \mid \mathbf{x}_i] = p_i$ et $\mathrm{Var}(Y_i \mid \mathbf{x}_i) = p_i(1-p_i)$ sont **liées** par construction.
 
 2. **Composante systématique (prédicteur linéaire).** Les effets s'additionnent sur une échelle latente :
 
-$$\eta_i \;=\; \mathbf{x}_i^{\!\top}\boldsymbol{\beta} \;=\; \beta_0 + \beta_{\text{grp}}\,\text{cyclope}_i + \beta_{\text{sexe}}\,\text{femme}_i + \beta_{\text{âge}}\,\text{âge}_i .$$
+$$
+\eta_i \;=\; \mathbf{x}_i^{\!\top}\boldsymbol{\beta} \;=\; \beta_0 + \beta_{\text{grp}}\,\text{cyclope}_i + \beta_{\text{sexe}}\,\text{femme}_i + \beta_{\text{âge}}\,\text{âge}_i .
+$$
 
 3. **Fonction de lien (logit).** Elle relie la moyenne $p_i$ au prédicteur $\eta_i$ :
 
-$$\operatorname{logit}(p_i) \;=\; \ln\frac{p_i}{1-p_i} \;=\; \eta_i \qquad\Longleftrightarrow\qquad p_i \;=\; \operatorname{expit}(\eta_i) \;=\; \frac{1}{1+e^{-\eta_i}} \in (0,1).$$
+$$
+\operatorname{logit}(p_i) \;=\; \ln\frac{p_i}{1-p_i} \;=\; \eta_i \qquad\Longleftrightarrow\qquad p_i \;=\; \operatorname{expit}(\eta_i) \;=\; \frac{1}{1+e^{-\eta_i}} \in (0,1).
+$$
 
 **Pourquoi *ce* lien (et pas une régression linéaire) ?** Trois raisons : (i) $Y$ est binaire — un modèle linéaire $p_i = \mathbf{x}_i^{\!\top}\boldsymbol{\beta}$ prédirait des « probabilités » **hors de $[0,1]$**, alors que le logit envoie $(0,1)\!\to\!\mathbb{R}$ et garde donc toujours $p_i$ dans $(0,1)$ ; (ii) le logit est le **lien canonique** de la famille Bernoulli (bonnes propriétés d'estimation) ; (iii) il rend les effets **multiplicatifs sur la cote**, d'où la lecture directe en **odds ratio** ci-dessous.
 
 **Estimation.** On estime $\boldsymbol{\beta}$ par **maximum de vraisemblance** — on maximise la log-vraisemblance Bernoulli
 
-$$\ell(\boldsymbol{\beta}) \;=\; \sum_{i=1}^{n} \Big[\, y_i \ln p_i(\boldsymbol{\beta}) + (1-y_i)\ln\big(1-p_i(\boldsymbol{\beta})\big) \Big]$$
+$$
+\ell(\boldsymbol{\beta}) \;=\; \sum_{i=1}^{n} \Big[\, y_i \ln p_i(\boldsymbol{\beta}) + (1-y_i)\ln\big(1-p_i(\boldsymbol{\beta})\big) \Big]
+$$
 
 — puis **pénalisée à la Firth** (encadré ci-dessous), car la quasi-séparation fait diverger le maximum de vraisemblance ordinaire. Un tableau 2×2 brut, lui, ne donne *qu'un* OR non ajusté : seul le coefficient $\beta_{\text{grp}}$ d'un modèle **multivarié** isole l'effet du groupe **net** du sexe et de l'âge.
 
 **Pourquoi $\text{OR}_{\text{cyclope}} = e^{\beta_{\text{grp}}}$.** Conséquence directe du lien logit. Soit deux patients de **mêmes sexe et âge**, l'un cyclope ($\text{cyclope}=1$), l'autre ménisque ($0$) : leurs log-cotes ne diffèrent que par le terme de groupe. En soustrayant,
 
-$$\underbrace{\ln\frac{p_{\text{cyc}}}{1-p_{\text{cyc}}} - \ln\frac{p_{\text{mén}}}{1-p_{\text{mén}}}}_{\textstyle \ln(\text{OR})} \;=\; \beta_{\text{grp}} \qquad\Longrightarrow\qquad \boxed{\;\text{OR}_{\text{cyclope}} = e^{\beta_{\text{grp}}}\;}$$
+$$
+\underbrace{\ln\frac{p_{\text{cyc}}}{1-p_{\text{cyc}}} - \ln\frac{p_{\text{mén}}}{1-p_{\text{mén}}}}_{\textstyle \ln(\text{OR})} \;=\; \beta_{\text{grp}} \qquad\Longrightarrow\qquad \boxed{\;\text{OR}_{\text{cyclope}} = e^{\beta_{\text{grp}}}\;}
+$$
 
 Le coefficient de groupe **est** donc le log-odds-ratio **ajusté** (à sexe et âge fixés) ; l'exponentielle le ramène sur l'échelle OR. *(Brut : $\beta_{\text{grp}} = 2{,}85 \Rightarrow e^{2{,}85} = 17{,}2$.)*
 
 > [!NOTE]
 > **Firth = « ajouter un demi-patient ».** Notre tableau 2×2 d'aggravation PF :
 >
-> |               | empirent | stables |
-> |---------------|:--------:|:-------:|
-> | **cyclops**       |    28    |   21    |
-> | **méniscus** |    1     |   19    |
+> |                     | empirent | stables |
+> | ------------------- | :------: | :-----: |
+> | **cyclops**   |    28    |   21   |
+> | **méniscus** |    1    |   19   |
 >
 > L'OR du maximum de vraisemblance naïf vaut $(28\times19)/(21\times1) = \mathbf{25{,}33}$ — le fantôme, suspendu à l'unique « 1 ».
 >
 > Firth revient, en première approximation, à **ajouter un demi-patient (½) à chaque case** pour qu'aucune ne soit vide :
 >
-> $$\text{OR}_{\text{Firth}} \approx \frac{28{,}5 \times 19{,}5}{21{,}5 \times 1{,}5} \approx \mathbf{17{,}2}$$
+> $$
+> \text{OR}_{\text{Firth}} \approx \frac{28{,}5 \times 19{,}5}{21{,}5 \times 1{,}5} \approx \mathbf{17{,}2}
+> $$
 >
 > ce qui colle à la valeur exacte de l'algorithme (**17,23**). On le voit converger proprement en quelques pas de Newton-Raphson : $8{,}05 \to 14{,}72 \to 17{,}19 \to \mathbf{17{,}23}$ (convergé), avec $\beta_1 = 2{,}85$ et $\text{SE} = 0{,}91$. La case « 1 » ne dicte plus à elle seule le résultat.
 >
@@ -624,26 +667,32 @@ Le coefficient de groupe **est** donc le log-odds-ratio **ajusté** (à sexe et 
 
 **Brut vs ajusté : même modèle, un $\beta$ qui change de *sens*.** Les deux odds ratios sortent du **même** maximum de vraisemblance pénalisé Firth — seule la **composante systématique $\eta_i$** change.
 
-| Modèle | Composante systématique $\eta_i$ | $\hat\beta_{\text{grp}}$ | $\text{OR}=e^{\hat\beta_{\text{grp}}}$ | Sens de $\beta_{\text{grp}}$ |
-|---|---|:---:|:---:|---|
-| **Brut** | $\beta_0 + \beta_{\text{grp}}\,\text{cyclope}_i$ | $2{,}85$ | $\mathbf{17{,}2}$ | association **totale** (= le 2×2 écrit en logit) |
-| **Ajusté** | $\beta_0 + \beta_{\text{grp}}\,\text{cyclope}_i + \beta_{\text{sexe}}\,\text{femme}_i + \beta_{\text{âge}}\,\text{âge}_i$ | $2{,}60$ | $\mathbf{13{,}5}$ | effet **partiel**, à sexe & âge fixés |
+| Modèle           | Composante systématique$\eta_i$                                                                                            | $\hat\beta_{\text{grp}}$ | $\text{OR}=e^{\hat\beta_{\text{grp}}}$ | Sens de$\beta_{\text{grp}}$                           |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------- | :------------------------: | :--------------------------------------: | ------------------------------------------------------- |
+| **Brut**    | $\beta_0 + \beta_{\text{grp}}\,\text{cyclope}_i$                                                                            |         $2{,}85$         |           $\mathbf{17{,}2}$           | association**totale** (= le 2×2 écrit en logit) |
+| **Ajusté** | $\beta_0 + \beta_{\text{grp}}\,\text{cyclope}_i + \beta_{\text{sexe}}\,\text{femme}_i + \beta_{\text{âge}}\,\text{âge}_i$ |         $2{,}60$         |           $\mathbf{13{,}5}$           | effet**partiel**, à sexe & âge fixés           |
 
 Deux points à retenir : (i) **même machine, même formule** — dans les deux cas $\text{OR} = e^{\beta_{\text{grp}}}$ estimé par MV pénalisée Firth ; seul le **contenu de $\eta$** diffère (groupe seul *vs* groupe + confondeurs). (ii) Le coefficient $\beta_{\text{grp}}$ **change de sens** : brut = effet *total* du groupe ; ajusté = effet *partiel*, **net** du sexe et de l'âge. C'est ce **changement de sens** — pas un changement de méthode — qui fait passer de $17{,}2$ à $13{,}5$ ($\beta : 2{,}85 \to 2{,}60$) ; et la **petitesse** de la baisse dit que sexe + âge n'expliquent qu'une miette de l'association.
 
 **OR vs RR — le risque relatif.** Le **risque relatif** (RR) compare les *probabilités* d'aggraver, pas les cotes :
 
-$$\text{RR} = \frac{p_{\text{cyclops}}}{p_{\text{méniscus}}} = \frac{28/49}{1/20} = \frac{0{,}571}{0{,}050} = 11{,}4$$
+$$
+\text{RR} = \frac{p_{\text{cyclops}}}{p_{\text{méniscus}}} = \frac{28/49}{1/20} = \frac{0{,}571}{0{,}050} = 11{,}4
+$$
 
 OR ($25{,}3$ brut) et RR ($11{,}4$) **divergent** ici parce que l'issue est **fréquente** (57 % des cyclops aggravent). Règle générale : pour une issue **rare**, $\text{OR} \approx \text{RR}$ ; pour une issue **fréquente**, l'OR **exagère** le RR. Ce point conditionne le calcul de l'E-value.
 
 **E-value (VanderWeele & Ding, 2017).** C'est la **force minimale** qu'un confondeur **non mesuré** devrait avoir — sur l'échelle du **risque relatif**, et **à la fois** avec l'exposition (être cyclope) *et* avec l'issue (aggravation PF) — pour expliquer *entièrement* l'association observée, une fois les covariables mesurées prises en compte. Elle se lit comme un RR :
 
-$$\text{E-value} = \text{RR} + \sqrt{\text{RR}\,(\text{RR}-1)}$$
+$$
+\text{E-value} = \text{RR} + \sqrt{\text{RR}\,(\text{RR}-1)}
+$$
 
 La formule attend un **RR**. Comme on part d'un **OR sur une issue fréquente**, on convertit d'abord $\text{RR} \approx \sqrt{\text{OR}}$ (recommandation de VanderWeele pour une issue commune). Le calcul est fait sur l'**OR brut de Firth** (17,2) et sa **borne basse d'IC à 95 %** (2,87) :
 
-$$\sqrt{17{,}2} \approx 4{,}15 \;\Rightarrow\; \text{E} = 4{,}15 + \sqrt{4{,}15 \times 3{,}15} \approx \mathbf{7{,}77}; \qquad \sqrt{2{,}87} \approx 1{,}69 \;\Rightarrow\; \text{E}_{\text{IC}} \approx \mathbf{2{,}78}$$
+$$
+\sqrt{17{,}2} \approx 4{,}15 \;\Rightarrow\; \text{E} = 4{,}15 + \sqrt{4{,}15 \times 3{,}15} \approx \mathbf{7{,}77}; \qquad \sqrt{2{,}87} \approx 1{,}69 \;\Rightarrow\; \text{E}_{\text{IC}} \approx \mathbf{2{,}78}
+$$
 
 > [!TIP]
 > **Comment lire une E-value.** Plus elle est grande, plus l'effet résiste à un biais de confusion caché. **7,77** signifie : il faudrait un confondeur non mesuré lié au groupe **et** à l'issue par un **RR ≥ 7,77 des deux côtés** pour ramener l'effet à rien ; et même au pire de l'intervalle (**2,78**), il faudrait encore un confondeur de force ≥ 2,78. Un facteur aussi puissant, et *non déjà capté* par le sexe et l'âge, est peu plausible ici. (À comparer aux RR typiques des confondeurs cliniques candidats, souvent < 2.)
@@ -656,12 +705,12 @@ $$\sqrt{17{,}2} \approx 4{,}15 \;\Rightarrow\; \text{E} = 4{,}15 + \sqrt{4{,}15 
 
 Le forest plot (échelle log, ligne pointillée à OR = 1) empile les estimations Firth, toutes très au-dessus de 1, intervalles de confiance entiers à droite de la ligne nulle ; le titre rappelle que l'« OR ML = 24 » était de la quasi-séparation et affiche la E-value 7,77.
 
-| Modèle | OR (Firth) | IC 95 % | p |
-|---|:---:|:---:|:---:|
-| **Brut** | **17,2** | [2,9 ; 103,5] | — |
+| Modèle                                     |   OR (Firth)   |    IC 95 %    |        p        |
+| ------------------------------------------- | :------------: | :-----------: | :-------------: |
+| **Brut**                              | **17,2** | [2,9 ; 103,5] |       —       |
 | **Ajusté sexe + âge** (co-primaire) | **13,5** | [2,3 ; 80,1] | **0,004** |
-| Ajusté sexe + âge + IMC | 13,9 | [2,3 ; 83,4] | — |
-| En excluant les 3 anomalies de dates | 14,2 | — | — |
+| Ajusté sexe + âge + IMC                   |      13,9      | [2,3 ; 83,4] |       —       |
+| En excluant les 3 anomalies de dates        |      14,2      |      —      |       —       |
 
 - **OR Firth brut = 17,2** [2,9 ; 103,5] (la case de méniscus minimale vaut 1).
 - **Ajusté sexe + âge : OR = 13,5** [2,3 ; 80,1], **p = 0,004**.
@@ -686,6 +735,7 @@ On tient la **confirmation fréquentiste** : l'effet PF survit à l'ajustement e
 
 > [!NOTE]
 > **« Fréquentiste » — alors qu'on modélise $P(Y_i = 1 \mid x_i)$ ?** Écrire $P(Y_i = 1 \mid x_i) = \operatorname{logit}^{-1}(\eta_i)$ n'est **pas** bayésien : c'est la **vraisemblance**, le modèle du mécanisme générateur des données, **commun aux deux paradigmes**. Ce qui sépare fréquentiste et bayésien, c'est le traitement des **paramètres** $\beta$, pas celui de $Y$ :
+>
 > - **Fréquentiste** (ce qu'on fait ici) : $\beta$ est une constante inconnue **fixe**, estimée par **maximum de vraisemblance**, avec intervalles de **vraisemblance profilée** — aucune loi *a priori* ni *a posteriori* sur $\beta$.
 > - **Bayésien** : $\beta$ est une variable aléatoire dotée d'un *a priori*, dont on calcule l'*a posteriori*.
 >
@@ -724,6 +774,7 @@ Pour ça on pose un **estimand primaire conservateur à l'échelle du genou enti
 
 > [!TIP]
 > **Règle de décision asymétrique — le cœur de l'honnêteté du §05.**
+>
 > - **δ̄** porte H1, qui était **directionnel** (« le cyclops aggrave le cartilage »). On a donc le droit à la règle **1-côté** : **P(δ̄ > 0 | données) ≥ 0.95**. Réservée à δ̄, et à lui seul.
 > - **Tout le post-hoc PF** (contraste dérivé, contraste two-block, OR) se lit **2-côtés / HDI complet** : sa direction vient des données, pas d'une pré-spécification. Lui appliquer une règle 1-côté serait re-compter les données et fabriquer un biais.
 
@@ -733,17 +784,20 @@ Pour ça on pose un **estimand primaire conservateur à l'échelle du genou enti
 
 Au §04, le prédicteur était minimal : $\eta_i = \beta_0 + \beta_{\text{grp}}\,\text{cyclope}_i$. M3 garde **exactement la même idée** — un score latent $\eta$ sur l'échelle log-odds — mais l'enrichit pour coller à la structure **appariée et multi-compartiments** des données. Une ligne par **(patient $i$ × temps $t$ × compartiment $c$)** :
 
-$$\eta_{(i,t,c)} = \beta_c\,t + \gamma\,g_i + \delta_c\,t\,g_i + u_i,\qquad t\in\{-0.5,+0.5\},\quad g_i\in\{0,1\}$$
+$$
+\eta_{(i,t,c)} = \beta_c\,t + \gamma\,g_i + \delta_c\,t\,g_i + u_i,\qquad t\in\{-0.5,+0.5\},\quad g_i\in\{0,1\}
+$$
 
-| | §04 (logistique fréquentiste) | §05 (M3 bayésien) |
-|---|---|---|
-| Prédicteur $\eta$ | $\beta_0 + \beta_{\text{grp}}\,\text{cyclope}$ | $\beta_c\,t + \gamma\,g + \delta_c\,t\,g + u_i$ |
-| Lien | logit → Bernoulli | logit → Bernoulli (FT) **ou** logit *cumulatif* (PF) |
-| Paramètres | $\beta$ **fixes** (constantes inconnues) | $\beta_c,\gamma,\delta_c,u_i$ **aléatoires** (loi *a priori*) |
-| Estimation | **maximiser** la vraisemblance (+ Firth) → 1 point + IC | vraisemblance **× a priori = a posteriori** → tirages MCMC |
-| Lecture finale | $\text{OR}=e^{\hat\beta}$, IC profilé | $P(\bar\delta>0)$ = fraction des tirages positifs |
+|                     | §04 (logistique fréquentiste)                                | §05 (M3 bayésien)                                                      |
+| ------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Prédicteur$\eta$ | $\beta_0 + \beta_{\text{grp}}\,\text{cyclope}$               | $\beta_c\,t + \gamma\,g + \delta_c\,t\,g + u_i$                        |
+| Lien                | logit → Bernoulli                                             | logit → Bernoulli (FT)**ou** logit *cumulatif* (PF)             |
+| Paramètres         | $\beta$ **fixes** (constantes inconnues)               | $\beta_c,\gamma,\delta_c,u_i$ **aléatoires** (loi *a priori*) |
+| Estimation          | **maximiser** la vraisemblance (+ Firth) → 1 point + IC | vraisemblance**× a priori = a posteriori** → tirages MCMC        |
+| Lecture finale      | $\text{OR}=e^{\hat\beta}$, IC profilé                       | $P(\bar\delta>0)$ = fraction des tirages positifs                      |
 
 Les trois ajouts, et **pourquoi** chacun :
+
 - **$\delta_c\,t\,g_i$ — l'interaction Groupe × Temps**, le vrai effet d'intérêt : de combien l'aggravation S1→S2 *diffère* entre cyclops et méniscus, **compartiment par compartiment**. C'est le pendant de $\beta_{\text{grp}}$ du §04, mais résolu par site.
 - **$u_i$ — l'intercept patient** : absorbe tout ce qui est propre au patient (sévérité de départ, anatomie). Il **gère la corrélation** entre les deux observations appariées du même genou — ce que le §04, en écrasant tout en un 2×2, ne pouvait pas faire.
 - **$\beta_c,\delta_c$ partiellement *poolés*** vers une moyenne hiérarchique : chaque compartiment **emprunte de la force** aux autres (un site à 2 événements n'estime pas son effet seul dans le vide).
@@ -753,10 +807,20 @@ Les trois ajouts, et **pourquoi** chacun :
 $\eta$ est un **log-odds latent** : il faut le transformer en *probabilité d'une observation*. Selon le compartiment, deux liens :
 
 - **Sites FT (Bernoulli)** — issue binaire {0, ≥1}, exactement le lien du §04 :
-$$P(Y=1)=\sigma(\eta),\qquad \sigma(x)=\frac{1}{1+e^{-x}}$$
+
+$$
+P(Y=1)=\sigma(\eta),\qquad \sigma(x)=\frac{1}{1+e^{-x}}
+$$
+
 - **Sites PF (logit cumulatif, 3 niveaux {0, 1, ≥2})** — deux seuils $\kappa_1<\kappa_2$ découpent la droite logit latente en 3 tranches :
-$$P(Y\ge 1)=\sigma(\eta-\kappa_1),\qquad P(Y\ge 2)=\sigma(\eta-\kappa_2)$$
-$$P(Y=0)=1-\sigma(\eta-\kappa_1),\quad P(Y=1)=\sigma(\eta-\kappa_1)-\sigma(\eta-\kappa_2),\quad P(Y=2)=\sigma(\eta-\kappa_2)$$
+
+$$
+P(Y\ge 1)=\sigma(\eta-\kappa_1),\qquad P(Y\ge 2)=\sigma(\eta-\kappa_2)
+$$
+
+$$
+P(Y=0)=1-\sigma(\eta-\kappa_1),\quad P(Y=1)=\sigma(\eta-\kappa_1)-\sigma(\eta-\kappa_2),\quad P(Y=2)=\sigma(\eta-\kappa_2)
+$$
 
 La probabilité de chaque niveau est la **largeur de sa tranche**. Les seuils $\kappa$ sont **libres par compartiment** : ils encodent la *prévalence de base* (la mesure), jamais l'effet.
 
@@ -766,7 +830,9 @@ Le **produit** de ces probabilités sur toutes les observations est la **vraisem
 
 C'est **ici** la rupture avec le §04. Le §04 **maximisait** $L(\theta)$ pour sortir **un** $\hat\beta$ (plus un IC). M3 ne maximise rien : il **multiplie** la vraisemblance par les lois *a priori* des paramètres et obtient une **distribution complète** sur $\theta$ :
 
-$$\underbrace{p(\theta\mid\text{données})}_{\text{a posteriori}} \;\propto\; \underbrace{L(\theta)}_{\text{vraisemblance}}\;\times\;\underbrace{p(\theta)}_{\text{a priori : Student-}t(3),\ \text{HalfNormal}}$$
+$$
+\underbrace{p(\theta\mid\text{données})}_{\text{a posteriori}} \;\propto\; \underbrace{L(\theta)}_{\text{vraisemblance}}\;\times\;\underbrace{p(\theta)}_{\text{a priori : Student-}t(3),\ \text{HalfNormal}}
+$$
 
 L'*a posteriori* n'est **pas un nombre**, c'est un **paysage de probabilité** sur tous les $\theta$ plausibles au vu des données. Prior Student-$t(3)$ sur les effets : queues lourdes, robuste aux compartiments atypiques.
 
@@ -801,7 +867,9 @@ Le **contraste PF dérivé** se lit pareil : pour chaque tirage, (moyenne des $\
 
 ##### f) Les estimands et les derniers réglages
 
-$$\bar{\delta} = \tfrac{1}{6}\sum_{c=1}^{6}\delta_c,\qquad \text{contraste}_{\text{PF}-\text{FT}} = \tfrac12\!\!\sum_{c\in\text{PF}}\!\!\delta_c - \tfrac14\!\!\sum_{c\in\text{FT}}\!\!\delta_c,\qquad \delta_c \sim \text{Student-}t(3,\mu_\delta,\sigma_\delta)$$
+$$
+\bar{\delta} = \tfrac{1}{6}\sum_{c=1}^{6}\delta_c,\qquad \text{contraste}_{\text{PF}-\text{FT}} = \tfrac12\!\!\sum_{c\in\text{PF}}\!\!\delta_c - \tfrac14\!\!\sum_{c\in\text{FT}}\!\!\delta_c,\qquad \delta_c \sim \text{Student-}t(3,\mu_\delta,\sigma_\delta)
+$$
 
 - **t ∈ {−0.5, +0.5} code S1/S2**, pas une date. Avec seulement deux instants, **β_c·t est un contraste S2 − S1**, pas une pente « par unité de temps ». L'effet d'intérêt δ_c reste l'**interaction Groupe × Temps**.
 - **Pooling sur l'effet, jamais sur la mesure** : les seuils κ et la prévalence de base ne sont pas poolés ; seuls les δ_c (et β_c) empruntent de la force entre compartiments.
@@ -910,12 +978,12 @@ On l'applique **chez les cyclops uniquement**, entre le délai et l'aggravation 
 
 La **figure 7** trace deux **ECDF** (fonctions de répartition empiriques cumulées, en escalier) du délai en jours, plus leur ajustement **LogNormal** (M5) en pointillés. La courbe **orange (cyclops, n=49)** monte vite et se tasse bien à gauche — sa **médiane est annotée vers 240 jours** ; la courbe **verte (ménisque, n=20)** est nettement décalée vers la droite, médiane annotée vers **528 jours**. Le bandeau en haut résume le verdict : *« Mediator (downstream of group), not a confounder: cyclops are re-operated sooner — adjusting it strengthens the PF effect. »*
 
-| Quantité | Cyclops (cyclops) | Méniscus (ménisque) | Effet |
-|---|---:|---:|---|
-| Délai médian (jours) | **240** | **528** | MWU **p < 0.0001** ; Cliff **δ = −0.64** (large) |
-| LogNormal — médiane (M5) | 237 | 483 | — |
-| Weibull AFT — coef. groupe (M4) | — | — | **−0.61** (délai raccourci chez les cyclops) |
-| ρ(délai, aggravation PF) chez les cyclops | — | — | **ρ = −0.03** (p = 0.82) |
+| Quantité                                   | Cyclops (cyclops) | Méniscus (ménisque) | Effet                                                         |
+| ------------------------------------------- | ----------------: | --------------------: | ------------------------------------------------------------- |
+| Délai médian (jours)                      |     **240** |         **528** | MWU**p < 0.0001** ; Cliff **δ = −0.64** (large) |
+| LogNormal — médiane (M5)                  |               237 |                   483 | —                                                            |
+| Weibull AFT — coef. groupe (M4)            |                — |                    — | **−0.61** (délai raccourci chez les cyclops)          |
+| ρ(délai, aggravation PF) chez les cyclops |                — |                    — | **ρ = −0.03** (p = 0.82)                              |
 
 Les trois approches convergent : **les cyclops sont ré-opérés plus de deux fois plus vite**. Et la corrélation intra-cyclops entre délai et aggravation PF est **nulle** (ρ = −0.03, p = 0.82).
 
@@ -946,10 +1014,10 @@ On a suivi un seul fil du début à la fin, en trois temps. **①** On a d'abord
 
 Le même mètre étalon — la Cliff δ — relie les deux bouts de l'histoire :
 
-| Endroit | Cliff δ | IC | Ce qu'on veut |
-|---|---|---|---|
-| Baseline PF (§01) | ≈ 0 | contient 0 | équilibré ✓ |
-| Effet PF (§02) | +0.53 | [0.37, 0.68] exclut 0 | gros effet réel ✓ |
+| Endroit            | Cliff δ | IC                    | Ce qu'on veut       |
+| ------------------ | -------- | --------------------- | ------------------- |
+| Baseline PF (§01) | ≈ 0     | contient 0            | équilibré ✓      |
+| Effet PF (§02)    | +0.53    | [0.37, 0.68] exclut 0 | gros effet réel ✓ |
 
 C'est la **symétrie** qui rend l'argument propre : **même mètre étalon**, un **départ neutre** (la borne du haut contient 0 → les groupes sont indiscernables au baseline) qui débouche sur une **arrivée tranchée** (la borne du bas exclut 0 → l'effet est bien réel). Et la décision n'est pas ancrée sur cette lecture-là : elle repose sur le **δ̄ conservateur** ; la lecture PF, elle, reste **dérivée et exploratoire**.
 
