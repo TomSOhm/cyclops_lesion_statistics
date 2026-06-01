@@ -16,6 +16,9 @@ venv/
 env/
 .env
 
+# Intermediate methodology-doc build fragments
+build/
+
 # OS
 .DS_Store
 Thumbs.db
