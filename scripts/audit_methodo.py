@@ -23,18 +23,24 @@ if text.count("```mermaid") * 2 > text.count("```"):
 if text.count("$$") % 2 != 0:
     errors.append(f"Unbalanced $$ math: {text.count('$$')}")
 
-# 4. Stale / forbidden tokens must NOT appear
-STALE = ["50 cyclop", "19 mén", "19 men", "16,3", "16.3", "-0,040", "-0.040",
-         "−0,040", "lino_stats import"]
+# Decimal-separator-agnostic copy: normalise French commas and LaTeX {,}/{.}
+# between digits to a plain dot, so numeric checks match any notation.
+norm = re.sub(r"(\d)\{,\}(\d)", r"\1.\2", text)
+norm = re.sub(r"(\d)\{\.\}(\d)", r"\1.\2", norm)
+norm = re.sub(r"(\d),(\d)", r"\1.\2", norm)
+
+# 4. Stale / forbidden tokens must NOT appear (checked on normalised text;
+# "50 cyclop" is the unambiguous stale-cohort sentinel — the real cohort is 49/20)
+STALE = ["50 cyclop", "16.3", "-0.040", "−0.040", "lino_stats import"]
 for s in STALE:
-    if s in text:
+    if s in norm:
         errors.append(f"Stale/forbidden token present: {s!r}")
 
-# 5. Canonical numbers MUST appear (sample of must-haves)
+# 5. Canonical numbers MUST appear (sample of must-haves; normalised text)
 MUST = ["49", "20", "0.5347", "17.2", "13.5", "7.77", "0.233", "2.28",
         "240", "528", "0.997"]
 for m in MUST:
-    if m not in text:
+    if m not in norm:
         errors.append(f"Missing canonical number: {m!r}")
 
 # 6. Embedded figure paths resolve
