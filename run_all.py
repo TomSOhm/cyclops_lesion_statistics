@@ -92,6 +92,28 @@ def _post_mean(idata, var: str) -> float:
     return float(np.asarray(idata.posterior[var].values).mean())
 
 
+def _report_baseline(results: dict, wide, level: str, col: str, tag: str) -> dict:
+    """Unified baseline-balance check (MWU + SMD + TOST) on one S1 block.
+
+    Runs :func:`tests_freq.baseline_block_balance` on ``col`` and stores a
+    CONSISTENT ``baseline_<level>_*`` key set. Used for the global 6-sum and the
+    PF / FT blocks alike, so all three levels get the *same* three measures
+    (ends the old asymmetry where only the blocks had SMD + TOST).
+    """
+    b = tf.baseline_block_balance(wide, col=col)
+    results[f"baseline_{level}_mwu_p"] = round(float(b["mwu_p"]), 4)
+    results[f"baseline_{level}_smd"] = round(float(b["smd"]), 4)
+    results[f"baseline_{level}_tost_p"] = round(float(b["tost_p"]), 4)
+    results[f"baseline_{level}_tost_bound"] = round(float(b["tost_bound"]), 4)
+    results[f"baseline_{level}_equivalent"] = bool(b["equivalent"])
+    results[f"baseline_{level}_median_cyc"] = float(b["median_cyclops"])
+    results[f"baseline_{level}_median_men"] = float(b["median_meniscus"])
+    print(f"[2·{tag}] baseline {tag} S1: MWU p={b['mwu_p']:.3f}, SMD={b['smd']:+.3f}, "
+          f"TOST p={b['tost_p']:.3f} within ±{b['tost_bound']:.2f} "
+          f"(equivalent={b['equivalent']})")
+    return b
+
+
 def _jsonable(obj):
     """Recursively coerce numpy / pandas scalars to plain Python for json."""
     if isinstance(obj, dict):
@@ -206,19 +228,17 @@ def main(smoke: bool = False) -> dict:
           f"baseline S1 lesion MWU p = {base['pvalue']:.4f} "
           f"(medians {b_c.median():.0f}/{b_m.median():.0f})")
 
-    # --- 2b. Baseline PF-SPECIFIC balance + TOST equivalence (point D) -----
-    # The global p≈0.78 is on the 6-sum; verify the PF block (which carries the
-    # outcome) is balanced at S1, and test equivalence properly (TOST) rather
-    # than reading a non-significant difference as "equivalent".
-    bpf = tf.baseline_pf_balance(wide)
-    results["baseline_pf_mwu_p"] = round(float(bpf["mwu_p"]), 4)
-    results["baseline_pf_smd"] = round(float(bpf["smd"]), 4)
-    results["baseline_pf_tost_p"] = round(float(bpf["tost_p"]), 4)
-    results["baseline_pf_tost_bound"] = round(float(bpf["tost_bound"]), 4)
-    results["baseline_pf_equivalent"] = bool(bpf["equivalent"])
-    print(f"[2b] baseline PF S1: MWU p={bpf['mwu_p']:.3f}, SMD={bpf['smd']:+.3f}, "
-          f"TOST p={bpf['tost_p']:.3f} within ±{bpf['tost_bound']:.2f} "
-          f"(equivalent={bpf['equivalent']})")
+    # --- 2b. Unified baseline equivalence (MWU + SMD + TOST) at all three -----
+    # levels: global 6-sum, PF block, FT block — IDENTICAL treatment so the
+    # baseline-balance structure is symmetric (point D + FT symmetry). Before,
+    # only the blocks got SMD+TOST while the global got MWU only.
+    _report_baseline(results, wide, "total", "lesion_total_S1", "TOTAL")
+    _report_baseline(results, wide, "pf", "lesion_pf_S1", "PF")
+    bft = _report_baseline(results, wide, "ft", "lesion_ft_S1", "FT")
+    if not bft["equivalent"]:
+        print("     [note] FT block NOT proven equivalent at S1 → the PF−FT "
+              "topographic contrast is EXPLORATORY (regression-to-mean may mask "
+              "an FT signal). PF (primary) is equivalent; knee-wide δ̄ unaffected.")
 
     # --- 3. PRIMARY PF contrast -------------------------------------------
     pf = tf.pf_contrast(wide, value_col="delta_lesion_pf",

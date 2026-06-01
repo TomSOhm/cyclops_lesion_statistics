@@ -54,7 +54,7 @@ SITE_BLOCK: dict[str, int] = {
 GROUPS: list[str] = ["meniscus", "cyclops"]
 
 # Cohort sizes (locked). 2026-05-29: patient anonyme=25 reclassified
-# cyclops→meniscus (clinically a meniscus case; its operated-today S2 data
+# cyclops→meniscus (clinically a meniscus patient; its operated-today S2 data
 # arrived), so cyclops 50→49 and meniscus 19→20; total unchanged at 69.
 N_MENISCUS: int = 20
 N_CYCLOPS: int = 49
@@ -93,6 +93,13 @@ HDI_PROB: float = 0.94
 # permutation-inversion CI as a guard-rail alongside BCa).
 N_BOOT_DEFAULT: int = 10000
 CI_DEFAULT: float = 0.95
+
+# Equivalence (TOST) margin for baseline-balance checks. The equivalence box is
+# ±(EQUIV_SMD_MARGIN × pooled SD) on the raw scale — i.e. an SMD margin of this
+# value. 0.5 = Cohen's "small" boundary: a difference below half a pooled SD is
+# treated as clinically negligible. Single source of truth for the TOST bound in
+# baseline_block_balance (was hardcoded inline before).
+EQUIV_SMD_MARGIN: float = 0.5
 
 # Permutation test defaults (consensus point H): exact if the number of
 # group-label assignments is tractable, else Monte-Carlo with this many

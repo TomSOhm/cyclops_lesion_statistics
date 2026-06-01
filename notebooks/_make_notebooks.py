@@ -340,8 +340,8 @@ fig  # display inline
     code("""\
 pf_bal = tf.baseline_pf_balance(wide, col='lesion_pf_S1')
 print('Baseline PF block at S1 (cyclops vs meniscus):')
-print(f"  n            : {pf_bal['n_case']} cyclops / {pf_bal['n_control']} meniscus")
-print(f"  medians      : {pf_bal['median_case']:.1f} / {pf_bal['median_control']:.1f}")
+print(f"  n            : {pf_bal['n_cyclops']} cyclops / {pf_bal['n_meniscus']} meniscus")
+print(f"  medians      : {pf_bal['median_cyclops']:.1f} / {pf_bal['median_meniscus']:.1f}")
 print(f"  MWU p (diff) : {pf_bal['mwu_p']:.3f}")
 print(f"  SMD          : {pf_bal['smd']:+.3f}")
 print(f"  TOST bound   : +/- {pf_bal['tost_bound']:.3f} (pooled-SD margin)")
@@ -474,8 +474,8 @@ or_adj = tf.firth_or(merged, outcome_col='worsened_pf',
 print('Firth penalised-logistic OR for worsened_pf (cyclops vs meniscus):')
 print(f"  method        : {or_adj['method']}")
 print(f"  separation_ml : {or_crude['separation_ml']}  (min 2x2 cell = {or_crude['min_cell']})")
-print(f"  events        : cases {or_crude['n_events_case']}/{'?'}  "
-      f"controls {or_crude['n_events_control']} (the 1-event meniscus cell)")
+print(f"  events        : cyclops {or_crude['n_events_cyclops']}/{'?'}  "
+      f"meniscus {or_crude['n_events_meniscus']} (the 1-event meniscus cell)")
 print()
 print(f"  crude        : OR = {or_crude['odds_ratio']:.2f}  "
       f"[{or_crude['or_ci_lo']:.2f}, {or_crude['or_ci_hi']:.2f}]  "

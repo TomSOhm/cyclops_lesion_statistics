@@ -45,7 +45,7 @@ def _normalise_cols(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def load_meniscus(path: Path = DATA_PATH) -> pd.DataFrame:
-    """Load the Ménisque (control) sheet and append ``group='meniscus'``.
+    """Load the Ménisque (meniscus group) sheet and append ``group='meniscus'``.
 
     Parameters
     ----------
@@ -64,7 +64,7 @@ def load_meniscus(path: Path = DATA_PATH) -> pd.DataFrame:
 
 
 def load_cyclops(path: Path = DATA_PATH) -> pd.DataFrame:
-    """Load the Cyclop (case) sheet and append ``group='cyclops'``.
+    """Load the Cyclop (cyclops group) sheet and append ``group='cyclops'``.
 
     Parameters
     ----------

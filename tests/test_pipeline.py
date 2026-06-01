@@ -136,11 +136,7 @@ def test_date_hygiene_uses_composite_key():
             assert (hyg == raw.min()).all()
 
 
-def test_wide_shape():
-    df = loaders.load_combined()
-    df = pp.apply_date_hygiene(df)
-    df = pp.add_derived(df)
-    wide = pp.to_wide(df)
+def test_wide_shape(wide):
     assert wide.shape[0] == N_TOTAL == 69
     assert "delta_lesion_total" in wide.columns
     assert "delta_lesion_pf" in wide.columns
@@ -150,17 +146,13 @@ def test_wide_shape():
     assert "inter_surgery_d" in wide.columns
 
 
-def test_analysable_pf_cohort_is_69():
+def test_analysable_pf_cohort_is_69(wide):
     """The progression cohort with a usable PF outcome is n = 69 (49 cyc + 20 mén).
 
     After patient 25 was reclassified cyclops→meniscus (2026-05-29) and its
     operated-today S2 data completed, no row is all-NaN any longer, so every
     patient carries a usable PF delta (consensus point §2.6, amended).
     """
-    df = loaders.load_combined()
-    df = pp.apply_date_hygiene(df)
-    df = pp.add_derived(df)
-    wide = pp.to_wide(df)
     pf = wide.dropna(subset=["delta_lesion_pf"])
     assert pf.shape[0] == N_TOTAL_ANALYSABLE == 69
     by = pf.groupby("group").size().to_dict()
@@ -181,12 +173,8 @@ def test_female_indicator_from_sexe():
     assert m1["taille"] > m2["taille"] and m1["poids"] > m2["poids"]
 
 
-def test_pf_signal_supported():
+def test_pf_signal_supported(wide):
     """PF contrast reproduces the canonical large effect (δ ≈ 0.53, p ≈ 0.0002)."""
-    df = loaders.load_combined()
-    df = pp.apply_date_hygiene(df)
-    df = pp.add_derived(df)
-    wide = pp.to_wide(df)
     res = tf.pf_contrast(wide, n_boot=2000, n_perm=5000, seed=RANDOM_SEED)
     assert 0.45 <= res["cliffs_delta"] <= 0.62, res["cliffs_delta"]
     assert res["mwu_p"] < 0.001
@@ -207,19 +195,11 @@ def test_collapse_scores_maps_3_to_2():
     assert out["trochlée"].max() <= SCORE_MAX_COLLAPSED
 
 
-def test_patient_shape():
-    df = loaders.load_combined()
-    df = pp.apply_date_hygiene(df)
-    df = pp.add_derived(df)
-    patient = pp.to_patient(df)
+def test_patient_shape(patient):
     assert patient.shape[0] == N_TOTAL == 69
 
 
-def test_delta_range():
-    df = loaders.load_combined()
-    df = pp.apply_date_hygiene(df)
-    df = pp.add_derived(df)
-    wide = pp.to_wide(df)
+def test_delta_range(wide):
     d = wide["delta_lesion_total"].dropna()
     assert d.between(-12, 12).all()
 
@@ -282,29 +262,16 @@ def test_cliff_ci_inversion_brackets_point():
     assert -1.0 <= lo <= d <= hi <= 1.0
 
 
-def test_paired_pf_vs_ft_smoke():
+def test_paired_pf_vs_ft_smoke(wide):
     """Within-cyclops ΔPF-vs-ΔFT Wilcoxon runs and returns rank-biserial."""
-    df = loaders.load_combined()
-    df = pp.apply_date_hygiene(df)
-    df = pp.add_derived(df)
-    wide = pp.to_wide(df)
     res = tf.paired_pf_vs_ft(wide)
-    assert res["case"] == "cyclops"
+    assert res["cyclops"] == "cyclops"
     assert "rank_biserial" in res
     assert res["n_pf_worsened"] >= res["n_ft_worsened"]
 
 
-def test_sensitivity_covariate_with_without():
+def test_sensitivity_covariate_with_without(merged):
     """Sport/occupation sensitivity returns crude and adjusted odds ratios."""
-    df = loaders.load_combined()
-    df = pp.apply_date_hygiene(df)
-    df = pp.add_derived(df)
-    wide = pp.to_wide(df)
-    patient = pp.to_patient(df)
-    merged = wide.merge(
-        patient[["group", "anonyme", "pivot_pivot_contact", "travail_physique"]],
-        on=["group", "anonyme"], how="left",
-    )
     res = tf.sensitivity_covariate(merged, outcome_col="worsened_pf")
     assert "or_crude" in res and "or_adjusted" in res
     assert res["n_crude"] >= res["n_adjusted"]
@@ -359,13 +326,8 @@ def test_load_handles_missing_data():
         assert str(df[s].dtype) == "Int64", f"{s} dtype = {df[s].dtype}, expected Int64"
 
 
-def test_delta_total_for_unchanged_patient():
+def test_delta_total_for_unchanged_patient(wide):
     """A patient with identical S1 and S2 site scores must have delta_total == 0."""
-    df = loaders.load_combined()
-    df = pp.apply_date_hygiene(df)
-    df = pp.add_derived(df)
-    wide = pp.to_wide(df)
-
     # Synthetic check via direct computation on a minimal frame
     fake = pd.DataFrame({
         "group": ["meniscus", "meniscus"],
@@ -603,12 +565,8 @@ def test_negative_delay_coerced_to_nan():
     assert (df["trauma_to_surgery_d"].dropna() >= 0).all()
 
 
-def test_firth_or_finite_under_separation():
+def test_firth_or_finite_under_separation(wide):
     """Firth OR is finite & bracketed under the 1/20 meniscus quasi-separation."""
-    df = loaders.load_combined()
-    df = pp.apply_date_hygiene(df)
-    df = pp.add_derived(df)
-    wide = pp.to_wide(df)
     res = tf.firth_or(wide, outcome_col="worsened_pf")
     assert np.isfinite(res["odds_ratio"]) and res["odds_ratio"] > 1.0
     assert res["or_ci_lo"] < res["odds_ratio"] < res["or_ci_hi"]
@@ -643,6 +601,26 @@ def test_baseline_pf_balance_keys():
         assert k in res
 
 
+def test_baseline_block_balance_ft_not_equivalent():
+    """FT block is NOT proven equivalent at S1 — the 'absence of evidence is not
+    evidence of absence' case that motivates testing FT symmetrically to PF.
+
+    MWU is non-significant (no *detected* difference) yet TOST fails (equivalence
+    *not established*): cyclops start with a small but non-negligible excess of
+    femorotibial lesion (positive SMD). This is the baseline gap that makes the
+    PF−FT topographic contrast exploratory rather than cleanly causal.
+    """
+    df = loaders.load_combined()
+    df = pp.apply_date_hygiene(df)
+    df = pp.add_derived(df)
+    wide = pp.to_wide(df)
+    ft = tf.baseline_block_balance(wide, col="lesion_ft_S1")
+    assert ft["col"] == "lesion_ft_S1"
+    assert ft["mwu_p"] > 0.05            # no difference *detected*
+    assert ft["equivalent"] is False     # ...but equivalence NOT established
+    assert ft["smd"] > 0.147             # at least a "small" imbalance (cyclops higher)
+
+
 def test_pooling_grouping_structures():
     """_pooling_grouping yields 1/2/3 groups covering all six sites."""
     import bayes_models as bm
@@ -657,10 +635,7 @@ def test_pooling_grouping_structures():
 def test_build_m3_three_poolings():
     """All three pooling structures build and expose the right named estimands."""
     import bayes_models as bm
-    df = loaders.load_combined()
-    df = pp.apply_date_hygiene(df)
-    df = pp.add_derived(df)
-    long = bm._melt_long_long(df, SITES, "anonyme", "group", collapse=True)
+    long = bm._melt_long_long(df_long, SITES, "anonyme", "group", collapse=True)
     want = {"exchangeable": "delta_bar", "two_block": "contrast_pf_ft"}
     for pool in ("exchangeable", "two_block", "three_cluster"):
         m = bm._build_m3_model(long, SITES, pooling=pool)

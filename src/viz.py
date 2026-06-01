@@ -990,7 +990,7 @@ def make_clinical_summary_card(
 
 # Display labels (capitalised, English) for the two cohorts.
 GROUP_LABELS: dict = {"cyclops": "Cyclops", "meniscus": "Meniscus"}
-# Canonical group order for plotting (case first, then control).
+# Canonical group order for plotting (cyclops first, then meniscus).
 GROUP_ORDER: list[str] = ["cyclops", "meniscus"]
 
 # Pretty compartment labels for axes (native French anatomical names → EN).
@@ -1319,14 +1319,14 @@ def topographic_specificity(
     pf_col: str = "delta_lesion_pf",
     ft_col: str = "delta_lesion_ft",
     group_col: str = "group",
-    case: str = "cyclops",
+    cyclops: str = "cyclops",
     n_pf_worsened: Optional[int] = None,
     n_ft_worsened: Optional[int] = None,
     rank_biserial: Optional[float] = None,
     wilcoxon_p: Optional[float] = None,
     title: str = "Topographic specificity within cyclops (paired ΔPF vs ΔFT)",
 ):
-    """Paired slope plot of per-patient ΔPF vs ΔFT in the case group.
+    """Paired slope plot of per-patient ΔPF vs ΔFT in the cyclops group.
 
     Each cyclops patient is a line joining their PF-block Δ and FT-block Δ;
     lines are coloured by whether PF worsened. Boxplots summarise each block.
@@ -1337,17 +1337,17 @@ def topographic_specificity(
     df_wide : pd.DataFrame
     pf_col, ft_col : str
         Per-patient block-Δ columns.
-    case : str
+    cyclops : str
         Group to restrict to (default cyclops).
     n_pf_worsened, n_ft_worsened, rank_biserial, wilcoxon_p : optional
         Stats for the banner (from :func:`tests_freq.paired_pf_vs_ft`).
     """
-    sub = df_wide[df_wide[group_col] == case][[pf_col, ft_col]].dropna().astype(float)
+    sub = df_wide[df_wide[group_col] == cyclops][[pf_col, ft_col]].dropna().astype(float)
     pf = sub[pf_col].values
     ft = sub[ft_col].values
     rng = np.random.default_rng(RANDOM_SEED)
 
-    fig, ax = plt.subplots(figsize=(6.6, 5.2))
+    fig, ax = plt.subplots(figsize=(7.0, 5.4), layout="constrained")
     x_pf, x_ft = 0.0, 1.0
     jit = rng.normal(0, 0.03, size=len(sub))
     for p, f, j in zip(pf, ft, jit):
@@ -1375,15 +1375,15 @@ def topographic_specificity(
     ax.set_xticklabels(["PF block", "FT block"])
     ax.set_ylabel("Δ block lesion score (S2 − S1)")
     ax.set_xlim(-0.4, 1.4)
-    ax.set_title(title)
 
-    # Worsened counts banner.
+    # Worsened counts + stats banner (built first so it can sit as the smaller
+    # subtitle *beneath* the bold title).
     if n_pf_worsened is None:
         n_pf_worsened = int((pf > 0).sum())
     if n_ft_worsened is None:
         n_ft_worsened = int((ft > 0).sum())
-    lines = [f"Within-patient worsening: PF {n_pf_worsened} vs FT {n_ft_worsened} "
-             f"(n = {len(sub)})"]
+    banner = [f"Within-patient worsening: PF {n_pf_worsened} vs FT {n_ft_worsened} "
+              f"(n = {len(sub)})"]
     stat_bits = []
     if rank_biserial is not None:
         stat_bits.append(f"matched-pairs r = {rank_biserial:+.2f}")
@@ -1391,11 +1391,16 @@ def topographic_specificity(
         p_txt = "< 0.001" if wilcoxon_p < 0.001 else f"= {wilcoxon_p:.3f}"
         stat_bits.append(f"Wilcoxon p {p_txt}")
     if stat_bits:
-        lines.append("  •  ".join(stat_bits))
-    ax.text(0.5, 1.005, "\n".join(lines), transform=ax.transAxes,
-            ha="center", va="bottom", fontsize=9.5, color="#222")
-    ax.legend(loc="upper right", framealpha=0.9, fontsize=8.5)
-    fig.tight_layout()
+        banner.append("  •  ".join(stat_bits))
+
+    # Title (bold) and the stats banner are two stacked text objects — suptitle
+    # on top, axis subtitle just beneath — so they NEVER collide. The previous
+    # code drew the banner at axes-fraction y=1.005, directly on top of
+    # set_title(title); under constrained layout both get their own reserved row.
+    ax.set_title("\n".join(banner), fontsize=9, color="#555", pad=4)
+    fig.suptitle(title, fontsize=12.5, fontweight="bold")
+
+    ax.legend(loc="upper right", framealpha=1.0, fontsize=8.5, edgecolor="#cccccc")
     return fig
 
 

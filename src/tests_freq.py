@@ -21,6 +21,7 @@ from scipy import stats
 
 from constants import (
     CI_DEFAULT,
+    EQUIV_SMD_MARGIN,
     N_BOOT_DEFAULT,
     N_PERM_DEFAULT,
     PERM_EXACT_MAX,
@@ -625,8 +626,8 @@ def pf_contrast(
     df_wide: pd.DataFrame,
     value_col: str = "delta_lesion_pf",
     group_col: str = "group",
-    case: str = "cyclops",
-    control: str = "meniscus",
+    cyclops: str = "cyclops",
+    meniscus: str = "meniscus",
     n_boot: int = N_BOOT_DEFAULT,
     n_perm: int = N_PERM_DEFAULT,
     ci: float = CI_DEFAULT,
@@ -652,7 +653,7 @@ def pf_contrast(
         Output of :func:`preprocessing.to_wide`.
     value_col : str
         Per-patient Δ column (default ``delta_lesion_pf``).
-    group_col, case, control : str
+    group_col, cyclops, meniscus : str
     n_boot, n_perm, ci, seed : int / float
 
     Returns
@@ -662,16 +663,16 @@ def pf_contrast(
         ``inv_ci_*`` keys plus group sizes.
     """
     sub = df_wide[[group_col, value_col]].dropna()
-    x = sub.loc[sub[group_col] == case, value_col].astype(float).values
-    y = sub.loc[sub[group_col] == control, value_col].astype(float).values
+    x = sub.loc[sub[group_col] == cyclops, value_col].astype(float).values
+    y = sub.loc[sub[group_col] == meniscus, value_col].astype(float).values
 
     mwu = mwu_with_effects(x, y, n_boot=n_boot, ci=ci, seed=seed)
     perm = permutation_test_cliff(x, y, n_perm=n_perm, seed=seed,
                                   alternative="two-sided")
     inv_lo, inv_hi = cliff_ci_inversion(x, y, ci=ci)
     return dict(
-        value_col=value_col, case=case, control=control,
-        n_case=int(len(x)), n_control=int(len(y)),
+        value_col=value_col, cyclops=cyclops, meniscus=meniscus,
+        n_cyclops=int(len(x)), n_meniscus=int(len(y)),
         mwu_U=mwu["statistic"], mwu_p=mwu["pvalue"],
         cliffs_delta=mwu["cliffs_delta"],
         cliffs_delta_magnitude=mwu["cliffs_delta_magnitude"],
@@ -688,9 +689,9 @@ def paired_pf_vs_ft(
     pf_col: str = "delta_lesion_pf",
     ft_col: str = "delta_lesion_ft",
     group_col: str = "group",
-    case: str = "cyclops",
+    cyclops: str = "cyclops",
 ) -> dict:
-    """Within-case Wilcoxon: ΔPF vs ΔFT (topographic specificity).
+    """Within-cyclops Wilcoxon: ΔPF vs ΔFT (topographic specificity).
 
     Tests, in the cyclops group only, whether the PF block progresses more
     than the FT block within the same patient (consensus point B mechanistic
@@ -702,21 +703,21 @@ def paired_pf_vs_ft(
     df_wide : pd.DataFrame
     pf_col, ft_col : str
         Per-patient block-Δ columns.
-    group_col, case : str
-        Restrict to ``df_wide[group_col] == case`` (default cyclops).
+    group_col, cyclops : str
+        Restrict to ``df_wide[group_col] == cyclops`` (default cyclops).
 
     Returns
     -------
     dict
-        Output of :func:`wilcoxon_exact_with_rrb` plus ``case``, ``pf_col``,
+        Output of :func:`wilcoxon_exact_with_rrb` plus ``cyclops``, ``pf_col``,
         ``ft_col``, and the per-block worsening counts.
     """
-    sub = df_wide[df_wide[group_col] == case][[pf_col, ft_col]].dropna()
+    sub = df_wide[df_wide[group_col] == cyclops][[pf_col, ft_col]].dropna()
     pf = sub[pf_col].astype(float).values
     ft = sub[ft_col].astype(float).values
     res = wilcoxon_exact_with_rrb(pf, ft)
     res.update(
-        case=case, pf_col=pf_col, ft_col=ft_col,
+        cyclops=cyclops, pf_col=pf_col, ft_col=ft_col,
         n_pf_worsened=int((pf > 0).sum()),
         n_ft_worsened=int((ft > 0).sum()),
         median_delta_pf=float(np.median(pf)) if len(pf) else float("nan"),
@@ -766,8 +767,8 @@ def firth_or(
     df: pd.DataFrame,
     outcome_col: str = "worsened_pf",
     group_col: str = "group",
-    case: str = "cyclops",
-    control: str = "meniscus",
+    cyclops: str = "cyclops",
+    meniscus: str = "meniscus",
     covariates: Sequence[str] = (),
     ci: float = CI_DEFAULT,
 ) -> dict:
@@ -787,29 +788,29 @@ def firth_or(
     Returns
     -------
     dict
-        ``{outcome, case, control, covariates, odds_ratio, or_ci_lo, or_ci_hi,
-        beta, p, n, n_events_case, n_events_control, method, separation_ml}``.
+        ``{outcome, cyclops, meniscus, covariates, odds_ratio, or_ci_lo, or_ci_hi,
+        beta, p, n, n_events_cyclops, n_events_meniscus, method, separation_ml}``.
     """
-    d = df[df[group_col].isin([case, control])].copy()
-    d["_case"] = (d[group_col] == case).astype(float)
+    d = df[df[group_col].isin([cyclops, meniscus])].copy()
+    d["_cyclops"] = (d[group_col] == cyclops).astype(float)
     d["_y"] = pd.to_numeric(d[outcome_col], errors="coerce")
     cov_present = [c for c in covariates if c in d.columns]
     for c in cov_present:
         d[c] = pd.to_numeric(d[c], errors="coerce")
-    d = d.dropna(subset=["_y", "_case", *cov_present])
+    d = d.dropna(subset=["_y", "_cyclops", *cov_present])
 
     y = d["_y"].astype(int).values
-    feat = ["_case", *cov_present]
+    feat = ["_cyclops", *cov_present]
     Xnoint = np.column_stack([d[c].astype(float).values for c in feat])
 
-    ev_case = int(d.loc[d["_case"] == 1, "_y"].sum())
-    ev_ctrl = int(d.loc[d["_case"] == 0, "_y"].sum())
-    n_case = int((d["_case"] == 1).sum())
-    n_ctrl = int((d["_case"] == 0).sum())
+    ev_cyc = int(d.loc[d["_cyclops"] == 1, "_y"].sum())
+    ev_men = int(d.loc[d["_cyclops"] == 0, "_y"].sum())
+    n_cyc = int((d["_cyclops"] == 1).sum())
+    n_men = int((d["_cyclops"] == 0).sum())
     # Quasi- or complete separation destabilises ML; flag when the smallest
     # outcome x group cell is <= 1 (meniscus has a single worsened_pf event,
     # which is exactly why the plain-logit OR is a ghost number).
-    min_cell = int(min(ev_ctrl, n_ctrl - ev_ctrl, ev_case, n_case - ev_case))
+    min_cell = int(min(ev_men, n_men - ev_men, ev_cyc, n_cyc - ev_cyc))
     separation = bool(min_cell <= 1)
 
     beta = ci_lo_b = ci_hi_b = pval = float("nan")
@@ -818,7 +819,7 @@ def firth_or(
 
         fl = FirthLogisticRegression(alpha=round(1 - ci, 4))
         fl.fit(Xnoint, y)
-        beta = float(fl.coef_[0])             # _case is feature index 0
+        beta = float(fl.coef_[0])             # _cyclops is feature index 0
         lo, hi = fl.ci_[0]
         ci_lo_b, ci_hi_b = float(lo), float(hi)
         pval = float(fl.pvals_[0])
@@ -826,7 +827,7 @@ def firth_or(
     except Exception:  # noqa: BLE001 — package absent or API drift → faithful fallback
         Xint = np.column_stack([np.ones(len(d)), Xnoint])
         b, cov = _firth_irls(Xint, y)
-        se = float(np.sqrt(np.diag(cov))[1])  # _case at index 1 (after intercept)
+        se = float(np.sqrt(np.diag(cov))[1])  # _cyclops at index 1 (after intercept)
         beta = float(b[1])
         z = float(stats.norm.ppf(1 - (1 - ci) / 2))
         ci_lo_b, ci_hi_b = beta - z * se, beta + z * se
@@ -834,11 +835,11 @@ def firth_or(
         method = "firth-irls(wald)"
 
     return dict(
-        outcome=outcome_col, case=case, control=control, covariates=cov_present,
+        outcome=outcome_col, cyclops=cyclops, meniscus=meniscus, covariates=cov_present,
         odds_ratio=float(np.exp(beta)),
         or_ci_lo=float(np.exp(ci_lo_b)), or_ci_hi=float(np.exp(ci_hi_b)),
         beta=float(beta), p=float(pval), n=int(len(d)),
-        n_events_case=ev_case, n_events_control=ev_ctrl,
+        n_events_cyclops=ev_cyc, n_events_meniscus=ev_men,
         method=method, separation_ml=bool(separation), min_cell=min_cell,
     )
 
@@ -848,8 +849,8 @@ def sensitivity_covariate(
     outcome_col: str = "worsened_pf",
     group_col: str = "group",
     covariates: Sequence[str] = ("pivot_pivot_contact", "travail_physique"),
-    case: str = "cyclops",
-    control: str = "meniscus",
+    cyclops: str = "cyclops",
+    meniscus: str = "meniscus",
     use_firth: bool = True,
 ) -> dict:
     """Logistic sensitivity: group effect on a binary outcome WITH vs WITHOUT covariates.
@@ -867,7 +868,7 @@ def sensitivity_covariate(
         Wide frame joined with patient covariates (one row per patient).
     outcome_col : str
         Binary 0/1 outcome.
-    group_col, case, control : str
+    group_col, cyclops, meniscus : str
     covariates : sequence of str
         Adjustment covariates added in the adjusted model.
 
@@ -875,18 +876,18 @@ def sensitivity_covariate(
     -------
     dict
         ``{or_crude, p_crude, or_adjusted, p_adjusted, covariates, n_crude,
-        n_adjusted, adjusted_ok}``. Odds ratios are for the *case* vs control.
+        n_adjusted, adjusted_ok}``. Odds ratios are for the *cyclops* vs meniscus.
     """
     # Default path: Firth penalised logistic for BOTH crude and adjusted models.
     # worsened_pf has 1/20 meniscus events → ML separation makes the plain-logit
     # OR (24 → 47) a ghost number; Firth gives a stable OR + CI (revue 2026-05-29).
     if use_firth:
-        crude = firth_or(df_patient_wide, outcome_col, group_col, case, control,
+        crude = firth_or(df_patient_wide, outcome_col, group_col, cyclops, meniscus,
                          covariates=())
-        adj = firth_or(df_patient_wide, outcome_col, group_col, case, control,
+        adj = firth_or(df_patient_wide, outcome_col, group_col, cyclops, meniscus,
                        covariates=covariates)
         return dict(
-            outcome=outcome_col, case=case, control=control,
+            outcome=outcome_col, cyclops=cyclops, meniscus=meniscus,
             covariates=adj["covariates"],
             or_crude=crude["odds_ratio"], p_crude=crude["p"], n_crude=crude["n"],
             or_adjusted=adj["odds_ratio"], p_adjusted=adj["p"], n_adjusted=adj["n"],
@@ -899,29 +900,29 @@ def sensitivity_covariate(
     import statsmodels.formula.api as smf
 
     df = df_patient_wide.copy()
-    df = df[df[group_col].isin([case, control])].copy()
-    df["_case"] = (df[group_col] == case).astype(int)
+    df = df[df[group_col].isin([cyclops, meniscus])].copy()
+    df["_cyclops"] = (df[group_col] == cyclops).astype(int)
     df["_y"] = pd.to_numeric(df[outcome_col], errors="coerce")
 
     def _fit(formula: str, data: pd.DataFrame) -> tuple[float, float, int]:
         d = data.dropna(subset=["_y"]).copy()
         try:
             m = smf.logit(formula, data=d).fit(disp=0)
-            coef = m.params.get("_case", float("nan"))
-            pval = m.pvalues.get("_case", float("nan"))
+            coef = m.params.get("_cyclops", float("nan"))
+            pval = m.pvalues.get("_cyclops", float("nan"))
             return float(np.exp(coef)), float(pval), int(d.shape[0])
         except Exception as exc:  # noqa: BLE001 — separation / singular design
             return float("nan"), float("nan"), int(d.shape[0])
 
-    or_crude, p_crude, n_crude = _fit("_y ~ _case", df)
+    or_crude, p_crude, n_crude = _fit("_y ~ _cyclops", df)
 
     cov_present = [c for c in covariates if c in df.columns]
-    rhs = " + ".join(["_case", *cov_present]) if cov_present else "_case"
+    rhs = " + ".join(["_cyclops", *cov_present]) if cov_present else "_cyclops"
     adj_data = df.dropna(subset=["_y", *cov_present]) if cov_present else df
     or_adj, p_adj, n_adj = _fit(f"_y ~ {rhs}", adj_data)
 
     return dict(
-        outcome=outcome_col, case=case, control=control,
+        outcome=outcome_col, cyclops=cyclops, meniscus=meniscus,
         covariates=cov_present,
         or_crude=or_crude, p_crude=p_crude, n_crude=n_crude,
         or_adjusted=or_adj, p_adjusted=p_adj, n_adjusted=n_adj,
@@ -969,32 +970,38 @@ def tost_equivalence(
                 tost_p=float(max(p_lower, p_upper)), df=int(df))
 
 
-def baseline_pf_balance(
+def baseline_block_balance(
     df_wide: pd.DataFrame,
     col: str = "lesion_pf_S1",
     group_col: str = "group",
-    case: str = "cyclops",
-    control: str = "meniscus",
+    cyclops: str = "cyclops",
+    meniscus: str = "meniscus",
     bound: Optional[float] = None,
 ) -> dict:
-    """Baseline balance on the **PF sub-score at S1 specifically** (+ TOST).
+    """Baseline balance on a **single block sub-score at S1** (+ TOST).
 
     Addresses the reviewer point (revue 2026-05-29) that "baseline equivalent
-    (MWU p=0.78)" was tested on the global 6-sum, not on the PF block that
-    carries the primary outcome — and that a non-significant difference is not
-    equivalence. Reports the MWU p, the SMD, and a TOST equivalence p within
-    ``±bound`` (default = 0.5 pooled SD, a "small" SMD margin) on ``lesion_pf_S1``.
+    (MWU p=0.78)" was tested on the global 6-sum, not on the block that carries
+    the outcome — and that a non-significant difference is not equivalence.
+    Reports the MWU p, the SMD, and a TOST equivalence p within ``±bound``
+    (default = 0.5 pooled SD, a "small" SMD margin) on ``col``.
+
+    Use ``col='lesion_pf_S1'`` for the PF block (carries the primary contrast)
+    and ``col='lesion_ft_S1'`` for the FT block — the latter is needed to read
+    the PF−FT topographic *contrast* causally, since a baseline FT gap would
+    confound the localisation. Note ``bound`` is **data-derived** (0.5·s_pooled
+    of *this* block), so the equivalence box rescales per block.
 
     Returns
     -------
-    dict ``{col, n_case, n_control, median_case, median_control, mwu_p, smd,
+    dict ``{col, n_cyclops, n_meniscus, median_cyclops, median_meniscus, mwu_p, smd,
     tost_bound, tost_p, equivalent}``.
     """
     sub = df_wide[[group_col, col]].dropna()
-    x = sub.loc[sub[group_col] == case, col].astype(float).values
-    y = sub.loc[sub[group_col] == control, col].astype(float).values
+    x = sub.loc[sub[group_col] == cyclops, col].astype(float).values
+    y = sub.loc[sub[group_col] == meniscus, col].astype(float).values
     if len(x) < 2 or len(y) < 2:
-        return dict(col=col, n_case=len(x), n_control=len(y), mwu_p=float("nan"),
+        return dict(col=col, n_cyclops=len(x), n_meniscus=len(y), mwu_p=float("nan"),
                     smd=float("nan"), tost_p=float("nan"), equivalent=False)
     try:
         _, p = stats.mannwhitneyu(x, y, alternative="two-sided")
@@ -1006,13 +1013,30 @@ def baseline_pf_balance(
             ((len(x) - 1) * x.var(ddof=1) + (len(y) - 1) * y.var(ddof=1))
             / (len(x) + len(y) - 2)
         )
-        bound = 0.5 * sp if sp > 0 else 0.5
+        bound = EQUIV_SMD_MARGIN * sp if sp > 0 else EQUIV_SMD_MARGIN
     tost = tost_equivalence(x, y, bound=bound)
     return dict(
-        col=col, n_case=int(len(x)), n_control=int(len(y)),
-        median_case=float(np.median(x)), median_control=float(np.median(y)),
+        col=col, n_cyclops=int(len(x)), n_meniscus=int(len(y)),
+        median_cyclops=float(np.median(x)), median_meniscus=float(np.median(y)),
         mwu_p=float(p), smd=float(smd), tost_bound=float(bound),
         tost_p=float(tost["tost_p"]), equivalent=bool(tost["tost_p"] < 0.05),
+    )
+
+
+def baseline_pf_balance(
+    df_wide: pd.DataFrame,
+    col: str = "lesion_pf_S1",
+    group_col: str = "group",
+    cyclops: str = "cyclops",
+    meniscus: str = "meniscus",
+    bound: Optional[float] = None,
+) -> dict:
+    """Baseline balance on the **PF block at S1** — thin wrapper over
+    :func:`baseline_block_balance` (kept for API stability). See that function;
+    pass ``col='lesion_ft_S1'`` there for the symmetric FT check."""
+    return baseline_block_balance(
+        df_wide, col=col, group_col=group_col,
+        cyclops=cyclops, meniscus=meniscus, bound=bound,
     )
 
 
@@ -1026,7 +1050,7 @@ def evalue_or(or_point: float, or_ci_lo: Optional[float] = None,
     robust to plausible unmeasured confounding (relevant given the unmeasured
     PF-specific confounders — dysplasia, quadriceps status — named in 04.3).
 
-    For a **common** outcome (worsened_pf ≈ 57% in cases) the OR overstates the
+    For a **common** outcome (worsened_pf ≈ 57% in cyclops) the OR overstates the
     RR, so we approximate ``RR ≈ sqrt(OR)`` (VanderWeele's recommendation);
     set ``common_outcome=False`` to use ``RR ≈ OR`` for a rare outcome.
 
