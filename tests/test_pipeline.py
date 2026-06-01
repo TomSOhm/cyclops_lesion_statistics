@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from lino_stats import (
+from constants import (
     BLOCKS,
     GROUPS,
     N_CYCLOPS,
@@ -31,12 +31,12 @@ from lino_stats import (
     SITES_FT,
     SITES_ORDINAL,
     SITES_PF,
-    loaders,
-    preprocessing as pp,
-    reporting as rpt,
-    tests_freq as tf,
 )
-from lino_stats.loaders import _normalise_cols
+import loaders
+import preprocessing as pp
+import reporting as rpt
+import tests_freq as tf
+from loaders import _normalise_cols
 
 
 # --- Loaders ----------------------------------------------------------------
@@ -645,7 +645,7 @@ def test_baseline_pf_balance_keys():
 
 def test_pooling_grouping_structures():
     """_pooling_grouping yields 1/2/3 groups covering all six sites."""
-    from lino_stats import bayes_models as bm
+    import bayes_models as bm
     for pool, n in (("exchangeable", 1), ("two_block", 2), ("three_cluster", 3)):
         names, idx = bm._pooling_grouping(pool, SITES)
         assert len(names) == n and len(idx) == len(SITES)
@@ -656,7 +656,7 @@ def test_pooling_grouping_structures():
 
 def test_build_m3_three_poolings():
     """All three pooling structures build and expose the right named estimands."""
-    from lino_stats import bayes_models as bm
+    import bayes_models as bm
     df = loaders.load_combined()
     df = pp.apply_date_hygiene(df)
     df = pp.add_derived(df)

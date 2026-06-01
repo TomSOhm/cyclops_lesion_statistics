@@ -19,7 +19,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-from . import (
+from constants import (
     CI_DEFAULT,
     N_BOOT_DEFAULT,
     N_PERM_DEFAULT,

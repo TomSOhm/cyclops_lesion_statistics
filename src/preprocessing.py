@@ -2,7 +2,7 @@
 
 Pipeline (typical use)::
 
-    from lino_stats import loaders, preprocessing as pp
+    import loaders, preprocessing as pp
     df = loaders.load_combined()
     df = pp.apply_date_hygiene(df)
     df = pp.add_surgery_num(df)
@@ -21,7 +21,7 @@ from typing import Iterable
 import numpy as np
 import pandas as pd
 
-from . import SITES, SITES_PF, SITES_FT
+from constants import SITES, SITES_PF, SITES_FT
 
 
 # Conversion: 1 year = 365.25 days (Julian year, contract default)

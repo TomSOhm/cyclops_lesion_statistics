@@ -34,8 +34,20 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=7.4", "ruff>=0.1"]
 
-[tool.setuptools.packages.find]
-where = ["src"]
+# Flat module layout: the analysis modules live directly under src/ (no
+# package directory). Declared as top-level py-modules so `pip install` mirrors
+# the working-tree `pythonpath = ["src"]` used by the test suite.
+[tool.setuptools]
+package-dir = {"" = "src"}
+py-modules = [
+    "constants",
+    "loaders",
+    "preprocessing",
+    "viz",
+    "tests_freq",
+    "bayes_models",
+    "reporting",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

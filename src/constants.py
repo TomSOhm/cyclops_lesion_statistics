@@ -1,5 +1,9 @@
 """lino_stats — Dual-population bayesian analysis of paired knee-surgery cohort.
 
+Shared constants and lazy interpretability re-exports for the flat ``src/``
+module layout (each analysis module — loaders, preprocessing, viz, tests_freq,
+bayes_models, reporting — is a top-level module on ``pythonpath = ["src"]``).
+
 Modules
 -------
 loaders : read Excel sheets and normalise column names.
@@ -124,7 +128,7 @@ NUTS_KWARGS_ESCALATED: dict = dict(
 # --- Public interpretability helpers (append-only re-exports) --------------
 
 def __getattr__(name: str):
-    """Lazy re-export of submodule helpers (avoids eager submodule imports)."""
+    """Lazy re-export of sibling-module helpers (avoids eager imports / cycles)."""
     _lazy_map = {
         "interpret_cliffs_delta": ("tests_freq", "interpret_cliffs_delta"),
         "interpret_rank_biserial": ("tests_freq", "interpret_rank_biserial"),
@@ -146,6 +150,6 @@ def __getattr__(name: str):
     if name in _lazy_map:
         import importlib
         mod_name, attr = _lazy_map[name]
-        mod = importlib.import_module(f".{mod_name}", __name__)
+        mod = importlib.import_module(mod_name)
         return getattr(mod, attr)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

@@ -53,7 +53,7 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from lino_stats import (  # noqa: E402
+from constants import (  # noqa: E402
     HDI_PROB,
     N_BOOT_DEFAULT,
     N_PERM_DEFAULT,
@@ -63,11 +63,11 @@ from lino_stats import (  # noqa: E402
     SITES_FT,
     SITES_PF,
 )
-from lino_stats import bayes_models as bm  # noqa: E402
-from lino_stats import loaders  # noqa: E402
-from lino_stats import preprocessing as pp  # noqa: E402
-from lino_stats import reporting as rpt  # noqa: E402
-from lino_stats import tests_freq as tf  # noqa: E402
+import bayes_models as bm  # noqa: E402
+import loaders  # noqa: E402
+import preprocessing as pp  # noqa: E402
+import reporting as rpt  # noqa: E402
+import tests_freq as tf  # noqa: E402
 
 RESULTS_DIR = ROOT / "results"
 

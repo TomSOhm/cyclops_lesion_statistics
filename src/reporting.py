@@ -14,7 +14,7 @@ from typing import Iterable, Optional
 import numpy as np
 import pandas as pd
 
-from . import HDI_PROB, SITES
+from constants import HDI_PROB, SITES
 
 
 # ============================================================================

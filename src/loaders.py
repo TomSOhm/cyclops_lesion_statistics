@@ -14,7 +14,7 @@ from typing import Tuple
 
 import pandas as pd
 
-DATA_PATH: Path = Path(__file__).resolve().parents[2] / "data_paper_cyclops_stats.xlsx"
+DATA_PATH: Path = Path(__file__).resolve().parents[1] / "data_paper_cyclops_stats.xlsx"
 
 
 def _normalise_cols(df: pd.DataFrame) -> pd.DataFrame:
@@ -105,7 +105,7 @@ def load_combined(path: Path = DATA_PATH) -> pd.DataFrame:
     m, c = load_both(path)
     combined = pd.concat([m, c], ignore_index=True)
     # Ensure lesion columns are nullable Int64 (Cyclops may carry NaNs)
-    from . import SITES  # local import to avoid cycle at module load
+    from constants import SITES  # local import to avoid cycle at module load
     for col in SITES:
         if col in combined.columns:
             combined[col] = combined[col].astype("Int64")

@@ -31,10 +31,10 @@ except Exception:  # noqa: BLE001
     sns = None  # type: ignore[assignment]
     _HAS_MPL = False
 
-from . import HDI_PROB, RANDOM_SEED, SITES
+from constants import HDI_PROB, RANDOM_SEED, SITES
 
 # Default output directory for figures (repo-root/figures/)
-FIG_DIR: Path = Path(__file__).resolve().parents[2] / "figures"
+FIG_DIR: Path = Path(__file__).resolve().parents[1] / "figures"
 FIG_DIR.mkdir(parents=True, exist_ok=True)
 
 # Palettes (locked)
@@ -890,7 +890,7 @@ def make_clinical_summary_card(
     rope : (float, float)
     savefig : Path or str, optional
     """
-    from . import tests_freq as tf
+    import tests_freq as tf
 
     sub = wide[[group_col, delta_col]].dropna()
     groups = sorted(sub[group_col].unique())

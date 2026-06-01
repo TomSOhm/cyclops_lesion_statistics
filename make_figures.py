@@ -54,10 +54,11 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from lino_stats import RANDOM_SEED, SITES_PF, SITES_FT  # noqa: E402
-from lino_stats import loaders, preprocessing as pp  # noqa: E402
-from lino_stats import tests_freq as tf  # noqa: E402
-from lino_stats import viz  # noqa: E402
+from constants import RANDOM_SEED, SITES_PF, SITES_FT  # noqa: E402
+import loaders  # noqa: E402
+import preprocessing as pp  # noqa: E402
+import tests_freq as tf  # noqa: E402
+import viz  # noqa: E402
 
 RESULTS_DIR = ROOT / "results"
 FIG_DIR = ROOT / "figures"

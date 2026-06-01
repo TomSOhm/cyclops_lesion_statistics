@@ -49,7 +49,7 @@ from typing import Optional, Sequence
 import numpy as np
 import pandas as pd
 
-from . import (
+from constants import (
     BLOCKS,
     ESS_MIN,
     HDI_PROB,
@@ -220,7 +220,7 @@ def _melt_long_long(
     pd.DataFrame
         Long-long frame, NaN scores dropped.
     """
-    from . import preprocessing as _pp
+    import preprocessing as _pp
 
     sites = list(sites)
     src = _pp.collapse_scores(df_long, sites) if collapse else df_long

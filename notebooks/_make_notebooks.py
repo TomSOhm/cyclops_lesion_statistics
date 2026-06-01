@@ -76,16 +76,17 @@ warnings.filterwarnings('ignore')
 import numpy as np
 import pandas as pd
 
-from lino_stats import (
+from constants import (
     RANDOM_SEED, SITES, SITES_PF, SITES_FT, SITES_BINARY, SITES_ORDINAL,
     GROUPS, BLOCKS, N_TOTAL, N_TOTAL_ANALYSABLE, N_MENISCUS, N_CYCLOPS,
     SCORE_MAX, SCORE_MAX_COLLAPSED,
-    loaders, preprocessing as pp,
 )
-from lino_stats import tests_freq as tf
-from lino_stats import reporting as rpt
-from lino_stats import bayes_models as bm
-from lino_stats import viz
+import loaders
+import preprocessing as pp
+import tests_freq as tf
+import reporting as rpt
+import bayes_models as bm
+import viz
 
 np.random.seed(RANDOM_SEED)
 viz.set_pub_style()
@@ -891,7 +892,7 @@ print('PPC cell ready (commented). Uncomment to run after fitting M3.')
        "want the grid."),
     code("""\
 # Optional prior sensitivity grid (each line re-runs NUTS via nutpie).
-# from lino_stats import SENSITIVITY_PRIOR_SIGMAS
+# from constants import SENSITIVITY_PRIOR_SIGMAS
 # rows = []
 # for s in SENSITIVITY_PRIOR_SIGMAS:
 #     id_s = bm.fit_m3_with_prior(df, prior_sigma_beta=s)   # two_block by default
