@@ -520,15 +520,43 @@ $$\text{odds}_{\text{cas}} = \frac{28}{21} = 1{,}33, \qquad \text{odds}_{\text{c
 
 L'**odds ratio** (OR) est le rapport de ces deux cotes — *à ne pas confondre* avec le **risque relatif** (RR), qui compare des probabilités (voir plus bas).
 
-**Pourquoi une régression logistique — et pourquoi $\text{OR}_{\text{cyclope}} = e^{\beta_{\text{grp}}}$.** Un tableau 2×2 brut donne *un* OR, mais il ne sait pas **ajuster** sur le sexe et l'âge (les confondeurs repérés au §01). La logistique, elle, modélise le **log-cote** (le logit) comme une somme d'effets :
+**Le modèle, posé proprement.** Indexons les patients $i = 1, \dots, n$ ($n = 69$). Pour chacun on observe :
 
-$$\operatorname{logit} P(\text{worsened\_pf}=1) = \ln\frac{p}{1-p} = \beta_0 + \beta_{\text{grp}}\,\text{cyclope} + \beta_{\text{sexe}}\,\text{femme} + \beta_{\text{âge}}\,\text{âge}$$
+- une **réponse binaire** $Y_i = \mathbf{1}\{\text{le patient } i \text{ aggrave en PF}\} \in \{0,1\}$ — c'est **la** variable aléatoire du modèle ;
+- un vecteur de **covariables** $\mathbf{x}_i = (1,\ \text{cyclope}_i,\ \text{femme}_i,\ \text{âge}_i)^{\!\top}$, où $\text{cyclope}_i = \mathbf{1}\{i \text{ est cyclope}\}$ et $\text{femme}_i = \mathbf{1}\{\text{sexe}_i = 2\}$ sont des **indicatrices** (0/1).
 
-Prends deux patients **identiques en sexe et en âge**, l'un cyclope ($\text{cyclope}=1$), l'autre ménisque ($0$). En soustrayant leurs deux logits, tout s'annule **sauf** le terme de groupe :
+> [!IMPORTANT]
+> **« cyclope » n'est *pas* une variable aléatoire.** C'est une **covariable** (un régresseur) : une valeur **observée et fixée** pour chaque patient, pas tirée d'une loi. La seule grandeur aléatoire est la réponse $Y_i$. On modélise donc la **loi conditionnelle** $Y_i \mid \mathbf{x}_i$ — on raisonne « à covariables données », le plan $\mathbf{x}$ étant traité comme fixe (on conditionne dessus).
 
-$$\ln(\text{odds}_{\text{cyclope}}) - \ln(\text{odds}_{\text{ménisque}}) = \beta_{\text{grp}} \;\Longrightarrow\; \ln(\text{OR}) = \beta_{\text{grp}} \;\Longrightarrow\; \boxed{\;\text{OR}_{\text{cyclope}} = e^{\beta_{\text{grp}}}\;}$$
+**Y a-t-il une hypothèse de loi ? Oui — Bernoulli, et c'est tout.** Une régression logistique est un **modèle linéaire généralisé (GLM)**, défini par trois briques :
 
-Le coefficient de groupe **est** donc le log-odds-ratio (à covariables fixées) ; l'exponentielle le ramène sur l'échelle OR. *(Brut : $\beta_{\text{grp}} = 2{,}85 \Rightarrow e^{2{,}85} = 17{,}2$.)*
+1. **Composante aléatoire (la loi).** Conditionnellement aux covariables, les réponses sont des **Bernoulli indépendantes** :
+
+$$Y_i \mid \mathbf{x}_i \;\sim\; \mathrm{Bernoulli}(p_i), \qquad p_i \equiv \mathbb{P}(Y_i = 1 \mid \mathbf{x}_i), \qquad i = 1,\dots,n \text{ indépendants.}$$
+
+  Aucune hypothèse de **normalité** ni de variance libre : pour une Bernoulli, $\mathbb{E}[Y_i \mid \mathbf{x}_i] = p_i$ et $\mathrm{Var}(Y_i \mid \mathbf{x}_i) = p_i(1-p_i)$ sont **liées** par construction.
+
+2. **Composante systématique (prédicteur linéaire).** Les effets s'additionnent sur une échelle latente :
+
+$$\eta_i \;=\; \mathbf{x}_i^{\!\top}\boldsymbol{\beta} \;=\; \beta_0 + \beta_{\text{grp}}\,\text{cyclope}_i + \beta_{\text{sexe}}\,\text{femme}_i + \beta_{\text{âge}}\,\text{âge}_i .$$
+
+3. **Fonction de lien (logit).** Elle relie la moyenne $p_i$ au prédicteur $\eta_i$ :
+
+$$\operatorname{logit}(p_i) \;=\; \ln\frac{p_i}{1-p_i} \;=\; \eta_i \qquad\Longleftrightarrow\qquad p_i \;=\; \operatorname{expit}(\eta_i) \;=\; \frac{1}{1+e^{-\eta_i}} \in (0,1).$$
+
+**Pourquoi *ce* lien (et pas une régression linéaire) ?** Trois raisons : (i) $Y$ est binaire — un modèle linéaire $p_i = \mathbf{x}_i^{\!\top}\boldsymbol{\beta}$ prédirait des « probabilités » **hors de $[0,1]$**, alors que le logit envoie $(0,1)\!\to\!\mathbb{R}$ et garde donc toujours $p_i$ dans $(0,1)$ ; (ii) le logit est le **lien canonique** de la famille Bernoulli (bonnes propriétés d'estimation) ; (iii) il rend les effets **multiplicatifs sur la cote**, d'où la lecture directe en **odds ratio** ci-dessous.
+
+**Estimation.** On estime $\boldsymbol{\beta}$ par **maximum de vraisemblance** — on maximise la log-vraisemblance Bernoulli
+
+$$\ell(\boldsymbol{\beta}) \;=\; \sum_{i=1}^{n} \Big[\, y_i \ln p_i(\boldsymbol{\beta}) + (1-y_i)\ln\big(1-p_i(\boldsymbol{\beta})\big) \Big]$$
+
+— puis **pénalisée à la Firth** (encadré ci-dessous), car la quasi-séparation fait diverger le maximum de vraisemblance ordinaire. Un tableau 2×2 brut, lui, ne donne *qu'un* OR non ajusté : seul le coefficient $\beta_{\text{grp}}$ d'un modèle **multivarié** isole l'effet du groupe **net** du sexe et de l'âge.
+
+**Pourquoi $\text{OR}_{\text{cyclope}} = e^{\beta_{\text{grp}}}$.** Conséquence directe du lien logit. Soit deux patients de **mêmes sexe et âge**, l'un cyclope ($\text{cyclope}=1$), l'autre ménisque ($0$) : leurs log-cotes ne diffèrent que par le terme de groupe. En soustrayant,
+
+$$\underbrace{\ln\frac{p_{\text{cyc}}}{1-p_{\text{cyc}}} - \ln\frac{p_{\text{mén}}}{1-p_{\text{mén}}}}_{\textstyle \ln(\text{OR})} \;=\; \beta_{\text{grp}} \qquad\Longrightarrow\qquad \boxed{\;\text{OR}_{\text{cyclope}} = e^{\beta_{\text{grp}}}\;}$$
+
+Le coefficient de groupe **est** donc le log-odds-ratio **ajusté** (à sexe et âge fixés) ; l'exponentielle le ramène sur l'échelle OR. *(Brut : $\beta_{\text{grp}} = 2{,}85 \Rightarrow e^{2{,}85} = 17{,}2$.)*
 
 > [!NOTE]
 > **Firth = « ajouter un demi-patient ».** Notre tableau 2×2 d'aggravation PF :
