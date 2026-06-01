@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lino_stats"
+version = "0.1.0"
+description = "Dual-population (Cyclops vs Ménisque) bayesian + non-parametric statistical analysis of paired knee-surgery cohort."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{name = "Linos Stats"}]
+dependencies = [
+    "pandas>=2.0",
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "matplotlib>=3.8",
+    "seaborn>=0.13",
+    "plotly>=5.18",
+    "altair>=5.2",
+    "pingouin>=0.5.4",
+    "scikit-posthocs>=0.9",
+    "ptitprince>=0.2.7",
+    "lifelines>=0.27",
+    "pymc>=5.10",
+    "arviz>=0.17",
+    "bambi>=0.13",
+    "openpyxl>=3.1",
+    "jupyter>=1.0",
+    "ipykernel>=6.0",
+    "nbformat>=5.9",
+    "statsmodels>=0.14",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4", "ruff>=0.1"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Make the src/ layout importable without an editable install (the conda
+# `dev` env runs the suite directly from the working tree).
+pythonpath = ["src"]

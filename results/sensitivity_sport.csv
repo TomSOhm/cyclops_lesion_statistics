@@ -1,0 +1,3 @@
+model,odds_ratio,pvalue,n
+crude (group only),17.23255813884358,0.0018615863266562283,69
+adjusted (+ pivot + travail_physique),15.267311070286983,0.002253490997377705,69

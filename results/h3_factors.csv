@@ -1,0 +1,7 @@
+factor,kind,test,effect_name,effect,ci_lo,ci_hi,p,n,p_adj_bh,bh_reject
+age_at_trauma,continuous,Spearman rho,rho,0.2432,-0.0633,0.4903,0.09221498668317214,49,0.5533,False
+imc,continuous,Spearman rho,rho,0.066,-0.2055,0.3378,0.652294359271788,49,0.7662,False
+female,binary,MWU + Cliff delta,cliffs_delta,-0.0502,-0.3742,0.2796,0.7661954034493808,49,0.7662,False
+tabac,binary,MWU + Cliff delta,cliffs_delta,-0.1273,-0.5682,0.6636,0.6358089075550297,49,0.7662,False
+travail_physique,binary,MWU + Cliff delta,cliffs_delta,-0.2105,-0.5407,0.2585,0.268280430745261,49,0.7662,False
+pivot_pivot_contact,multilevel,Kruskal-Wallis + epsilon^2,epsilon_sq,-0.0275,,,0.6930973476480132,49,0.7662,False

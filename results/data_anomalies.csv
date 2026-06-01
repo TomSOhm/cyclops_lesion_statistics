@@ -1,0 +1,4 @@
+group,anonyme,kind,detail
+cyclops,9,date_du_trauma_drift,61 d between rows (2023-10-11 to 2023-12-11)
+cyclops,38,negative_trauma_to_surgery_d,min -488 d (surgery before trauma)
+meniscus,25,negative_trauma_to_surgery_d,min -384 d (surgery before trauma)
