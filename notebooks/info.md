@@ -1,6 +1,6 @@
 # Méthodologie pas à pas — Cyclops vs Ménisque : du contrôle d'équilibre à la vérification de l'hypothèse fémoro-patellaire
 
-Tu pars d'une question clinique simple : quand un **cyclops** (nodule fibreux sur la greffe du LCA) bloque l'extension du genou, ce **flexum** augmente la pression de contact **fémoro-patellaire** et pourrait accélérer la progression des **lésions chondrales PF** (trochlée + rotule). Pour le tester, on compare 49 patients cyclops à 20 patients témoins opérés deux fois du ménisque — soit une cohorte de **69 patients** au total. Ce document n'est pas un article : c'est une **visite guidée concrète du pipeline d'analyse**, notebook par notebook, où chaque étape t'explique ce qu'on cherche à fixer ou vérifier, pourquoi on choisit telle méthode plutôt qu'une autre, et comment elle se calcule sur **nos** données. Tu peux le lire d'un bout à l'autre, ou sauter directement au notebook qui t'intéresse via le sommaire.
+Tu pars d'une question clinique simple : quand un **cyclops** (nodule fibreux sur la greffe du LCA) bloque l'extension du genou, ce **flexum** augmente la pression de contact **fémoro-patellaire** et pourrait accélérer la progression des **lésions chondrales PF** (trochlée + rotule). Pour le tester, on compare 49 patients cyclops à 20 patients méniscus opérés deux fois du ménisque — soit une cohorte de **69 patients** au total. Ce document n'est pas un article : c'est une **visite guidée concrète du pipeline d'analyse**, notebook par notebook, où chaque étape t'explique ce qu'on cherche à fixer ou vérifier, pourquoi on choisit telle méthode plutôt qu'une autre, et comment elle se calcule sur **nos** données. Tu peux le lire d'un bout à l'autre, ou sauter directement au notebook qui t'intéresse via le sommaire.
 
 > [!IMPORTANT]
 > **Le fil rouge de toute l'étude**
@@ -50,8 +50,8 @@ flowchart TB
 | **Wilcoxon signed-rank** | Test **apparié** (sur les différences intra-sujet) — *à ne pas confondre* avec le rank-sum/MWU ci-dessus ; ici : ΔPF vs ΔFT chez le même patient |
 | **TOST** | Test d'équivalence (two one-sided tests) — sert à prouver que deux groupes sont **équivalents**, pas juste « non différents » |
 | **Cliff δ** | Effet ordinal : proportion de « duels gagnés − perdus » entre les deux groupes, entre −1 et +1 |
-| **Firth** | Régression logistique pénalisée — stabilise l'OR en cas de quasi-séparation (cellule témoin = 1/20) |
-| **OR** | Odds ratio — rapport des cotes de progression PF, cyclops vs témoin |
+| **Firth** | Régression logistique pénalisée — stabilise l'OR en cas de quasi-séparation (cellule méniscus = 1/20) |
+| **OR** | Odds ratio — rapport des cotes de progression PF, cyclops vs méniscus |
 | **E-value** | Force minimale d'un facteur de confusion non mesuré qui pourrait expliquer l'association |
 | **δ̄** | Effet knee-wide **moyen** : δ̄ = (1/6) Σ δ_c — l'estimand primaire, conservateur et invariant par partition |
 | **δ_c** | Effet Groupe × Temps **par compartiment** (l'interaction propre à chaque zone du genou) |
@@ -158,7 +158,7 @@ Imagine une course truquée. Pour qu'une victoire veuille dire quelque chose, il
 - que tout le monde parte de **la même ligne de départ** (personne n'a 50 m d'avance) ;
 - que les coureurs soient **comparables** (on n'a pas mis tous les jeunes entraînés d'un côté).
 
-Ces deux choses sont **deux contrôles distincts**, et on les sépare exprès :
+Ces deux choses sont **deux méniscus distincts**, et on les sépare exprès :
 
 - **(a) Équilibre des covariables patient** — âge, sexe, IMC, sport pivot/contact, métier physique, tabac. C'est « les coureurs sont-ils comparables ? ».
 - **(b) Équivalence de l'état cartilagineux à S1** — surtout le **bloc fémoro-patellaire (PF = trochlée + rotule)**, là où l'effet va se jouer. C'est « tout le monde part-il de la même ligne ? ».
@@ -167,7 +167,7 @@ Le piège classique serait de tout mélanger dans un seul « test global ». Non
 
 #### 2 · Pourquoi cette méthode et pas une autre
 
-**Pour les covariables : SMD, pas p-value.** À $n=20$ contrôles, la p-value est **aveugle** : elle manque de puissance. Une vraie différence d'âge peut très bien se cacher derrière un $p$ non-significatif — non pas parce que les groupes se ressemblent, mais parce que l'échantillon est trop petit pour la détecter. La p-value répond à « ai-je assez de données pour être sûr ? », pas à « les groupes sont-ils déséquilibrés ? ». On utilise donc la **différence moyenne standardisée (SMD, Austin)**, qui mesure l'ampleur du décalage en unités d'écart-type, indépendamment de la taille d'échantillon, et on la lit sur un **Love plot**.
+**Pour les covariables : SMD, pas p-value.** À $n=20$ méniscus, la p-value est **aveugle** : elle manque de puissance. Une vraie différence d'âge peut très bien se cacher derrière un $p$ non-significatif — non pas parce que les groupes se ressemblent, mais parce que l'échantillon est trop petit pour la détecter. La p-value répond à « ai-je assez de données pour être sûr ? », pas à « les groupes sont-ils déséquilibrés ? ». On utilise donc la **différence moyenne standardisée (SMD, Austin)**, qui mesure l'ampleur du décalage en unités d'écart-type, indépendamment de la taille d'échantillon, et on la lit sur un **Love plot**.
 
 > [!TIP]
 > **Convention d'Austin pour lire une SMD.**
@@ -249,21 +249,19 @@ C'est exactement le piège du `[!WARNING]` du §2 : le MWU non-significatif ($0{
 | Tabac | $-0{,}14$ | 🟠 modéré |
 | IMC (médianes 24,4 vs 24,8) | $\approx -0{,}08$ | 🟢 négligeable |
 
-**État cartilagineux à S1 (équivalence) :**
+**État cartilagineux à S1 (équivalence).** Les **trois niveaux** (global 6-sum, PF, FT) passent par le **même** test unifié (`baseline_block_balance` : MWU + SMD + TOST) :
 
-| Cible | Test | Valeur |
-|---|---|---|
-| Baseline global (6 compartiments) | MWU $p$ | $0{,}662$ (médianes 0 vs 0) |
-| Baseline **PF** | MWU $p$ | $0{,}818$ |
-| Baseline **PF** | SMD | $-0{,}009$ |
-| Baseline **PF** | TOST $p$ (borne $0{,}292$) | $0{,}034$ → **équivalent = True** ✅ |
-| Baseline **FT** | MWU $p$ | $0{,}770$ |
-| Baseline **FT** | SMD | $+0{,}262$ (cyclops plus lésés) |
-| Baseline **FT** | TOST $p$ (borne $0{,}437$) | $0{,}186$ → **équivalent = False** ❌ |
+| Niveau | MWU $p$ | SMD | TOST $p$ (borne) | Verdict |
+|---|---:|---:|---|---|
+| Global (6-sum) | $0{,}662$ | $+0{,}191$ | $0{,}124$ ($\pm0{,}585$) | ❌ non équivalent |
+| **PF** (porte l'outcome) | $0{,}818$ | $-0{,}009$ | $0{,}034$ ($\pm0{,}292$) | ✅ **équivalent** |
+| **FT** | $0{,}770$ | $+0{,}262$ | $0{,}186$ ($\pm0{,}437$) | ❌ non équivalent |
+
+**Seul le bloc PF** est positivement équivalent. Le global et le FT montrent une différence **non détectée** par le MWU mais **échouent le TOST** (SMD non négligeables, $+0{,}19$ et $+0{,}26$) — c'est *exactement* le piège « absence de preuve ≠ preuve d'absence », maintenant visible à **tous les niveaux non-PF**.
 
 ![Figure 1 — Love plot des SMD baseline](../figures/fig1_baseline_balance.png)
 
-Le **Love plot** (Figure 1) montre les SMD covariable par covariable sur un axe horizontal centré sur 0, avec la bande verte $|\text{SMD}| < 0{,}10$ (négligeable) et les pointillés à $\pm 0{,}25$ (notable). On voit clairement quatre **points rouges qui débordent à droite** au-dessus du seuil 0,25 — l'âge ($+0{,}48$) et le sexe ($+0{,}37$) en tête, puis le sport pivot ($+0{,}35$) ; à l'opposé le métier physique part à gauche ($-0{,}28$). Seuls le tabac ($-0{,}14$, point bleu) et l'**IMC ($-0{,}08$, dans la zone verte)** restent équilibrés. Un encart annote que le **score lésionnel S1 est équivalent** (Mann–Whitney $p = 0{,}66$) : la ligne de départ cartilagineuse, elle, est bien commune aux deux groupes.
+Le **Love plot** (Figure 1) montre les SMD covariable par covariable sur un axe horizontal centré sur 0, avec la bande verte $|\text{SMD}| < 0{,}10$ (négligeable) et les pointillés à $\pm 0{,}25$ (notable). On voit clairement quatre **points rouges qui débordent à droite** au-dessus du seuil 0,25 — l'âge ($+0{,}48$) et le sexe ($+0{,}37$) en tête, puis le sport pivot ($+0{,}35$) ; à l'opposé le métier physique part à gauche ($-0{,}28$). Seuls le tabac ($-0{,}14$, point bleu) et l'**IMC ($-0{,}08$, dans la zone verte)** restent équilibrés. Un encart annote le **score lésionnel S1** (Mann–Whitney global $p = 0{,}66$) ; mais c'est le **bloc PF** qui est *positivement* équivalent (TOST $p = 0{,}034$) — la ligne de départ cartilagineuse est commune **là où le signal va émerger**.
 
 #### 5 · Interprétation
 
@@ -271,7 +269,7 @@ Le constat est net et **assumé : on n'est PAS équilibré** sur le sexe et l'â
 
 Autrement dit : les coureurs ne sont pas parfaitement comparables (pas tous le même âge / la même répartition sexe), **mais ils partent tous exactement de la même ligne** (même état cartilagineux PF à S1). C'est exactement le **point ② du fil rouge** : *la réponse à « les groupes sont-ils similaires ? » est NON sur les covariables, OUI sur le point de départ cartilagineux*.
 
-**Nuance importante (ajoutée par symétrie PF/FT).** Cette équivalence cartilagineuse est solide pour le **bloc PF** (celui qui porte l'hypothèse) et pour le **global 6-compartiments**, mais **pas** pour le bloc **FT** pris isolément : le TOST y échoue ($p = 0{,}186$) avec une SMD de $+0{,}26$ — les cyclops démarrent avec un peu plus de lésion fémorotibiale. La ligne de départ est donc commune **là où on en a besoin** (PF, où vit l'affirmation causale), mais **pas parfaitement symétrique** entre les deux blocs. Ce n'est pas un problème pour la lecture du contraste PF *contre zéro*, mais ça en est un pour le contraste PF *moins* FT — voir §6.
+**Nuance importante (ajoutée par symétrie PF/FT).** Cette équivalence cartilagineuse est solide **uniquement pour le bloc PF** (celui qui porte l'hypothèse) : **ni le global 6-compartiments** ($p_{\text{TOST}} = 0{,}124$, SMD $+0{,}19$) **ni le bloc FT** ($p_{\text{TOST}} = 0{,}186$, SMD $+0{,}26$) ne passent le TOST — les cyclops démarrent avec un peu plus de lésion (fémorotibiale, et globale). La ligne de départ est donc commune **là où on en a besoin** (PF, où vit l'affirmation causale), mais **pas parfaitement symétrique** entre les deux blocs. Ce n'est pas un problème pour la lecture du contraste PF *contre zéro*, mais ça en est un pour le contraste PF *moins* FT — voir §6.
 
 #### 6 · Ce que ça déclenche ensuite
 
@@ -376,7 +374,7 @@ La figure (raincloud) montre tout : à gauche, le nuage **cyclops** s'étale du 
 
 **Modèle beta-binomial (M1).** Probabilité d'aggravation PF estimée à **0,569 [0,438 ; 0,695]** chez les cyclops vs **0,091 [0,013 ; 0,230]** chez les méniscus — **intervalles non chevauchants**.
 
-**Comparaison appariée intra-cas (PF vs FT).** Chez les cyclops eux-mêmes : **28 empirent en PF vs 1 seul en FT** (Wilcoxon signed-rank $p = 2 \times 10^{-6}$). Le dégât est bien concentré sur le compartiment fémoro-patellaire, pas dispersé dans tout le genou.
+**Comparaison appariée intra-cyclops (PF vs FT).** Chez les cyclops eux-mêmes : **28 empirent en PF vs 1 seul en FT** (Wilcoxon signed-rank $p = 2 \times 10^{-6}$). Le dégât est bien concentré sur le compartiment fémoro-patellaire, pas dispersé dans tout le genou.
 
 #### 5 · Interprétation
 
@@ -384,7 +382,7 @@ L'effet est **gros, réel et robuste**. Trois ancrages indépendants pointent da
 
 1. Les **deux IC concordent** (BCa et inversion) — la borne basse ($\approx 0{,}36$) ne tient pas à un artefact de méthode, malgré $n_{\text{méniscus}} = 20$.
 2. Les **intervalles du modèle M1 sont disjoints** ([0,438 ; 0,695] vs [0,013 ; 0,230]) — aucune zone de recouvrement possible entre les deux groupes.
-3. Le **signal intra-cas est sans ambiguïté** (28 vs 1) — le surcroît de dégradation se loge précisément là où la mécanique le prédit.
+3. Le **signal intra-cyclops est sans ambiguïté** (28 vs 1) — le surcroît de dégradation se loge précisément là où la mécanique le prédit.
 
 Un δ de +0,535 signifie qu'en tirant un cyclops et un méniscus au hasard, le cyclops est pire dans plus de 3 duels sur 4. Ce n'est pas un effet de bord statistique.
 
@@ -415,13 +413,13 @@ On veut faire deux choses à la fois, et la première est une affaire d'**honnê
 2. **Montrer où vit le signal — et où il se noie.** On veut établir que l'aggravation est **concentrée sur le bloc PF** (rotule + trochlée) et qu'elle se **dilue** dès qu'on additionne les 6 compartiments en un seul score global.
 
 > [!IMPORTANT]
-> Rappel de notation : **PF = {rotule, trochlée}** (fémoro-patellaire), **FT = {PTE, PTI, CFE, CFI}** (fémoro-tibial). « Cas » = cyclops (n = 49), « contrôles » = ménisque (n = 20).
+> Rappel de notation : **PF = {rotule, trochlée}** (fémoro-patellaire), **FT = {PTE, PTI, CFE, CFI}** (fémoro-tibial). « Cyclops » = cyclops (n = 49), « méniscus » = ménisque (n = 20).
 
 #### 2 · Pourquoi cette méthode et pas une autre
 
 - **Full disclosure plutôt que « le meilleur des 6 ».** Choisir après coup le compartiment le plus parlant, c'est du HARKing déguisé. On affiche donc les **6**, dans les deux groupes, gagnants comme perdants.
 - **Benjamini-Hochberg (FDR, q = 0.10) plutôt que des p brutes.** On lance ici **6 tests de Mann–Whitney U** — un par compartiment, comparant le score de progression (Δ = S2 − S1) **entre** cyclops et méniscus (effet : Cliff δ). ⚠️ Ce sont bien des **Mann–Whitney (= Wilcoxon rank-sum, entre deux groupes)**, *pas* des Wilcoxon signed-rank appariés. Tester 6 fois sans correction, c'est s'offrir des faux positifs gratuits ; BH **contrôle le taux de fausses découvertes** : moins brutal que Bonferroni (qui couperait trop fort à n petit) tout en gardant le contrôle des erreurs.
-- **Comparaison appariée PF vs FT (Wilcoxon signed-rank).** Pour la spécificité topographique, on ne compare pas deux groupes mais **les deux blocs chez le même patient** : est-ce que, *à l'intérieur d'un même genou de cas*, le bloc PF s'aggrave plus que le bloc FT ? C'est un test apparié, donc il neutralise tout ce qui est propre au patient.
+- **Comparaison appariée PF vs FT (Wilcoxon signed-rank).** Pour la spécificité topographique, on ne compare pas deux groupes mais **les deux blocs chez le même patient** : est-ce que, *à l'intérieur d'un même genou de cyclops*, le bloc PF s'aggrave plus que le bloc FT ? C'est un test apparié, donc il neutralise tout ce qui est propre au patient.
 
 #### 3 · Comment on le calcule sur nos données
 
@@ -431,19 +429,19 @@ $$
 \text{rejeter } H_{(1)},\dots,H_{(k^\*)} \quad\text{où}\quad k^\* = \max\Big\{\, k : p_{(k)} \le \tfrac{k}{m}\,q \,\Big\}, \quad q = 0.10
 $$
 
-**Table des % d'aggravation par compartiment** (cas vs contrôles), avec la décision BH :
+**Table des % d'aggravation par compartiment** (cyclops vs méniscus), avec la décision BH :
 
-| Compartiment | Bloc | Cas | Contrôles | Cliff δ | BH |
+| Compartiment | Bloc | Cyclops | Méniscus | Cliff δ | BH |
 |---|---|---:|---:|---:|---|
-| Rotule | PF | 55.1% | 5.0% | +0.507 | Oui (cas) |
-| Trochlée | PF | 20.4% | 0.0% | +0.204 | Oui (cas) |
+| Rotule | PF | 55.1% | 5.0% | +0.507 | Oui (cyclops) |
+| Trochlée | PF | 20.4% | 0.0% | +0.204 | Oui (cyclops) |
 | PTE | FT | 2.0% | 10.0% | −0.080 | Non |
-| PTI | FT | 2.0% | 25.0% | −0.230 | **Oui (contrôles)** |
-| CFE | FT | 0.0% | 10.0% | −0.100 | **Oui (contrôles)** |
+| PTI | FT | 2.0% | 25.0% | −0.230 | **Oui (méniscus)** |
+| CFE | FT | 0.0% | 10.0% | −0.100 | **Oui (méniscus)** |
 | CFI | FT | 0.0% | 5.0% | −0.050 | Non |
 
 > [!NOTE]
-> **Exemple de dilution — pourquoi la somme efface le signal.** Additionne les 6 compartiments en un score unique (`lesion_total`). Tu mélanges **2 compartiments actifs** (PF, où les cas s'aggravent franchement) avec **4 compartiments inertes ou inversés** (FT, où ce sont parfois les contrôles qui s'aggravent). Résultat : l'effet est rétréci à
+> **Exemple de dilution — pourquoi la somme efface le signal.** Additionne les 6 compartiments en un score unique (`lesion_total`). Tu mélanges **2 compartiments actifs** (PF, où les cyclops s'aggravent franchement) avec **4 compartiments inertes ou inversés** (FT, où ce sont parfois les méniscus qui s'aggravent). Résultat : l'effet est rétréci à
 > $$\text{Cliff } \bar\delta_{6} = +0.204, \qquad p_{\text{deux-côtés}} = 0.156, \qquad p_{\text{un-côté}} = 0.078.$$
 > Aucun de ces p n'est décisionnel. Le vrai signal PF a été **noyé** par la moyenne.
 
@@ -451,22 +449,22 @@ $$
 
 ![Figure 3 — % aggravation par compartiment](../figures/fig3_per_compartment.png)
 
-La **figure 3** est un histogramme groupé : barres orange (cyclops) vs vertes (ménisque), une paire par compartiment, séparées par une ligne pointillée verticale en deux zones étiquetées **« Patellofemoral (PF) »** à gauche et **« Femorotibial (FT) »** à droite. À gauche, les barres orange écrasent les vertes : **rotule 55 % vs 5 %**, **trochlée 20 % vs 0 %**. À droite, le motif **s'inverse** : sur PTE, médial femoral condyle, plateau tibial latéral et surtout le **plateau tibial médial (PTI) à 25 % de vert contre 2 % d'orange**, ce sont les barres vertes (contrôles) qui dominent.
+La **figure 3** est un histogramme groupé : barres orange (cyclops) vs vertes (ménisque), une paire par compartiment, séparées par une ligne pointillée verticale en deux zones étiquetées **« Patellofemoral (PF) »** à gauche et **« Femorotibial (FT) »** à droite. À gauche, les barres orange écrasent les vertes : **rotule 55 % vs 5 %**, **trochlée 20 % vs 0 %**. À droite, le motif **s'inverse** : sur PTE, médial femoral condyle, plateau tibial latéral et surtout le **plateau tibial médial (PTI) à 25 % de vert contre 2 % d'orange**, ce sont les barres vertes (méniscus) qui dominent.
 
 Décisions BH (q = 0.10) :
 
-- **Rotule et trochlée sont BH-significatifs en faveur des cas.**
-- **Aucun compartiment FT n'est en excès chez les cas.**
-- À l'inverse, **PTI et CFE sont BH-significatifs en sens INVERSE** : 25 % des contrôles vs 2 % des cas pour PTI ; 10 % des contrôles vs 0 % des cas pour CFE — probablement la pathologie méniscale propre aux contrôles.
+- **Rotule et trochlée sont BH-significatifs en faveur des cyclops.**
+- **Aucun compartiment FT n'est en excès chez les cyclops.**
+- À l'inverse, **PTI et CFE sont BH-significatifs en sens INVERSE** : 25 % des méniscus vs 2 % des cyclops pour PTI ; 10 % des méniscus vs 0 % des cyclops pour CFE — probablement la pathologie méniscale propre aux méniscus.
 - **Somme des 6 diluée** : δ = +0.204, p = 0.156 (non décisionnel).
 
 ![Figure 4 — spécificité topographique](../figures/fig4_topographic_specificity.png)
 
-La **figure 4** montre la spécificité **intra-patient** chez les cas : un box-plot apparié « bloc PF » vs « bloc FT » du Δ de score (S2 − S1), avec un trait reliant chaque patient de gauche à droite. Presque tous les segments **plongent** du bloc PF (points en l'air, jusqu'à Δ = 4) vers le bloc FT (collés à zéro) — l'épaisseur des traits encode le nombre de patients suivant le même chemin. Bilan apparié : **28 patients s'aggravent dans PF contre 1 seul dans FT** (Wilcoxon signed-rank p = 2 × 10⁻⁶, rank-biserial = 1.0).
+La **figure 4** montre la spécificité **intra-patient** chez les cyclops : un box-plot apparié « bloc PF » vs « bloc FT » du Δ de score (S2 − S1), avec un trait reliant chaque patient de gauche à droite. Presque tous les segments **plongent** du bloc PF (points en l'air, jusqu'à Δ = 4) vers le bloc FT (collés à zéro) — l'épaisseur des traits encode le nombre de patients suivant le même chemin. Bilan apparié : **28 patients s'aggravent dans PF contre 1 seul dans FT** (Wilcoxon signed-rank p = 2 × 10⁻⁶, rank-biserial = 1.0).
 
 #### 5 · Interprétation
 
-Le signal est **purement fémoro-patellaire**. Il ne s'agit pas d'une dégradation diffuse de tout le genou : seuls la rotule et la trochlée s'aggravent chez les cas, exactement les surfaces que le mécanisme du flexum (pression de contact PF accrue) prédisait. Mieux : les compartiments FT vont dans l'**autre sens** chez les contrôles, ce qui est cohérent avec leur propre pathologie méniscale et **renforce** l'argument anti-confusion — un facteur de confusion générique (âge, IMC) abîmerait tout le genou, pas le seul compartiment mécaniquement attendu.
+Le signal est **purement fémoro-patellaire**. Il ne s'agit pas d'une dégradation diffuse de tout le genou : seuls la rotule et la trochlée s'aggravent chez les cyclops, exactement les surfaces que le mécanisme du flexum (pression de contact PF accrue) prédisait. Mieux : les compartiments FT vont dans l'**autre sens** chez les méniscus, ce qui est cohérent avec leur propre pathologie méniscale et **renforce** l'argument anti-confusion — un facteur de confusion générique (âge, IMC) abîmerait tout le genou, pas le seul compartiment mécaniquement attendu.
 
 Mais c'est précisément cette localisation qui crée un piège : **la somme globale dilue le signal** (δ = +0.204, p = 0.156). D'où la nécessité d'un estimand qui ne soit **ni** « la somme des 6 » (qui noie l'effet) **ni** « le meilleur des 6 » (qui triche par sélection).
 
@@ -495,14 +493,14 @@ C'est le **climax du fil rouge**, le point ③ (« on adapte »). Au §01 on a d
 
 > **L'effet cyclope sur la fémoro-patellaire survit-il à l'ajustement sexe + âge ?**
 
-Autrement dit : l'excès d'aggravation PF qu'on a vu (57 % vs 5 %) est-il un vrai effet de groupe, ou juste le reflet du fait que les cas sont plus souvent d'un sexe et d'un certain âge ? Tant qu'on n'a pas répondu, l'hypothèse fémoro-patellaire reste fragilisée par le déséquilibre. Ici on **adapte la méthode** pour la défendre **malgré** ce déséquilibre.
+Autrement dit : l'excès d'aggravation PF qu'on a vu (57 % vs 5 %) est-il un vrai effet de groupe, ou juste le reflet du fait que les cyclops sont plus souvent d'un sexe et d'un certain âge ? Tant qu'on n'a pas répondu, l'hypothèse fémoro-patellaire reste fragilisée par le déséquilibre. Ici on **adapte la méthode** pour la défendre **malgré** ce déséquilibre.
 
 #### 2 · Pourquoi cette méthode et pas une autre
 
-**Firth, pas la logistique classique.** Le tableau 2×2 a un problème : les contrôles n'ont **qu'un seul** événement PF sur 20. On est en **quasi-séparation** — une case quasi vide. Dans ce régime, la logistique classique (maximum de vraisemblance) n'a pas de solution finie : l'OR file vers l'infini, et l'algorithme s'arrête sur un nombre instable qui repose **entièrement sur ce seul patient**.
+**Firth, pas la logistique classique.** Le tableau 2×2 a un problème : les méniscus n'ont **qu'un seul** événement PF sur 20. On est en **quasi-séparation** — une case quasi vide. Dans ce régime, la logistique classique (maximum de vraisemblance) n'a pas de solution finie : l'OR file vers l'infini, et l'algorithme s'arrête sur un nombre instable qui repose **entièrement sur ce seul patient**.
 
 > [!WARNING]
-> **Quasi-séparation.** Avec 1 événement sur 20 chez les contrôles, l'OR du maximum de vraisemblance diverge (→ ∞). Le « OR ML ≈ 25 » qu'on lirait naïvement est un **fantôme** : il tient à un unique patient et son intervalle de confiance est inexploitable. Il ne faut **jamais** le rapporter tel quel.
+> **Quasi-séparation.** Avec 1 événement sur 20 chez les méniscus, l'OR du maximum de vraisemblance diverge (→ ∞). Le « OR ML ≈ 25 » qu'on lirait naïvement est un **fantôme** : il tient à un unique patient et son intervalle de confiance est inexploitable. Il ne faut **jamais** le rapporter tel quel.
 
 La régression de **Firth** corrige exactement ça : sa pénalisation (le jacobien de Jeffreys) tire l'estimation loin des bords, garde un OR **fini** et un intervalle de confiance honnête, même quand une case est minuscule.
 
@@ -516,7 +514,7 @@ Le modèle est une **régression logistique pénalisée Firth** sur l'aggravatio
 
 **De la cote (odds) à l'odds ratio.** La *cote* d'aggraver dans un groupe = (nombre qui empirent) / (nombre stables). Sur nos données :
 
-$$\text{odds}_{\text{cas}} = \frac{28}{21} = 1{,}33, \qquad \text{odds}_{\text{contrôles}} = \frac{1}{19} = 0{,}053, \qquad \text{OR} = \frac{1{,}33}{0{,}053} = 25{,}33$$
+$$\text{odds}_{\text{cyclops}} = \frac{28}{21} = 1{,}33, \qquad \text{odds}_{\text{méniscus}} = \frac{1}{19} = 0{,}053, \qquad \text{OR} = \frac{1{,}33}{0{,}053} = 25{,}33$$
 
 L'**odds ratio** (OR) est le rapport de ces deux cotes — *à ne pas confondre* avec le **risque relatif** (RR), qui compare des probabilités (voir plus bas).
 
@@ -563,8 +561,8 @@ Le coefficient de groupe **est** donc le log-odds-ratio **ajusté** (à sexe et 
 >
 > |               | empirent | stables |
 > |---------------|:--------:|:-------:|
-> | **cas**       |    28    |   21    |
-> | **contrôles** |    1     |   19    |
+> | **cyclops**       |    28    |   21    |
+> | **méniscus** |    1     |   19    |
 >
 > L'OR du maximum de vraisemblance naïf vaut $(28\times19)/(21\times1) = \mathbf{25{,}33}$ — le fantôme, suspendu à l'unique « 1 ».
 >
@@ -574,13 +572,22 @@ Le coefficient de groupe **est** donc le log-odds-ratio **ajusté** (à sexe et 
 >
 > ce qui colle à la valeur exacte de l'algorithme (**17,23**). On le voit converger proprement en quelques pas de Newton-Raphson : $8{,}05 \to 14{,}72 \to 17{,}19 \to \mathbf{17{,}23}$ (convergé), avec $\beta_1 = 2{,}85$ et $\text{SE} = 0{,}91$. La case « 1 » ne dicte plus à elle seule le résultat.
 >
-> Formellement, Firth **pénalise la vraisemblance** par le *prior de Jeffreys* $|\mathcal{I}(\beta)|^{1/2}$ (avec $\mathcal{I}$ l'information de Fisher) : cette pénalité **retire le biais de premier ordre** de l'estimateur du maximum de vraisemblance et garantit une estimation **finie** même sous (quasi-)séparation — exactement notre cas avec une seule aggravation côté contrôles.
+> Formellement, Firth **pénalise la vraisemblance** par le *prior de Jeffreys* $|\mathcal{I}(\beta)|^{1/2}$ (avec $\mathcal{I}$ l'information de Fisher) : cette pénalité **retire le biais de premier ordre** de l'estimateur du maximum de vraisemblance et garantit une estimation **finie** même sous (quasi-)séparation — exactement notre cas avec une seule aggravation côté méniscus.
+
+**Brut vs ajusté : même modèle, un $\beta$ qui change de *sens*.** Les deux odds ratios sortent du **même** maximum de vraisemblance pénalisé Firth — seule la **composante systématique $\eta_i$** change.
+
+| Modèle | Composante systématique $\eta_i$ | $\hat\beta_{\text{grp}}$ | $\text{OR}=e^{\hat\beta_{\text{grp}}}$ | Sens de $\beta_{\text{grp}}$ |
+|---|---|:---:|:---:|---|
+| **Brut** | $\beta_0 + \beta_{\text{grp}}\,\text{cyclope}_i$ | $2{,}85$ | $\mathbf{17{,}2}$ | association **totale** (= le 2×2 écrit en logit) |
+| **Ajusté** | $\beta_0 + \beta_{\text{grp}}\,\text{cyclope}_i + \beta_{\text{sexe}}\,\text{femme}_i + \beta_{\text{âge}}\,\text{âge}_i$ | $2{,}60$ | $\mathbf{13{,}5}$ | effet **partiel**, à sexe & âge fixés |
+
+Deux points à retenir : (i) **même machine, même formule** — dans les deux cas $\text{OR} = e^{\beta_{\text{grp}}}$ estimé par MV pénalisée Firth ; seul le **contenu de $\eta$** diffère (groupe seul *vs* groupe + confondeurs). (ii) Le coefficient $\beta_{\text{grp}}$ **change de sens** : brut = effet *total* du groupe ; ajusté = effet *partiel*, **net** du sexe et de l'âge. C'est ce **changement de sens** — pas un changement de méthode — qui fait passer de $17{,}2$ à $13{,}5$ ($\beta : 2{,}85 \to 2{,}60$) ; et la **petitesse** de la baisse dit que sexe + âge n'expliquent qu'une miette de l'association.
 
 **OR vs RR — le risque relatif.** Le **risque relatif** (RR) compare les *probabilités* d'aggraver, pas les cotes :
 
-$$\text{RR} = \frac{p_{\text{cas}}}{p_{\text{contrôles}}} = \frac{28/49}{1/20} = \frac{0{,}571}{0{,}050} = 11{,}4$$
+$$\text{RR} = \frac{p_{\text{cyclops}}}{p_{\text{méniscus}}} = \frac{28/49}{1/20} = \frac{0{,}571}{0{,}050} = 11{,}4$$
 
-OR ($25{,}3$ brut) et RR ($11{,}4$) **divergent** ici parce que l'issue est **fréquente** (57 % des cas aggravent). Règle générale : pour une issue **rare**, $\text{OR} \approx \text{RR}$ ; pour une issue **fréquente**, l'OR **exagère** le RR. Ce point conditionne le calcul de l'E-value.
+OR ($25{,}3$ brut) et RR ($11{,}4$) **divergent** ici parce que l'issue est **fréquente** (57 % des cyclops aggravent). Règle générale : pour une issue **rare**, $\text{OR} \approx \text{RR}$ ; pour une issue **fréquente**, l'OR **exagère** le RR. Ce point conditionne le calcul de l'E-value.
 
 **E-value (VanderWeele & Ding, 2017).** C'est la **force minimale** qu'un confondeur **non mesuré** devrait avoir — sur l'échelle du **risque relatif**, et **à la fois** avec l'exposition (être cyclope) *et* avec l'issue (aggravation PF) — pour expliquer *entièrement* l'association observée, une fois les covariables mesurées prises en compte. Elle se lit comme un RR :
 
@@ -608,15 +615,15 @@ Le forest plot (échelle log, ligne pointillée à OR = 1) empile les estimation
 | Ajusté sexe + âge + IMC | 13,9 | [2,3 ; 83,4] | — |
 | En excluant les 3 anomalies de dates | 14,2 | — | — |
 
-- **OR Firth brut = 17,2** [2,9 ; 103,5] (la case de contrôle minimale vaut 1).
+- **OR Firth brut = 17,2** [2,9 ; 103,5] (la case de méniscus minimale vaut 1).
 - **Ajusté sexe + âge : OR = 13,5** [2,3 ; 80,1], **p = 0,004**.
 - **E-value = 7,77** (borne inférieure de confiance **2,78**).
 - Robustesse : + IMC → OR 13,9 [2,3 ; 83,4] ; en excluant les 3 anomalies de dates → OR 14,2.
-- **H3** (modulation par facteurs intrinsèques, cas seulement) : **aucun facteur BH-significatif** (âge, IMC, sexe, tabac, travail physique, pivot).
+- **H3** (modulation par facteurs intrinsèques, cyclops seulement) : **aucun facteur BH-significatif** (âge, IMC, sexe, tabac, travail physique, pivot).
 
 #### 5 · Interprétation
 
-La baisse de **17,2 → 13,5** est **petite** : le sexe et l'âge n'expliquent qu'une **miette** de l'effet. L'écart énorme entre cas et contrôles ne disparaît pas une fois qu'on compare à sexe égal et âge égal — donc **l'hypothèse fémoro-patellaire est vérifiée malgré le déséquilibre** détecté au §01. Le fil rouge est bouclé : on a constaté la non-comparabilité, on a adapté, et l'effet tient.
+La baisse de **17,2 → 13,5** est **petite** : le sexe et l'âge n'expliquent qu'une **miette** de l'effet. L'écart énorme entre cyclops et méniscus ne disparaît pas une fois qu'on compare à sexe égal et âge égal — donc **l'hypothèse fémoro-patellaire est vérifiée malgré le déséquilibre** détecté au §01. Le fil rouge est bouclé : on a constaté la non-comparabilité, on a adapté, et l'effet tient.
 
 La **E-value 7,77** scelle l'argument : pour faire totalement disparaître l'association, il faudrait un confondeur **non mesuré** associé **à la fois** au statut cyclope **et** à l'aggravation PF par un risque relatif **≥ 7,77** — et même la borne inférieure (2,78) reste exigeante. C'est implausible pour les confondeurs candidats ici. Quant à H3, l'absence de facteur BH-significatif confirme qu'aucun trait intrinsèque (IMC, tabac, sport pivot…) ne porte l'effet à la place du groupe.
 
@@ -644,7 +651,7 @@ On veut **confirmer le signal fémoro-patellaire**, mais de façon blindée cont
 Pour ça on pose un **estimand primaire conservateur à l'échelle du genou entier** : **δ̄**, la moyenne des 6 effets compartiment-spécifiques. C'est lui qui porte la décision. La localisation PF, elle, est lue **après**, comme un sous-produit dérivé du même postérieur neutre.
 
 > [!IMPORTANT]
-> Rappel de notation : **PF = {rotule, trochlée}** (fémoro-patellaire), **FT = {PTE, PTI, CFE, CFI}** (fémoro-tibial). « Cas » = cyclops (n = 49), « contrôles » = ménisque (n = 20). δ_c = effet Groupe × Temps sur le compartiment c.
+> Rappel de notation : **PF = {rotule, trochlée}** (fémoro-patellaire), **FT = {PTE, PTI, CFE, CFI}** (fémoro-tibial). « Cyclops » = cyclops (n = 49), « méniscus » = ménisque (n = 20). δ_c = effet Groupe × Temps sur le compartiment c.
 
 #### 2 · Pourquoi cette méthode et pas une autre
 
@@ -670,7 +677,7 @@ $$\bar{\delta} = \tfrac{1}{6}\sum_{c=1}^{6}\delta_c,\qquad \text{contraste}_{\te
 
 Quelques précisions qui changent tout :
 
-- **t ∈ {−0.5, +0.5} code S1/S2**, pas une date. Avec seulement deux instants, **β_c·t est un contraste S2 − S1**, pas une pente « par unité de temps ». L'effet d'intérêt δ_c est l'**interaction Groupe × Temps** : à quel point l'aggravation S1→S2 diffère entre cas et contrôles, sur le compartiment c.
+- **t ∈ {−0.5, +0.5} code S1/S2**, pas une date. Avec seulement deux instants, **β_c·t est un contraste S2 − S1**, pas une pente « par unité de temps ». L'effet d'intérêt δ_c est l'**interaction Groupe × Temps** : à quel point l'aggravation S1→S2 diffère entre cyclops et méniscus, sur le compartiment c.
 - **u_i = intercept patient** : il absorbe tout ce qui est propre au patient (sévérité de départ, anatomie), ce qui gère la corrélation intra-patient des deux observations appariées.
 - **Vraisemblance hétérogène** : logit cumulatif {0, 1, ≥2} pour rotule/trochlée, Bernoulli pour les 4 FT. Les seuils (cutpoints) sont **libres par compartiment** — ils encodent la *prévalence de base* (la mesure), jamais l'effet ; le pooling ne porte que sur les δ_c.
 - **Prior Student-t(3)** sur les δ_c : queues lourdes, robuste aux compartiments atypiques.
@@ -715,7 +722,7 @@ Le partage des rôles est explicite : **la décision repose sur δ̄** (conserva
 
 #### 6 · Ce que ça déclenche ensuite
 
-Le signal PF est confirmé proprement, mais une question de **reviewer** reste ouverte : les **cas sont ré-opérés plus tôt** que les contrôles. Si les cyclops sont revus plus vite, ils ont eu **moins de temps** pour que le cartilage se dégrade — alors comment expliquer qu'ils s'aggravent quand même davantage ?
+Le signal PF est confirmé proprement, mais une question de **reviewer** reste ouverte : les **cyclops sont ré-opérés plus tôt** que les méniscus. Si les cyclops sont revus plus vite, ils ont eu **moins de temps** pour que le cartilage se dégrade — alors comment expliquer qu'ils s'aggravent quand même davantage ?
 
 Autrement dit : le **délai entre les deux chirurgies** est-il une fenêtre d'observation inégale qui biaiserait tout ? Le **§06** traite cette question de front (le délai comme temps-d'exposition / fenêtre d'observation, pas comme médiateur).
 
@@ -736,15 +743,15 @@ Entre la première opération (S1) et la seconde (S2), il s'écoule un certain n
 Trois lectures possibles, et il faut choisir la bonne :
 
 1. **Un facteur de confusion** ? (quelque chose qui fausserait la comparaison cyclops vs ménisque et qu'il faudrait neutraliser) ;
-2. **Un médiateur biologique** ? (le mécanisme réel par lequel le cyclops abîme le cartilage : « les cas attendent plus longtemps → plus de temps pour que le cartilage se dégrade ») ;
+2. **Un médiateur biologique** ? (le mécanisme réel par lequel le cyclops abîme le cartilage : « les cyclops attendent plus longtemps → plus de temps pour que le cartilage se dégrade ») ;
 3. **Simplement la fenêtre d'observation** — le **temps-à-risque**, c'est-à-dire la durée pendant laquelle on a pu *observer* une éventuelle aggravation.
 
 > [!IMPORTANT]
-> « Cas » = cyclops (n = 49), « contrôles » = ménisque (n = 20). Le délai inter-chirurgical est la **différence de deux dates de chirurgie** (S2 − S1) — aucune des deux n'est négative ni « hygiénisée », donc H4 est **robuste** aux anomalies de dates trauma repérées en §00.
+> « Cyclops » = cyclops (n = 49), « méniscus » = ménisque (n = 20). Le délai inter-chirurgical est la **différence de deux dates de chirurgie** (S2 − S1) — aucune des deux n'est négative ni « hygiénisée », donc H4 est **robuste** aux anomalies de dates trauma repérées en §00.
 
 #### 2 · Pourquoi cette méthode et pas une autre
 
-La réponse tient dans un petit **DAG** (graphe causal orienté). On place le délai **en aval du groupe** : c'est le statut cyclops qui détermine quand on ré-opère (les cas sont ré-opérés **plus tôt**), pas l'inverse.
+La réponse tient dans un petit **DAG** (graphe causal orienté). On place le délai **en aval du groupe** : c'est le statut cyclops qui détermine quand on ré-opère (les cyclops sont ré-opérés **plus tôt**), pas l'inverse.
 
 ```mermaid
 flowchart LR
@@ -757,8 +764,8 @@ De cette structure découle tout le reste :
 
 - **Ce n'est pas un confondeur.** Un confondeur agirait *en amont* du groupe (une cause commune). Ici le délai est *causé* par le groupe : il est en aval. On ne le neutralise donc **pas**.
 - **Le conditionner serait du sur-ajustement.** Ajuster sur une variable post-groupe (un médiateur ou un descendant), c'est l'erreur classique de **over-adjustment** : on bloque une partie du chemin causal et on biaise l'effet total. On **exclut** donc le délai du modèle primaire de progression.
-- **On falsifie son rôle de médiateur.** Si le délai était le *mécanisme biologique* (l'histoire « plus de temps = plus de dégâts »), alors **chez les cas**, plus le délai est long, plus l'aggravation PF devrait être forte. On teste exactement ça avec une **corrélation de rangs de Spearman** ρ(délai, Δ_PF) chez les cas. Un ρ proche de 0 falsifie l'histoire du médiateur.
-- **On étudie le délai comme un *outcome* à part.** H4 n'est pas une question sur le cartilage : c'est une question *sur le délai lui-même* (les cas sont-ils ré-opérés plus tôt ?). On le modélise donc comme une **durée**, via deux modèles complémentaires : **Weibull AFT** (M4, *accelerated failure time*, estimé par maximum de vraisemblance avec `lifelines`) et **LogNormal par groupe** (M5, bayésien, NUTS).
+- **On falsifie son rôle de médiateur.** Si le délai était le *mécanisme biologique* (l'histoire « plus de temps = plus de dégâts »), alors **chez les cyclops**, plus le délai est long, plus l'aggravation PF devrait être forte. On teste exactement ça avec une **corrélation de rangs de Spearman** ρ(délai, Δ_PF) chez les cyclops. Un ρ proche de 0 falsifie l'histoire du médiateur.
+- **On étudie le délai comme un *outcome* à part.** H4 n'est pas une question sur le cartilage : c'est une question *sur le délai lui-même* (les cyclops sont-ils ré-opérés plus tôt ?). On le modélise donc comme une **durée**, via deux modèles complémentaires : **Weibull AFT** (M4, *accelerated failure time*, estimé par maximum de vraisemblance avec `lifelines`) et **LogNormal par groupe** (M5, bayésien, NUTS).
 
 #### 3 · Comment on le calcule sur nos données
 
@@ -768,10 +775,10 @@ $$
 \rho \;=\; 1 - \frac{6\sum_i d_i^2}{n\,(n^2-1)}, \qquad d_i = \operatorname{rang}(\text{délai}_i) - \operatorname{rang}(\Delta_{\mathrm{PF},\,i})
 $$
 
-On l'applique **chez les cas uniquement**, entre le délai et l'aggravation PF (`worsened_pf`). C'est le test de falsification : un médiateur biologique prédirait un ρ nettement négatif ; le temps-à-risque prédit ρ ≈ 0.
+On l'applique **chez les cyclops uniquement**, entre le délai et l'aggravation PF (`worsened_pf`). C'est le test de falsification : un médiateur biologique prédirait un ρ nettement négatif ; le temps-à-risque prédit ρ ≈ 0.
 
 > [!TIP]
-> **L'argument clé — l'effet survient *malgré* ~½ du temps d'exposition.** Réfléchis au sens de l'ajustement. La fenêtre d'observation est **plus courte** chez les cas (ré-opérés plus tôt). Donc les cas ont eu **moins de temps** pour s'aggraver, et pourtant ils s'aggravent **plus**. Ajuster sur le délai (donner aux deux groupes le même temps d'exposition) ne pourrait que **renforcer** l'effet PF — jamais l'effacer. Conclusion : le suivi plus court des cas **joue contre nous**, et l'effet PF est observé **malgré** ~½ du temps d'exposition. Cela *consolide* la conclusion au lieu de la fragiliser. (De fait, un modèle conditionnant sur le délai renvoie un OR encore **plus grand**, ≈ 28.4.)
+> **L'argument clé — l'effet survient *malgré* ~½ du temps d'exposition.** Réfléchis au sens de l'ajustement. La fenêtre d'observation est **plus courte** chez les cyclops (ré-opérés plus tôt). Donc les cyclops ont eu **moins de temps** pour s'aggraver, et pourtant ils s'aggravent **plus**. Ajuster sur le délai (donner aux deux groupes le même temps d'exposition) ne pourrait que **renforcer** l'effet PF — jamais l'effacer. Conclusion : le suivi plus court des cyclops **joue contre nous**, et l'effet PF est observé **malgré** ~½ du temps d'exposition. Cela *consolide* la conclusion au lieu de la fragiliser. (De fait, un modèle conditionnant sur le délai renvoie un OR encore **plus grand**, ≈ 28.4.)
 
 #### 4 · Résultat
 
@@ -779,25 +786,25 @@ On l'applique **chez les cas uniquement**, entre le délai et l'aggravation PF (
 
 La **figure 7** trace deux **ECDF** (fonctions de répartition empiriques cumulées, en escalier) du délai en jours, plus leur ajustement **LogNormal** (M5) en pointillés. La courbe **orange (cyclops, n=49)** monte vite et se tasse bien à gauche — sa **médiane est annotée vers 240 jours** ; la courbe **verte (ménisque, n=20)** est nettement décalée vers la droite, médiane annotée vers **528 jours**. Le bandeau en haut résume le verdict : *« Mediator (downstream of group), not a confounder: cyclops are re-operated sooner — adjusting it strengthens the PF effect. »*
 
-| Quantité | Cas (cyclops) | Contrôles (ménisque) | Effet |
+| Quantité | Cyclops (cyclops) | Méniscus (ménisque) | Effet |
 |---|---:|---:|---|
 | Délai médian (jours) | **240** | **528** | MWU **p < 0.0001** ; Cliff **δ = −0.64** (large) |
 | LogNormal — médiane (M5) | 237 | 483 | — |
-| Weibull AFT — coef. groupe (M4) | — | — | **−0.61** (délai raccourci chez les cas) |
-| ρ(délai, aggravation PF) chez les cas | — | — | **ρ = −0.03** (p = 0.82) |
+| Weibull AFT — coef. groupe (M4) | — | — | **−0.61** (délai raccourci chez les cyclops) |
+| ρ(délai, aggravation PF) chez les cyclops | — | — | **ρ = −0.03** (p = 0.82) |
 
-Les trois approches convergent : **les cas sont ré-opérés plus de deux fois plus vite**. Et la corrélation intra-cas entre délai et aggravation PF est **nulle** (ρ = −0.03, p = 0.82).
+Les trois approches convergent : **les cyclops sont ré-opérés plus de deux fois plus vite**. Et la corrélation intra-cyclops entre délai et aggravation PF est **nulle** (ρ = −0.03, p = 0.82).
 
 #### 5 · Interprétation
 
 Deux lectures se dégagent.
 
-- **Le sens du délai s'inverse par rapport à l'attente pré-enregistrée.** On pensait au départ que les cas *attendraient plus longtemps* (donc plus de temps pour s'abîmer). C'est l'inverse : ils sont ré-opérés **plus tôt**. Et c'est **cliniquement cohérent** — un déficit d'extension symptomatique (le flexum du cyclops) est gênant et pousse à ré-opérer vite, alors qu'une gêne méniscale peut traîner.
-- **Le délai n'est pas un mécanisme biologique.** Chez les cas, l'aggravation PF est **sans aucun lien monotone** avec le délai (ρ ≈ 0). Si le temps écoulé était le moteur des dégâts, on verrait une corrélation franche : on ne la voit pas. Le délai est donc bien la **fenêtre d'observation (temps-à-risque)**, ni confondeur, ni médiateur.
+- **Le sens du délai s'inverse par rapport à l'attente pré-enregistrée.** On pensait au départ que les cyclops *attendraient plus longtemps* (donc plus de temps pour s'abîmer). C'est l'inverse : ils sont ré-opérés **plus tôt**. Et c'est **cliniquement cohérent** — un déficit d'extension symptomatique (le flexum du cyclops) est gênant et pousse à ré-opérer vite, alors qu'une gêne méniscale peut traîner.
+- **Le délai n'est pas un mécanisme biologique.** Chez les cyclops, l'aggravation PF est **sans aucun lien monotone** avec le délai (ρ ≈ 0). Si le temps écoulé était le moteur des dégâts, on verrait une corrélation franche : on ne la voit pas. Le délai est donc bien la **fenêtre d'observation (temps-à-risque)**, ni confondeur, ni médiateur.
 
 #### 6 · Ce que ça déclenche ensuite
 
-Ce résultat **ferme une objection majeure** qu'un relecteur poserait forcément : *« et si les cas s'aggravaient simplement parce qu'on les suit plus longtemps ? »* (le « suivi inégal »). La réponse est l'**inverse** de l'objection : les cas sont suivis **moins** longtemps, donc le suivi inégal **joue contre l'effet**, et le voir survivre quand même le **renforce**.
+Ce résultat **ferme une objection majeure** qu'un relecteur poserait forcément : *« et si les cyclops s'aggravaient simplement parce qu'on les suit plus longtemps ? »* (le « suivi inégal »). La réponse est l'**inverse** de l'objection : les cyclops sont suivis **moins** longtemps, donc le suivi inégal **joue contre l'effet**, et le voir survivre quand même le **renforce**.
 
 On a maintenant fait le tour de la chaîne — équilibre (§01), effet PF (§02), localisation et dilution (§03), adaptation au déséquilibre (§04), confirmation non-circulaire (§05) et neutralisation du délai (§06). Tout est en place pour la **synthèse** : même yardstick (Cliff δ) du départ neutre à l'arrivée tranchée, décision sur δ̄ conservateur, statut exploratoire et réplication prospective.
 
@@ -811,7 +818,7 @@ On a maintenant fait le tour de la chaîne — équilibre (§01), effet PF (§02
 
 ## Synthèse — le fil rouge récapitulé
 
-On a suivi un seul fil du début à la fin, en trois temps. **①** On a d'abord vérifié la **comparabilité** des deux groupes — avec la **SMD** (pour jauger l'ampleur des écarts sans se faire piéger par un manque de puissance à $n = 20$), la **Cliff δ** par covariable et compartiment, et la **TOST** (pour tester une vraie équivalence, pas juste un « test non significatif »). **②** La réponse a été **NON** sur le sexe et l'âge — les cyclops étaient plus âgés (SMD age $+0{,}48$) et le sexe était déséquilibré (SMD $+0{,}37$) — **mais** le cartilage de départ était **équivalent** : au baseline, le bloc fémoro-patellaire (PF) affichait une SMD de $-0{,}009$ et une TOST concluante ($p = 0{,}034$ contre une borne de $0{,}292$). Les deux cohortes partaient donc du **même niveau structurel** là où le signal a ensuite émergé. **③** Du coup on a **adapté la méthode** : Firth (face à la quasi-séparation, cellule contrôle $1/20$) et une analyse **ajustée sexe + âge co-primaire** — pas une simple sensibilité, parce que le sexe se projette spécifiquement sur le bloc PF. L'hypothèse PF a **tenu** (OR ajusté $13{,}5$, $p = 0{,}004$, E-value $7{,}77$). Et surtout, elle a été **confirmée ensuite sans circularité** par le modèle hiérarchique : on décide sur le **δ̄ conservateur** (moyenne des six compartiments, invariante par partition), et la lecture PF est un **contraste dérivé** d'un postérieur exchangeable qui n'a jamais « vu » la partition PF/FT.
+On a suivi un seul fil du début à la fin, en trois temps. **①** On a d'abord vérifié la **comparabilité** des deux groupes — avec la **SMD** (pour jauger l'ampleur des écarts sans se faire piéger par un manque de puissance à $n = 20$), la **Cliff δ** par covariable et compartiment, et la **TOST** (pour tester une vraie équivalence, pas juste un « test non significatif »). **②** La réponse a été **NON** sur le sexe et l'âge — les cyclops étaient plus âgés (SMD age $+0{,}48$) et le sexe était déséquilibré (SMD $+0{,}37$) — **mais** le cartilage de départ était **équivalent** : au baseline, le bloc fémoro-patellaire (PF) affichait une SMD de $-0{,}009$ et une TOST concluante ($p = 0{,}034$ contre une borne de $0{,}292$). Les deux cohortes partaient donc du **même niveau structurel** là où le signal a ensuite émergé. **③** Du coup on a **adapté la méthode** : Firth (face à la quasi-séparation, cellule méniscus $1/20$) et une analyse **ajustée sexe + âge co-primaire** — pas une simple sensibilité, parce que le sexe se projette spécifiquement sur le bloc PF. L'hypothèse PF a **tenu** (OR ajusté $13{,}5$, $p = 0{,}004$, E-value $7{,}77$). Et surtout, elle a été **confirmée ensuite sans circularité** par le modèle hiérarchique : on décide sur le **δ̄ conservateur** (moyenne des six compartiments, invariante par partition), et la lecture PF est un **contraste dérivé** d'un postérieur exchangeable qui n'a jamais « vu » la partition PF/FT.
 
 Le même mètre étalon — la Cliff δ — relie les deux bouts de l'histoire :
 
@@ -825,7 +832,7 @@ C'est la **symétrie** qui rend l'argument propre : **même mètre étalon**, un
 ## Prochaine étape
 
 > [!WARNING]
-> **Le résultat PF est générateur d'hypothèse, pas confirmatoire.** L'hypothèse compartimentale pré-enregistrée — un signal **médial-postérieur** (PTI/CFI), dite **H2** — a été **réfutée** : PTI s'aggrave davantage chez les contrôles ($25{,}0\,\%$ vs $2{,}0\,\%$) et CFI ne bouge pas chez les cas. Le signal observé est **fémoro-patellaire**, à l'opposé de ce qui était prédit.
+> **Le résultat PF est générateur d'hypothèse, pas confirmatoire.** L'hypothèse compartimentale pré-enregistrée — un signal **médial-postérieur** (PTI/CFI), dite **H2** — a été **réfutée** : PTI s'aggrave davantage chez les méniscus ($25{,}0\,\%$ vs $2{,}0\,\%$) et CFI ne bouge pas chez les cyclops. Le signal observé est **fémoro-patellaire**, à l'opposé de ce qui était prédit.
 
 Conséquence directe : puisque la prédiction pré-enregistrée est tombée, le résultat fémoro-patellaire est **exploratoire / générateur d'hypothèse**, et **non confirmatoire**. On ne le relabellise pas en « primaire » après coup — ce serait un biais de sélection. Il demande donc une **réplication prospective** pour être confirmé.
 
@@ -833,7 +840,7 @@ Trois garde-fous restent en place :
 
 - **L'ancre décisionnelle est le δ̄ conservateur** ($+0{,}233$, $P(\bar{\delta} > 0) = 0{,}66$, non concluant) — c'est la dilution attendue d'un signal localisé moyenné sur tout le genou, rapportée honnêtement, pas comme une preuve d'absence.
 - **Les associations ne sont pas causales** : le design est **observationnel**, non randomisé.
-- **Les déséquilibres baseline (sexe, âge) sont gérés par l'ajustement co-primaire**, pas ignorés ; et le délai inter-chirurgie, plus court chez les cas (240 vs 528 jours), ne fait que **renforcer** la conclusion — l'effet apparaît malgré ~½ du temps d'exposition.
+- **Les déséquilibres baseline (sexe, âge) sont gérés par l'ajustement co-primaire**, pas ignorés ; et le délai inter-chirurgie, plus court chez les cyclops (240 vs 528 jours), ne fait que **renforcer** la conclusion — l'effet apparaît malgré ~½ du temps d'exposition.
 
 ## Pour aller plus loin
 
