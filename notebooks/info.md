@@ -182,6 +182,54 @@ Le piège classique serait de tout mélanger dans un seul « test global ». Non
 
 #### 3 · Comment on le calcule sur nos données
 
+##### Le test de Mann–Whitney U (= Wilcoxon rang-somme) — la sonde « y a-t-il une différence ? »
+
+Avant la SMD et le TOST, chaque ligne des tableaux ci-dessous affiche un **MWU $p$** : c'est le **test de différence** non-paramétrique des **scores lésionnels** (et des 6 tests inter-groupes du §03). Voici sa théorie, son usage — et **où il ne s'applique pas** (le sexe et les covariables binaires passent par **Fisher**, pas par MWU).
+
+**Théorie — un test de *rangs*, pas de moyennes.** On veut comparer **deux groupes indépendants** (cyclops vs méniscus) sans supposer la normalité. On met les $n_x + n_y$ observations **en commun**, on les classe par rang $1\ldots N$ (rangs moyens en cas d'ex æquo), on somme les rangs d'un groupe → $R_x$, puis :
+
+$$U_x = R_x - \frac{n_x(n_x+1)}{2}$$
+
+$U_x$ **compte**, sur les $n_x\times n_y$ paires (cyclops $i$, méniscus $j$), combien de fois une valeur cyclops dépasse une valeur méniscus (ex æquo comptés $\tfrac12$) :
+
+$$U_x = \#\{(i,j): x_i > y_j\} + \tfrac12\,\#\{x_i = y_j\}$$
+
+**Hypothèse nulle.** $H_0$ : les deux distributions sont **les mêmes** — de façon équivalente $P(X>Y)=P(Y>X)=\tfrac12$ (aucune **dominance stochastique**, ni groupe ne tend à être plus haut). La **$p$-value** = probabilité, sous $H_0$, d'observer un $U$ aussi extrême que le nôtre.
+
+**Lien direct avec Cliff's δ (l'effet du §02).** $U$ se renormalise **exactement** en taille d'effet : la corrélation rang-bisériale $r = \tfrac{2U_x}{n_x n_y} - 1 = $ **Cliff's δ**. Autrement dit MWU (la significativité) et Cliff's δ (l'ampleur) sont la **même mécanique** : δ n'est que $U$ ramené sur $[-1,+1]$.
+
+> [!TIP]
+> **Wilcoxon — deux tests homonymes à ne pas confondre.**
+> - **Wilcoxon rang-somme = Mann–Whitney U** : **deux groupes indépendants** (cyclops vs méniscus). C'est celui d'ici, et des 6 tests inter-groupes du §03.
+> - **Wilcoxon signed-rank** : **apparié**, un seul échantillon de **différences** $S2-S1$ du *même* patient. C'est celui du §02 ($\Delta_{\text{PF}}$ intra-patient). Même nom de famille, mécanique différente : l'un classe des **valeurs entre groupes**, l'autre des **différences appariées**.
+
+**Pourquoi non-paramétrique ici.** Les scores lésionnels sont **ordinaux** ({0, 1, 2, 3}), à petit $n$, non gaussiens : une moyenne et un $t$-test n'ont guère de sens, mais les **rangs** si. MWU ne suppose ni normalité, ni variances égales, ni même une échelle d'intervalle — juste un **ordre**.
+
+> [!IMPORTANT]
+> **MWU exige un ORDRE — d'où il sert, et où Fisher/chi² prennent le relais.** Le pipeline route chaque variable selon son type (`reporting.py`) ; le sexe **n'est PAS testé par MWU** :
+>
+> | Type de variable | Test utilisé | Effet rapporté |
+> |---|---|---|
+> | Continu (âge, IMC, taille, poids) | **MWU** (`mannwhitneyu`) | SMD (Cohen) |
+> | Binaire 2 niveaux (sexe H/F, tabac, pivot…) | **Fisher exact** 2×2 | SMD binaire (Austin) |
+> | Nominal ≥ 3 niveaux non ordonnés | **chi²** (`chi2_contingency`) | — |
+> | Scores lésionnels ordinaux (PF / FT / global) | **MWU** + Cliff δ + TOST | Cliff δ |
+
+**Le cas binaire 0/1 (sexe H/F) en détail.** MWU *peut* tourner sur du 0/1 (ordre trivial $0<1$), mais il **dégénère en test de proportions**. Avec 2 valeurs distinctes, le classement n'a que **deux blocs d'ex æquo** : les $m$ zéros prennent le rang moyen $(m+1)/2$, les $k$ uns le rang moyen $m+(k+1)/2$. La paire $x>y$ n'arrive que pour $x=1,\,y=0$, d'où :
+
+$$U_x = n_{x1}\,n_{y0} + \tfrac12\big(n_{x1}n_{y1} + n_{x0}n_{y0}\big)$$
+
+($n_{x1}$ = cyclops à 1, $n_{y0}$ = méniscus à 0…). En posant $p_x, p_y$ les proportions de « 1 » dans chaque groupe, l'effet se simplifie **exactement** en :
+
+$$\text{Cliff's }\delta = p_x - p_y$$
+
+Avec la variance **corrigée des ex æquo**, l'approximation normale du MWU devient **asymptotiquement équivalente au test $z$ de deux proportions / au chi²** (sans correction de continuité). Autrement dit, **MWU sur 0/1 est un test de proportions déguisé** — autant prendre **Fisher** directement (exact, standard de Table 1). C'est exactement le choix du pipeline.
+
+**Le cas nominal ≥ 3 (« ou autre »).** Ici MWU est **inapplicable** : il faut pouvoir ranger, or des catégories **non ordonnées** ({H, F, autre}) n'ont aucun ordre (« autre » n'est ni $>$ ni $<$ « femme »). On compare alors des **fréquences de cases** par **chi²** (ou Fisher si effectifs faibles), sans rang.
+
+> [!WARNING]
+> **Usage — et sa limite, qui justifie le TOST.** MWU répond à « peut-on **détecter** une différence ? », pas à « les groupes sont-ils équivalents ? ». Un MWU **non-significatif** (PF : $p = 0{,}818$) ne dit **pas** « équivalent » — seulement « pas de différence détectée », ce qui à $n=20$ peut n'être qu'un **manque de puissance**. D'où le **trio** complémentaire qui suit : **MWU** (différence ?) + **SMD** (ampleur ?) + **TOST** (équivalence *prouvée* ?). On lit les trois ensemble, **jamais le MWU seul**.
+
 **La SMD (covariable continue, ex. l'âge)** est la différence des moyennes divisée par l'écart-type combiné :
 
 $$\text{SMD} = \frac{\bar{x}_{\text{cyclops}} - \bar{x}_{\text{méniscus}}}{s_{\text{pooled}}}$$
@@ -623,13 +671,27 @@ Le forest plot (échelle log, ligne pointillée à OR = 1) empile les estimation
 
 #### 5 · Interprétation
 
-La baisse de **17,2 → 13,5** est **petite** : le sexe et l'âge n'expliquent qu'une **miette** de l'effet. L'écart énorme entre cyclops et méniscus ne disparaît pas une fois qu'on compare à sexe égal et âge égal — donc **l'hypothèse fémoro-patellaire est vérifiée malgré le déséquilibre** détecté au §01. Le fil rouge est bouclé : on a constaté la non-comparabilité, on a adapté, et l'effet tient.
+> [!IMPORTANT]
+> **« Petite » et « grande » n'ont de sens que rapportées à une référence.** Une mesure d'association est *relative* ; un nombre nu (17,2 → 13,5 ; E = 7,77) ne se qualifie pas tout seul. On ancre donc chaque adjectif à une échelle explicite.
 
-La **E-value 7,77** scelle l'argument : pour faire totalement disparaître l'association, il faudrait un confondeur **non mesuré** associé **à la fois** au statut cyclope **et** à l'aggravation PF par un risque relatif **≥ 7,77** — et même la borne inférieure (2,78) reste exigeante. C'est implausible pour les confondeurs candidats ici. Quant à H3, l'absence de facteur BH-significatif confirme qu'aucun trait intrinsèque (IMC, tabac, sport pivot…) ne porte l'effet à la place du groupe.
+**L'atténuation par l'ajustement se lit sur l'échelle où le modèle est *additif* — le log-odds $\beta$, pas l'OR.** Ajouter sexe + âge fait passer $\hat\beta_{\text{grp}}$ de $2{,}85$ à $2{,}60$, soit **$-8{,}8\,\%$ de l'effet log** ($\frac{2{,}85-2{,}60}{2{,}85}$). La référence est le **critère du *change-in-estimate*** (Greenland–Rothman) : un covariable n'est tenu pour confondeur **matériel** que s'il déplace le coefficient d'exposition d'au moins **10 %**. Ici $8{,}8\,\% < 10\,\%$ → le sexe et l'âge **ne franchissent pas** le seuil conventionnel ; c'est *cela* qui autorise le mot « petite ». (Sur l'échelle multiplicative OR, $17{,}2 \to 13{,}5 = -21\,\%$ ; mais l'OR résiduel **13,5** reste **un ordre de grandeur** au-dessus de la valeur nulle OR = 1 — déjà « fort » dès OR > 3 en épidémiologie.)
+
+**La E-value 7,77 se juge contre la *force des confondeurs réels*, pas dans l'absolu.** Deux repères : (i) **interne** — les confondeurs qu'on a *mesurés* (sexe, âge) n'ont déplacé $\beta$ que de ~9 %, ce qui trahit une force de confusion conjointe **faible** (RR bien < 2) ; (ii) **externe** — même l'association la plus forte de l'épidémiologie classique, *tabac–cancer du poumon*, plafonne à RR ≈ 10, et les confondeurs cliniques courants tournent à RR 1,5–3. Pour annuler l'association, un confondeur **non mesuré** devrait donc être ~4× plus puissant que tout ce qu'on a mesuré et **approcher ce plafond empirique** ; et même la borne basse **2,78** dépasse déjà la force typique d'un confondeur (~1,5–2). C'est *en regard de ces références* — et non dans le vide — que 7,77 est grand.
+
+L'écart énorme entre cyclops et méniscus ne disparaît donc pas une fois qu'on compare à sexe égal et âge égal : **l'hypothèse fémoro-patellaire est vérifiée malgré le déséquilibre** détecté au §01. Le fil rouge est bouclé — on a constaté la non-comparabilité, on a adapté, et l'effet tient. Quant à **H3**, l'absence de facteur BH-significatif confirme qu'aucun trait intrinsèque (IMC, tabac, sport pivot…) ne porte l'effet à la place du groupe.
 
 #### 6 · Ce que ça déclenche ensuite
 
-On tient la **confirmation fréquentiste** : l'effet PF survit à l'ajustement et résiste à un confondeur caché plausible. Mais cette analyse cible **directement** le bloc PF — il reste à montrer la même chose **sans circularité ni sélection**, avec un modèle qui n'a jamais encodé la partition PF/FT. C'est le rôle du **§05 (bayésien hiérarchique)** : un estimand neutre, invariant par partition, dont on **dérivera** le contraste PF plutôt que de le choisir.
+On tient la **confirmation fréquentiste** : l'effet PF survit à l'ajustement et résiste à un confondeur caché plausible.
+
+> [!NOTE]
+> **« Fréquentiste » — alors qu'on modélise $P(Y_i = 1 \mid x_i)$ ?** Écrire $P(Y_i = 1 \mid x_i) = \operatorname{logit}^{-1}(\eta_i)$ n'est **pas** bayésien : c'est la **vraisemblance**, le modèle du mécanisme générateur des données, **commun aux deux paradigmes**. Ce qui sépare fréquentiste et bayésien, c'est le traitement des **paramètres** $\beta$, pas celui de $Y$ :
+> - **Fréquentiste** (ce qu'on fait ici) : $\beta$ est une constante inconnue **fixe**, estimée par **maximum de vraisemblance**, avec intervalles de **vraisemblance profilée** — aucune loi *a priori* ni *a posteriori* sur $\beta$.
+> - **Bayésien** : $\beta$ est une variable aléatoire dotée d'un *a priori*, dont on calcule l'*a posteriori*.
+>
+> Nuance honnête : la **pénalité de Firth est, elle, un objet bayésien** — la vraisemblance pénalisée est exactement le **mode *a posteriori* sous l'*a priori* de Jeffreys** (le « ½-patient » ajouté du §3). On l'utilise ici **uniquement** comme correction de séparation / biais en petit échantillon, pas comme un *a priori* subjectif : l'estimation reste fréquentiste ($\beta$ fixe, IC profilés), avec ce seul ingrédient bayésien-*objectif* pour décoller du bord causé par l'unique méniscus. Le bras **réellement** bayésien est le **§05** (M3 hiérarchique) — et il **converge** vers la même conclusion, ce qui est le vrai gage de robustesse.
+
+Mais cette analyse cible **directement** le bloc PF — il reste à montrer la même chose **sans circularité ni sélection**, avec un modèle qui n'a jamais encodé la partition PF/FT. C'est le rôle du **§05 (bayésien hiérarchique)** : un estimand neutre, invariant par partition, dont on **dérivera** le contraste PF plutôt que de le choisir.
 
 #### 7 · Notebook à consulter
 
@@ -667,20 +729,82 @@ Pour ça on pose un **estimand primaire conservateur à l'échelle du genou enti
 
 #### 3 · Comment on le calcule sur nos données
 
-**Le prédicteur linéaire** (échelle logit latente), une ligne par (patient i × temps t × compartiment c) :
+##### a) Le squelette est celui du §04 — un prédicteur linéaire en logit — mais enrichi
 
-$$\eta_{(i,t,c)} = \beta_c\,t + \gamma\,g_i + \delta_c\,t\,g_i + u_i,\qquad t\in\{-0.5,+0.5\}$$
+Au §04, le prédicteur était minimal : $\eta_i = \beta_0 + \beta_{\text{grp}}\,\text{cyclope}_i$. M3 garde **exactement la même idée** — un score latent $\eta$ sur l'échelle log-odds — mais l'enrichit pour coller à la structure **appariée et multi-compartiments** des données. Une ligne par **(patient $i$ × temps $t$ × compartiment $c$)** :
 
-**Les estimands** qu'on en tire :
+$$\eta_{(i,t,c)} = \beta_c\,t + \gamma\,g_i + \delta_c\,t\,g_i + u_i,\qquad t\in\{-0.5,+0.5\},\quad g_i\in\{0,1\}$$
+
+| | §04 (logistique fréquentiste) | §05 (M3 bayésien) |
+|---|---|---|
+| Prédicteur $\eta$ | $\beta_0 + \beta_{\text{grp}}\,\text{cyclope}$ | $\beta_c\,t + \gamma\,g + \delta_c\,t\,g + u_i$ |
+| Lien | logit → Bernoulli | logit → Bernoulli (FT) **ou** logit *cumulatif* (PF) |
+| Paramètres | $\beta$ **fixes** (constantes inconnues) | $\beta_c,\gamma,\delta_c,u_i$ **aléatoires** (loi *a priori*) |
+| Estimation | **maximiser** la vraisemblance (+ Firth) → 1 point + IC | vraisemblance **× a priori = a posteriori** → tirages MCMC |
+| Lecture finale | $\text{OR}=e^{\hat\beta}$, IC profilé | $P(\bar\delta>0)$ = fraction des tirages positifs |
+
+Les trois ajouts, et **pourquoi** chacun :
+- **$\delta_c\,t\,g_i$ — l'interaction Groupe × Temps**, le vrai effet d'intérêt : de combien l'aggravation S1→S2 *diffère* entre cyclops et méniscus, **compartiment par compartiment**. C'est le pendant de $\beta_{\text{grp}}$ du §04, mais résolu par site.
+- **$u_i$ — l'intercept patient** : absorbe tout ce qui est propre au patient (sévérité de départ, anatomie). Il **gère la corrélation** entre les deux observations appariées du même genou — ce que le §04, en écrasant tout en un 2×2, ne pouvait pas faire.
+- **$\beta_c,\delta_c$ partiellement *poolés*** vers une moyenne hiérarchique : chaque compartiment **emprunte de la force** aux autres (un site à 2 événements n'estime pas son effet seul dans le vide).
+
+##### b) De $\eta$ à la vraisemblance : deux familles de lois
+
+$\eta$ est un **log-odds latent** : il faut le transformer en *probabilité d'une observation*. Selon le compartiment, deux liens :
+
+- **Sites FT (Bernoulli)** — issue binaire {0, ≥1}, exactement le lien du §04 :
+$$P(Y=1)=\sigma(\eta),\qquad \sigma(x)=\frac{1}{1+e^{-x}}$$
+- **Sites PF (logit cumulatif, 3 niveaux {0, 1, ≥2})** — deux seuils $\kappa_1<\kappa_2$ découpent la droite logit latente en 3 tranches :
+$$P(Y\ge 1)=\sigma(\eta-\kappa_1),\qquad P(Y\ge 2)=\sigma(\eta-\kappa_2)$$
+$$P(Y=0)=1-\sigma(\eta-\kappa_1),\quad P(Y=1)=\sigma(\eta-\kappa_1)-\sigma(\eta-\kappa_2),\quad P(Y=2)=\sigma(\eta-\kappa_2)$$
+
+La probabilité de chaque niveau est la **largeur de sa tranche**. Les seuils $\kappa$ sont **libres par compartiment** : ils encodent la *prévalence de base* (la mesure), jamais l'effet.
+
+Le **produit** de ces probabilités sur toutes les observations est la **vraisemblance** $L(\theta)=\prod_i P(y_i\mid\theta)$ — le **même objet** qu'au §04, juste hétérogène (deux familles) et avec beaucoup plus de paramètres $\theta=(\beta_c,\gamma,\delta_c,u_i,\kappa,\sigma\ldots)$.
+
+##### c) Le tournant bayésien : vraisemblance × *a priori* = *a posteriori*
+
+C'est **ici** la rupture avec le §04. Le §04 **maximisait** $L(\theta)$ pour sortir **un** $\hat\beta$ (plus un IC). M3 ne maximise rien : il **multiplie** la vraisemblance par les lois *a priori* des paramètres et obtient une **distribution complète** sur $\theta$ :
+
+$$\underbrace{p(\theta\mid\text{données})}_{\text{a posteriori}} \;\propto\; \underbrace{L(\theta)}_{\text{vraisemblance}}\;\times\;\underbrace{p(\theta)}_{\text{a priori : Student-}t(3),\ \text{HalfNormal}}$$
+
+L'*a posteriori* n'est **pas un nombre**, c'est un **paysage de probabilité** sur tous les $\theta$ plausibles au vu des données. Prior Student-$t(3)$ sur les effets : queues lourdes, robuste aux compartiments atypiques.
+
+##### d) Pourquoi MCMC — et ce que c'est exactement
+
+> [!IMPORTANT]
+> **Vraisemblance et MCMC ne sont pas deux méthodes concurrentes.** La vraisemblance (× *a priori*) **définit la forme** de l'*a posteriori* ; MCMC est l'**outil** qui en **tire des échantillons** quand on ne sait pas l'intégrer à la main. La vraisemblance = la recette ; MCMC = la façon d'y goûter.
+
+Pour M1 (bêta-binomial, conjugué), l'*a posteriori* a une **forme close** (une loi Beta) : zéro échantillonnage. M3 a **~90 paramètres** ($\beta_c\times6$, $\gamma$, $\delta_c\times6$, $u_i\times69$, seuils, variances) → **aucune forme close**, l'intégrale est inabordable analytiquement. On **échantillonne** donc.
+
+**MCMC** (Markov Chain Monte Carlo) = une marche aléatoire *guidée* qui visite chaque région de l'espace des paramètres **proportionnellement à sa densité a posteriori**. **NUTS** (No-U-Turn Sampler), la variante utilisée, se sert du **gradient** du log-a-posteriori (dynamique hamiltonienne) pour proposer des pas *intelligents* plutôt qu'au hasard. Réglages verrouillés : **4 chaînes**, `tune = 2000` (rodage, jeté), `draws = 2000` → **$4\times2000 = 8000$ tirages** de $\theta$ conservés.
+
+##### e) Des 8000 tirages aux nombres qu'on lit — l'explication des observations
+
+Chaque tirage MCMC est un **jeu complet** $(\beta_c,\gamma,\delta_c,\ldots)$. Pour chacun des 8000, on calcule l'estimand voulu — p. ex. $\bar\delta=\tfrac16\sum_c\delta_c$. On obtient alors **8000 valeurs de $\bar\delta$** : *c'est* l'a posteriori de $\bar\delta$, un histogramme. On le résume **sans aucune formule de test** :
+
+- **moyenne** des 8000 → estimation ponctuelle ($\bar\delta=+0.233$) ;
+- **HDI 94 %** → l'intervalle le plus court contenant 94 % des tirages ($[-0.872,+1.453]$) ;
+- **$P(\bar\delta>0)$ = simplement la fraction des 8000 tirages qui sont positifs = 0.66**. Pas de *p-value*, on **compte**. Lecture : « dans 66 % des mondes compatibles avec les données, l'effet knee-wide est positif » — sous le seuil 0.95, donc **non concluant**.
+
+```mermaid
+flowchart LR
+  A["Données<br/>patient × temps × compartiment"] --> B["Vraisemblance L(θ)<br/>produit des P(y | θ)<br/>Bernoulli + logit cumulatif"]
+  PR["A priori<br/>Student-t(3), HalfNormal"] --> C["A posteriori<br/>p(θ | données) ∝ L(θ) × prior(θ)"]
+  B --> C
+  C --> D["NUTS / MCMC<br/>8000 tirages de θ"]
+  D --> E["Chaque tirage →<br/>δ̄ = moyenne des 6 δ_c"]
+  E --> F["P(δ̄ > 0) = 66 %<br/>fraction des tirages positifs"]
+```
+
+Le **contraste PF dérivé** se lit pareil : pour chaque tirage, (moyenne des $\delta_c$ sur PF) − (moyenne sur FT) ; les 8000 valeurs donnent $+2.28$ et $P(>0)=0.997$.
+
+##### f) Les estimands et les derniers réglages
 
 $$\bar{\delta} = \tfrac{1}{6}\sum_{c=1}^{6}\delta_c,\qquad \text{contraste}_{\text{PF}-\text{FT}} = \tfrac12\!\!\sum_{c\in\text{PF}}\!\!\delta_c - \tfrac14\!\!\sum_{c\in\text{FT}}\!\!\delta_c,\qquad \delta_c \sim \text{Student-}t(3,\mu_\delta,\sigma_\delta)$$
 
-Quelques précisions qui changent tout :
-
-- **t ∈ {−0.5, +0.5} code S1/S2**, pas une date. Avec seulement deux instants, **β_c·t est un contraste S2 − S1**, pas une pente « par unité de temps ». L'effet d'intérêt δ_c est l'**interaction Groupe × Temps** : à quel point l'aggravation S1→S2 diffère entre cyclops et méniscus, sur le compartiment c.
-- **u_i = intercept patient** : il absorbe tout ce qui est propre au patient (sévérité de départ, anatomie), ce qui gère la corrélation intra-patient des deux observations appariées.
-- **Vraisemblance hétérogène** : logit cumulatif {0, 1, ≥2} pour rotule/trochlée, Bernoulli pour les 4 FT. Les seuils (cutpoints) sont **libres par compartiment** — ils encodent la *prévalence de base* (la mesure), jamais l'effet ; le pooling ne porte que sur les δ_c.
-- **Prior Student-t(3)** sur les δ_c : queues lourdes, robuste aux compartiments atypiques.
+- **t ∈ {−0.5, +0.5} code S1/S2**, pas une date. Avec seulement deux instants, **β_c·t est un contraste S2 − S1**, pas une pente « par unité de temps ». L'effet d'intérêt δ_c reste l'**interaction Groupe × Temps**.
+- **Pooling sur l'effet, jamais sur la mesure** : les seuils κ et la prévalence de base ne sont pas poolés ; seuls les δ_c (et β_c) empruntent de la force entre compartiments.
 
 > [!WARNING]
 > **L'intuition de dilution — pourquoi δ̄ est non concluant *par construction*.** Moyenner 6 compartiments, c'est noyer un signal porté par seulement 2 (rotule + trochlée) dans 4 compartiments inertes ou inversés. Mécaniquement, δ̄ ressort **petit et incertain** — son HDI chevauche 0. C'est **honnête, pas une preuve d'absence d'effet** : *« absence de preuve ≠ preuve d'absence »*. La dilution est le prix qu'on paie pour un estimand impossible à truquer.
