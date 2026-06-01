@@ -52,7 +52,7 @@ flowchart LR
 
 **Methods.** Retrospective paired case–control study. Each patient was assessed at two surgeries (S1, S2) on six cartilage compartments (Outerbridge/ICRS grade 0–3): trochlea, patella, lateral and medial tibial plateaus (PTE, PTI), lateral and medial femoral condyles (CFE, CFI). Cases = cyclops between S1 and S2 (n=49 analysable); controls = two meniscal surgeries (n=20). To avoid a **selection bias** (the patellofemoral block was the largest effect, identified after looking at the data), the **primary estimand is the knee-wide mean Group × Time effect δ̄** — the average of the six compartment-specific interactions from a Bayesian hierarchical ordinal model with an **exchangeable** prior over compartments, which is invariant to any partition and therefore cannot be inflated by choice of block; it is reported as a deliberately **conservative** directional test of the pre-registered H1. The **patellofemoral (PF) localisation** is a **derived, non-circular contrast** of the same exchangeable posterior; the **topographic structure** (exchangeable vs two-block vs three-cluster) is **a result tested by LOO model comparison**, not an assumption. The likelihood is heterogeneous: Bernoulli for the four femorotibial compartments (PTE, PTI, CFE, CFI; ≤2 events ≥2 each) and cumulative logit on {0,1,≥2} for patella and trochlea. Post-hoc PF quantities are read two-sided / full-HDI; the one-sided directional rule is reserved for δ̄. Odds ratios were stabilised by **Firth penalisation** (the crude ML estimate was quasi-separated). A pre-specified **sex+age adjustment is co-primary** (sex maps specifically onto the PF block), with an **E-value**. Baseline PF balance was tested by equivalence (TOST). The inter-surgery delay was treated as **time-at-risk / observation window** (directed acyclic graph), not a biological mediator, and falsified accordingly. Multiplicity: Benjamini–Hochberg FDR (q=0.10) and hierarchical shrinkage. Missing data: complete six-compartment outcomes for all patients (analysable n=69). Software: Python/PyMC, seed=42.
 
-**Results.** Baseline S1 PF scores were equivalent (Mann–Whitney p=0.818; SMD −0.009; TOST p=0.034 against a 0.292 bound). The **knee-wide primary estimand was inconclusive**: δ̄ = +0.233 (94% HDI [−0.872, +1.453]; P(δ̄>0 | data) = 0.660, below the 0.95 directional threshold) — the expected **dilution** of a localised signal in a whole-knee average, reported as an honest result rather than a failure. The signal **localised to the patellofemoral block**: the derived PF contrast was +2.28 (94% HDI [+0.85, +3.81]; P>0 = 0.997, two-sided), and descriptively PF worsening occurred in **57.1% (28/49) of cases vs 5.0% (1/20) of controls** (Cliff's δ = +0.535, large; permutation p = 0.0002; BCa 95% CI [0.367, 0.684]). Within cases, 28 patients worsened in the PF block versus 1 in the FT block (Wilcoxon p = 2×10⁻⁶). LOO model comparison **weakly favoured the two-block structure** (rank 0; ΔELPD ≈ 2–3 vs three-cluster and exchangeable, dse 0.5–1.3, with Pareto-k̂ warnings) — indicative, not decisive. The Firth-stabilised odds ratio for PF worsening was 17.2 (95% CI [2.9, 103.5]) and **survived sex+age adjustment** (OR 13.5 [2.3, 80.1]; p = 0.004; E-value 7.77). The pre-registered medial-posterior hypothesis was **refuted** (PTI worsened more often in controls: 25.0% vs 2.0%). Cases were re-operated sooner than controls (median 240 vs 528 days; p < 0.0001), and progression was unrelated to the delay within cases (ρ = −0.03, p = 0.82), so the effect was observed **despite a shorter observation window**.
+**Results.** Baseline S1 PF scores were equivalent (Mann–Whitney p=0.818; SMD −0.009; TOST p=0.034 against a 0.292 bound). The **knee-wide primary estimand was inconclusive**: δ̄ = +0.233 (94% HDI [−0.872, +1.453]; P(δ̄>0 | data) = 0.660, below the 0.95 directional threshold) — the expected **dilution** of a localised signal in a whole-knee average, reported as an honest result rather than a failure. The signal **localised to the patellofemoral block**: the derived PF contrast was +2.28 (94% HDI [+0.85, +3.81]; P>0 = 0.997, two-sided), and descriptively PF worsening occurred in **57.1% (28/49) of cases vs 5.0% (1/20) of controls** (Cliff's δ = +0.535, large; permutation p = 0.0002; BCa 95% CI [0.367, 0.684]). Within cases, 28 patients worsened in the PF block versus 1 in the FT block (Wilcoxon signed-rank p = 2×10⁻⁶). LOO model comparison **weakly favoured the two-block structure** (rank 0; ΔELPD ≈ 2–3 vs three-cluster and exchangeable, dse 0.5–1.3, with Pareto-k̂ warnings) — indicative, not decisive. The Firth-stabilised odds ratio for PF worsening was 17.2 (95% CI [2.9, 103.5]) and **survived sex+age adjustment** (OR 13.5 [2.3, 80.1]; p = 0.004; E-value 7.77). The pre-registered medial-posterior hypothesis was **refuted** (PTI worsened more often in controls: 25.0% vs 2.0%). Cases were re-operated sooner than controls (median 240 vs 528 days; p < 0.0001), and progression was unrelated to the delay within cases (ρ = −0.03, p = 0.82), so the effect was observed **despite a shorter observation window**.
 
 **Conclusions.** A conservative knee-wide test was inconclusive, as expected when a mechanically localised signal is averaged over the whole joint; the progression of chondral lesions **localised to the patellofemoral compartment** in cyclops cases, read without circularity from a neutral exchangeable model and consistent with an extension-deficit mechanism. Because the pre-registered compartmental prediction was refuted, the patellofemoral finding is **exploratory** and requires prospective replication. Associations are not causal given the observational, non-randomised design and baseline imbalances in age and sex.
 
@@ -61,15 +61,15 @@ flowchart LR
 > [!NOTE]
 > **Headline numbers at a glance** (all values are restated verbatim from the Results above).
 >
-> | Quantity | Cases | Controls | Effect / probability |
-> |---|---:|---:|---|
-> | Primary knee-wide estimand δ̄ | — | — | +0.233 [−0.872, +1.453]; P>0 = 0.660 → **inconclusive** |
-> | Derived PF contrast (exchangeable) | — | — | +2.28 [+0.85, +3.81]; P>0 = 0.997 |
-> | PF worsening (Δ_PF > 0) | 57.1% (28/49) | 5.0% (1/20) | Cliff's δ = +0.535; perm. p = 0.0002 |
-> | Within-case: PF vs FT worsening | 28 vs 1 | — | Wilcoxon p = 2×10⁻⁶ |
-> | Firth OR for PF worsening | — | — | 17.2 [2.9, 103.5] |
-> | Sex+age-adjusted OR (co-primary) | — | — | 13.5 [2.3, 80.1]; p = 0.004; E-value 7.77 |
-> | Inter-surgery delay (median, days) | 240 | 528 | p < 0.0001; within-case ρ = −0.03 |
+> | Quantity                           |         Cases |    Controls | Effect / probability                                           |
+> | ---------------------------------- | ------------: | ----------: | -------------------------------------------------------------- |
+> | Primary knee-wide estimand δ̄    |            — |          — | +0.233 [−0.872, +1.453]; P>0 = 0.660 →**inconclusive** |
+> | Derived PF contrast (exchangeable) |            — |          — | +2.28 [+0.85, +3.81]; P>0 = 0.997                              |
+> | PF worsening (Δ_PF > 0)           | 57.1% (28/49) | 5.0% (1/20) | Cliff's δ = +0.535; perm. p = 0.0002                          |
+> | Within-case: PF vs FT worsening    |       28 vs 1 |          — | Wilcoxon signed-rank p = 2×10⁻⁶                                         |
+> | Firth OR for PF worsening          |            — |          — | 17.2 [2.9, 103.5]                                              |
+> | Sex+age-adjusted OR (co-primary)   |            — |          — | 13.5 [2.3, 80.1]; p = 0.004; E-value 7.77                      |
+> | Inter-surgery delay (median, days) |           240 |         528 | p < 0.0001; within-case ρ = −0.03                            |
 
 ---
 
@@ -79,7 +79,7 @@ Cyclops syndrome is a localised arthrofibrotic complication after ACL reconstruc
 
 This mechanistic chain yields a directional, anatomically specific prediction: if the flexum drives the damage, the cartilage that should suffer is the **patellofemoral** cartilage (trochlea and patella), rather than the tibiofemoral compartments. We tested this in a cohort of patients each operated twice on the same knee, comparing those who developed a cyclops between the two surgeries (cases) with patients undergoing two successive meniscal procedures without cyclops (controls).
 
-The study was pre-registered with a total-knee progression hypothesis (H1, directional) and a compartmental hypothesis predicting a medial-posterior signal (H2). Confronting the data refuted H2 and revealed a patellofemoral signal instead. To report this **without over-claiming**, we made two deliberate methodological choices, detailed in the Methods (§2.3) and motivated by a pre-analysis review: (i) the **primary estimand is a conservative knee-wide average effect** (δ̄) that is invariant to the choice of anatomical partition, so it cannot be inflated by selecting the block that happens to be largest; and (ii) the **patellofemoral localisation is read as a derived, non-circular contrast** of a neutral exchangeable model, with the topographic partition itself **tested by model comparison rather than assumed**. We are explicit throughout about which analyses are confirmatory (the directional δ̄) and which are exploratory (the patellofemoral localisation). Throughout, we describe the outcome as the **progression of patellofemoral chondral lesions**, not as osteoarthritis.
+The study was pre-registered with a total-knee progression hypothesis (H1, directional) and a compartmental hypothesis predicting a medial-posterior signal (H2). Confronting the data refuted H2 and revealed a patellofemoral signal instead. To report this **without over-claiming**, we made two deliberate methodological choices, detailed in the Methods (§2.3) and motivated by a pre-analysis review: (i) the **primary estimand is a conservative knee-wide average effect** (δ̄) that is invariant to the choice of anatomical partition, so it cannot be inflated by selecting the block that happens to be largest; and **(ii) the patellofemoral localisation is read as a derived, non-circular contrast of a neutral exchangeable model, with the topographic partition itself tested by model comparison rather than assumed.** We are explicit throughout about which analyses are confirmatory (the directional δ̄) and which are exploratory (the patellofemoral localisation). Throughout, we describe the outcome as the **progression of patellofemoral chondral lesions**, not as osteoarthritis.
 
 ## 2. Methods
 
@@ -91,6 +91,8 @@ Retrospective, paired case–control study. Each patient contributes two correla
 - **Controls (meniscus):** two successive meniscal surgeries, no cyclops; n = 20 patients (40 rows).
 
 Patient identifiers are reused across the two source sheets; the patient key is therefore the composite `(group, anonyme)`.
+
+![mermaid_graph](mermaid_graph.png)
 
 ```mermaid
 flowchart TB
@@ -142,12 +144,16 @@ flowchart TB
 > [!IMPORTANT]
 > **Primary estimand (knee-wide, directional, conservative).** The knee-wide mean Group × Time effect **δ̄ = (1/6) Σ_c δ_c**, where δ_c is the compartment-specific interaction from the **exchangeable** hierarchical model. δ̄ is **invariant to any anatomical partition** and therefore cannot be inflated by selecting a block post hoc; it is the unbiased global test of the pre-registered directional H1, reported as deliberately **conservative**.
 
-$$\bar{\delta} \;=\; \frac{1}{6}\sum_{c=1}^{6} \delta_c \qquad\text{(partition-invariant; decision on the one-sided rule)}$$
+$$
+\bar{\delta} \;=\; \frac{1}{6}\sum_{c=1}^{6} \delta_c \qquad\text{(partition-invariant; decision on the one-sided rule)}
+$$
 
 > [!NOTE]
 > **Patellofemoral localisation (exploratory, derived, non-circular).** A linear contrast (PF − FT) of the same exchangeable δ_c — a posterior that never "saw" the partition — together with the descriptive Δ_PF = (trochlea + patella) at S2 minus S1. Read two-sided.
 
-$$\text{contrast}_{\mathrm{PF}-\mathrm{FT}} \;=\; \tfrac{1}{2}\!\!\sum_{c\,\in\,\mathrm{PF}}\!\!\delta_c \;-\; \tfrac{1}{4}\!\!\sum_{c\,\in\,\mathrm{FT}}\!\!\delta_c \qquad\text{(derived; read two-sided)}$$
+$$
+\text{contrast}_{\mathrm{PF}-\mathrm{FT}} \;=\; \tfrac{1}{2}\!\!\sum_{c\,\in\,\mathrm{PF}}\!\!\delta_c \;-\; \tfrac{1}{4}\!\!\sum_{c\,\in\,\mathrm{FT}}\!\!\delta_c \qquad\text{(derived; read two-sided)}
+$$
 
 > [!NOTE]
 > **Topographic structure (a result, not an assumption).** Three pooling structures (exchangeable, two-block PF/FT, three-cluster) are compared by **LOO**; the PF/FT partition is therefore tested rather than hard-coded.
@@ -177,11 +183,13 @@ flowchart TB
 
 ### 2.3 Statistical analysis
 
-**Frequentist support.** Distribution-free throughout (ordinal outcomes). For the patellofemoral localisation: **exact permutation test** (Monte-Carlo), Cliff's δ as effect size, and a **BCa bootstrap CI (B = 10,000)** complemented by a permutation-inversion CI (the BCa is unstable at n_control = 20). The six-compartment sum is reported with both two-sided and one-sided Mann–Whitney p-values (non-decisional). Per-compartment Wilcoxon signed-rank tests (12 tests) are controlled by Benjamini–Hochberg FDR at q = 0.10.
+**Frequentist support.** Distribution-free throughout (ordinal outcomes). For the patellofemoral localisation: **exact permutation test** (Monte-Carlo), Cliff's δ as effect size, and a **BCa bootstrap CI (B = 10,000)** complemented by a permutation-inversion CI (the BCa is unstable at n_control = 20). The six-compartment sum is reported with both two-sided and one-sided Mann–Whitney p-values (non-decisional). For each of the six compartments, the change score (Δ = S2 − S1) was compared between groups by a **Mann–Whitney U test** (Wilcoxon rank-sum), with Cliff's δ as the effect size; the resulting six p-values are controlled by Benjamini–Hochberg FDR at q = 0.10. Topographic specificity within cases (Δ_PF vs Δ_FT in the same patient) was assessed by a **paired Wilcoxon signed-rank test**.
 
 **Bayesian inference (primary model, M3).** Hierarchical ordinal model with a **heterogeneous likelihood**: cumulative logit on {0, 1, ≥2} for **patella and trochlea**; Bernoulli for the four femorotibial compartments (**PTE, PTI, CFE, CFI**), which carry too few events at grade ≥2 to identify a second cut-point. Linear predictor
 
-$$\eta_{(i,t,c)} \;=\; \beta_c\, t \;+\; \gamma\, g_i \;+\; \delta_c\, t\, g_i \;+\; u_i,$$
+$$
+\eta_{(i,t,c)} \;=\; \beta_c\, t \;+\; \gamma\, g_i \;+\; \delta_c\, t\, g_i \;+\; u_i,
+$$
 
 with t ∈ {−0.5, +0.5} coding S1/S2 (so β_c · t is, with only two time points, an S2 − S1 contrast, **not** a per-unit-time slope), g_i the group indicator, and u_i a patient random intercept. Crucially, the Group × Time interaction is **compartment-specific (δ_c)**. In the **primary (exchangeable) model**, the six δ_c share a single hierarchical mean (δ_c ~ Student-t(3, μ_δ, σ_δ)); cut-points are free per compartment (they encode baseline prevalence — pooling is on the *effect*, not the *measurement*). From this neutral posterior we form, **without imposing any partition**, the primary estimand **δ̄ = (1/6) Σ_c δ_c** and the **derived patellofemoral contrast** (½ Σ_{PF} δ_c − ¼ Σ_{FT} δ_c). The PF/FT partition is **not assumed**: two further pooling structures (two-block, three-cluster) are fitted and **compared by LOO** (PSIS); the two-block model exposes the candidate δ_PF, δ_FT and their contrast for description only. Sampling: PyMC, 4 chains, target_accept = 0.95, seed = 42; convergence thresholds R̂ ≤ 1.01, ESS_bulk ≥ 400, 0 divergences. A Beta-binomial model (M1) summarises PF worsening proportions.
 
@@ -213,7 +221,9 @@ flowchart TB
     class TWO two;
 ```
 
-$$P(\bar{\delta} > 0 \mid \text{data}) \;\ge\; 0.95 \quad\text{(reserved for }\bar{\delta}\text{ only)}$$
+$$
+P(\bar{\delta} > 0 \mid \text{data}) \;\ge\; 0.95 \quad\text{(reserved for }\bar{\delta}\text{ only)}
+$$
 
 **Odds ratios (Firth).** The crude maximum-likelihood odds ratio for PF worsening was **quasi-separated** (control cell = 1/20), producing an unstable, implausibly large value; all odds ratios are therefore estimated with **Firth penalisation**, and inference is led by Cliff's δ and the model posterior rather than by the odds ratio.
 
@@ -248,7 +258,7 @@ The pre-registered, partition-invariant primary estimand was **inconclusive**: t
 
 ### 3.3 Patellofemoral localisation and topographic structure (Figures 2, 3, 4, 5, 6, S1)
 
-**Where the signal sits — a non-circular readout.** The **derived patellofemoral contrast**, computed from the same neutral exchangeable posterior (which never saw the partition), was **+2.28** (94% HDI [+0.85, +3.81]), with **P(>0 | data) = 0.997** (two-sided). Descriptively, patellofemoral worsening (Δ_PF > 0) occurred in **57.1% (28/49) of cases versus 5.0% (1/20) of controls**: a **large** effect (Cliff's δ = +0.535; exact permutation p = 0.0002; Mann–Whitney p = 0.0001), BCa 95% CI [0.367, 0.684], concordant permutation-inversion CI [0.357, 0.675]. The Beta-binomial model estimated a PF worsening probability of 0.569 (94% HDI [0.438, 0.695]) in cases versus 0.091 ([0.013, 0.230]) in controls — non-overlapping intervals. Within cases, the paired comparison was unambiguous: **28 patients worsened in the PF block versus 1 in the FT block** (Wilcoxon p = 2×10⁻⁶; rank-biserial = 1.0).
+**Where the signal sits — a non-circular readout.** The **derived patellofemoral contrast**, computed from the same neutral exchangeable posterior (which never saw the partition), was **+2.28** (94% HDI [+0.85, +3.81]), with **P(>0 | data) = 0.997** (two-sided). Descriptively, patellofemoral worsening (Δ_PF > 0) occurred in **57.1% (28/49) of cases versus 5.0% (1/20) of controls**: a **large** effect (Cliff's δ = +0.535; exact permutation p = 0.0002; Mann–Whitney p = 0.0001), BCa 95% CI [0.367, 0.684], concordant permutation-inversion CI [0.357, 0.675]. The Beta-binomial model estimated a PF worsening probability of 0.569 (94% HDI [0.438, 0.695]) in cases versus 0.091 ([0.013, 0.230]) in controls — non-overlapping intervals. Within cases, the paired comparison was unambiguous: **28 patients worsened in the PF block versus 1 in the FT block** (Wilcoxon signed-rank p = 2×10⁻⁶; rank-biserial = 1.0).
 
 **Is the PF/FT partition real? — a tested result, not an assumption.** LOO model comparison ranked the **two-block (PF/FT) structure first**, but only **weakly**: ΔELPD ≈ 2 versus three-cluster and ≈ 3 versus exchangeable (dse 0.5 and 1.3, respectively), and all comparisons carried Pareto-k̂ warnings (LOO is unreliable at n = 69). The evidence for the anatomical partition is therefore **indicative, not decisive** — mechanistically plausible but not demonstrated predictively, which is precisely why the decision rests on the partition-invariant δ̄ and the PF localisation is reported as exploratory. For description, the candidate two-block model gave δ_PF = +2.42, a near-null and probably reversed δ_FT = −0.76, and a contrast of +3.18 (94% HDI [+0.97, +5.20]).
 
@@ -256,14 +266,14 @@ The pre-registered, partition-invariant primary estimand was **inconclusive**: t
 
 Per-compartment worsening (cases vs controls), with Benjamini–Hochberg decision (q = 0.10):
 
-| Compartment | Block | Worsened, cases | Worsened, controls | Cliff's δ | BH-significant |
-|---|---|---:|---:|---:|---|
-| Patella | PF | 55.1% | 5.0% | +0.507 | Yes (cases) |
-| Trochlea | PF | 20.4% | 0.0% | +0.204 | Yes (cases) |
-| PTE | FT | 2.0% | 10.0% | −0.080 | No |
-| PTI | FT | 2.0% | 25.0% | −0.230 | **Yes (controls)** |
-| CFE | FT | 0.0% | 10.0% | −0.100 | **Yes (controls)** |
-| CFI | FT | 0.0% | 5.0% | −0.050 | No |
+| Compartment | Block | Worsened, cases | Worsened, controls | Cliff's δ | BH-significant           |
+| ----------- | ----- | --------------: | -----------------: | ---------: | ------------------------ |
+| Patella     | PF    |           55.1% |               5.0% |     +0.507 | Yes (cases)              |
+| Trochlea    | PF    |           20.4% |               0.0% |     +0.204 | Yes (cases)              |
+| PTE         | FT    |            2.0% |              10.0% |    −0.080 | No                       |
+| PTI         | FT    |            2.0% |              25.0% |    −0.230 | **Yes (controls)** |
+| CFE         | FT    |            0.0% |              10.0% |    −0.100 | **Yes (controls)** |
+| CFI         | FT    |            0.0% |               5.0% |    −0.050 | No                       |
 
 The signal is carried by the patellofemoral block (patella, then trochlea), both Benjamini–Hochberg-significant in favour of cases. No femorotibial compartment shows an excess in cases; on the contrary, PTI and CFE are significant in the **opposite** direction (PTI 25.0% of controls vs 2.0% of cases; CFE 10.0% of controls vs 0.0% of cases), plausibly reflecting the controls' meniscal pathology. The **six-compartment sum** illustrates the same dilution that made the knee-wide primary estimand inconclusive (§3.2): averaging two active patellofemoral compartments with four inert/reversed femorotibial compartments yields only a small, non-decisional effect (Cliff's δ = +0.204; two-sided p = 0.156; one-sided p = 0.078) — a methodological point central to this study.
 
@@ -313,7 +323,7 @@ A deliberately conservative, partition-invariant knee-wide test was **inconclusi
 
 ![Figure 3. Per-compartment worsening and dilution.](../figures/fig3_per_compartment.png)
 
-**Figure 4. Within-case localisation.** Paired comparison of PF versus FT worsening within cases: 28 patients worsen in PF versus 1 in FT (Wilcoxon p = 2×10⁻⁶). (`figures/fig4_topographic_specificity.png`)
+**Figure 4. Within-case localisation.** Paired comparison of PF versus FT worsening within cases: 28 patients worsen in PF versus 1 in FT (Wilcoxon signed-rank p = 2×10⁻⁶). (`figures/fig4_topographic_specificity.png`)
 
 ![Figure 4. Within-case localisation.](../figures/fig4_topographic_specificity.png)
 

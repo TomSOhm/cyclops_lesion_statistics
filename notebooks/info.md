@@ -46,7 +46,8 @@ flowchart TB
 | **PF = {trochlée, rotule}** | Bloc fémoro-patellaire — là où on prédit la progression |
 | **FT = {pte, pti, cfe, cfi}** | Bloc fémoro-tibial — plateaux tibiaux externe/interne et condyles fémoraux externe/interne |
 | **SMD** | Différence moyenne standardisée — mesure de déséquilibre (seuils Austin : <0,10 négligeable, ≥0,25 notable) |
-| **MWU / U** | Test de Mann-Whitney (somme des rangs) — comparaison non paramétrique de deux groupes |
+| **MWU / U** | Test de Mann–Whitney U (= **Wilcoxon rank-sum**, somme des rangs) — comparaison non paramétrique de **deux groupes indépendants** (cyclops vs méniscus) |
+| **Wilcoxon signed-rank** | Test **apparié** (sur les différences intra-sujet) — *à ne pas confondre* avec le rank-sum/MWU ci-dessus ; ici : ΔPF vs ΔFT chez le même patient |
 | **TOST** | Test d'équivalence (two one-sided tests) — sert à prouver que deux groupes sont **équivalents**, pas juste « non différents » |
 | **Cliff δ** | Effet ordinal : proportion de « duels gagnés − perdus » entre les deux groupes, entre −1 et +1 |
 | **Firth** | Régression logistique pénalisée — stabilise l'OR en cas de quasi-séparation (cellule témoin = 1/20) |
@@ -196,6 +197,18 @@ où $p_1, p_2$ sont les proportions dans chaque groupe et $\bar p$ leur moyenne.
 > [!TIP]
 > **Modèle mental du TOST.** Un TOST à 5 % ⟺ **l'intervalle de confiance à 90 % de la différence tient entièrement dans la boîte $[-\Delta, +\Delta]$**. Ici la boîte vaut $\Delta = 0{,}292$ (marge de demi-écart-type sur la SMD). Si l'IC à 90 % déborde d'un côté, l'équivalence n'est pas établie ; s'il tient en entier dans la boîte, elle l'est.
 
+**D'où vient $\Delta = 0{,}292$ ?** La marge n'est **pas** choisie à la main : elle est **dérivée des données** du sous-score PF à S1. La règle est « une **demi-déviation standard** », appliquée à l'écart-type combiné des deux groupes :
+
+$$\Delta = 0{,}5 \times s_{\text{pooled}}, \qquad s_{\text{pooled}} = \sqrt{\frac{(n_x-1)\,s_x^2 + (n_y-1)\,s_y^2}{n_x + n_y - 2}}$$
+
+où $x$ = `lesion_pf_S1` (cyclops) et $y$ = `lesion_pf_S1` (méniscus). Numériquement, $s_{\text{pooled}} \approx 0{,}584$ unités-lésion, donc $\Delta = 0{,}5 \times 0{,}584 \approx 0{,}292$. *(Source : `tests_freq.py`, `baseline_pf_balance` → `bound = 0.5 * sp`.)*
+
+> [!NOTE]
+> **Pourquoi « demi-écart-type », et le lien avec la SMD.** Le facteur $0{,}5$ est le **seul** choix ; il encode une marge d'équivalence de **0,5 SMD**, soit la frontière « petit » de Cohen. C'est cohérent par construction : une marge de $0{,}5 \cdot s_{\text{pooled}}$ sur l'échelle brute, divisée par $s_{\text{pooled}}$ (la standardisation), vaut exactement $0{,}5$ sur l'échelle SMD. La boîte brute $[-0{,}292\,;\,+0{,}292]$ et la boîte standardisée $[-0{,}5\,;\,+0{,}5]$ SMD disent donc **la même chose** : « une différence inférieure à une demi-déviation standard est cliniquement négligeable ».
+
+> [!WARNING]
+> **$\Delta$ est aléatoire (dépend de l'échantillon).** Comme $\Delta = 0{,}5 \cdot s_{\text{pooled}}$ se calcule **sur la variance observée**, la largeur de la boîte bouge avec les données : refaire l'étude sur un autre échantillon redimensionne $\Delta$. C'est acceptable pour une règle fixe « 0,5 SD » pré-spécifiée, mais $0{,}292$ est propre à **cette** variance PF. Pour une marge qui ne bouge pas, il faudrait passer un `bound=` explicite (un seuil cliniquement justifié en unités-lésion) au lieu de laisser le défaut data-derived.
+
 **Exemple chiffré réel — le bloc PF à S1.**
 
 | Mesure | Valeur | Lecture |
@@ -209,6 +222,19 @@ La SMD de $-0{,}009$ veut dire que le point estimé de la différence est **quas
 > [!NOTE]
 > **Pourquoi le TOST passe « tout juste » ($p = 0{,}034$) ?**
 > Le $p$ est près du seuil non pas parce qu'il y aurait une vraie différence, mais parce que $n=20$ **élargit l'IC à 90 %** (manque de puissance) : ses bords approchent les parois de la boîte même si son centre est collé à zéro. La bonne lecture, c'est de **regarder le centre ($-0{,}009$), pas le bord**. Le centre dit « équivalent » sans ambiguïté.
+
+**Contre-exemple réel — le bloc FT à S1.** Le même test, appliqué par symétrie à l'autre bloc (`baseline_block_balance(wide, col="lesion_ft_S1")`), donne un verdict **opposé** — et c'est précisément ce qui rend l'exercice instructif :
+
+| Mesure | Valeur | Lecture |
+|---|---|---|
+| MWU $p$ (test de différence) | $0{,}770$ | aucune différence **détectée** |
+| SMD | $+0{,}262$ | déséquilibre « petit » — cyclops **plus** lésés en FT au départ |
+| TOST $p$ (équivalence, borne $\Delta = 0{,}437$) | $0{,}186 > 0{,}05$ | **équivalent = False** ❌ |
+
+C'est exactement le piège du `[!WARNING]` du §2 : le MWU non-significatif ($0{,}770$) **ne prouve pas** l'équivalence. Le TOST, lui, **échoue** ($0{,}186$) parce que le centre n'est **pas** collé à zéro (SMD $+0{,}26$) : les cyclops démarrent avec un léger excès de lésion fémorotibiale. Détail subtil : la borne FT ($\Delta = 0{,}437$) est **plus large** que la PF ($0{,}292$) car le bloc FT est intrinsèquement plus dispersé ($s_{\text{pooled}} \approx 0{,}87$ contre $0{,}58$) — et **malgré** cette boîte plus généreuse, la différence n'y tient pas.
+
+> [!IMPORTANT]
+> **Pourquoi tester FT alors que l'hypothèse porte sur PF ?** Parce que le **contraste topographique PF−FT** (§05) compare la progression du bloc PF *à* celle du bloc FT. Le lire causalement — « l'effet est **en PF**, pas en FT » — exige que **les deux** blocs partent du même niveau à S1. PF part équilibré (lecture propre) ; FT **non**. La conséquence sur l'étude est détaillée au §6.
 
 #### 4 · Résultat
 
@@ -230,7 +256,10 @@ La SMD de $-0{,}009$ veut dire que le point estimé de la différence est **quas
 | Baseline global (6 compartiments) | MWU $p$ | $0{,}662$ (médianes 0 vs 0) |
 | Baseline **PF** | MWU $p$ | $0{,}818$ |
 | Baseline **PF** | SMD | $-0{,}009$ |
-| Baseline **PF** | TOST $p$ (borne $0{,}292$) | $0{,}034$ → **équivalent = True** |
+| Baseline **PF** | TOST $p$ (borne $0{,}292$) | $0{,}034$ → **équivalent = True** ✅ |
+| Baseline **FT** | MWU $p$ | $0{,}770$ |
+| Baseline **FT** | SMD | $+0{,}262$ (cyclops plus lésés) |
+| Baseline **FT** | TOST $p$ (borne $0{,}437$) | $0{,}186$ → **équivalent = False** ❌ |
 
 ![Figure 1 — Love plot des SMD baseline](../figures/fig1_baseline_balance.png)
 
@@ -242,27 +271,32 @@ Le constat est net et **assumé : on n'est PAS équilibré** sur le sexe et l'â
 
 Autrement dit : les coureurs ne sont pas parfaitement comparables (pas tous le même âge / la même répartition sexe), **mais ils partent tous exactement de la même ligne** (même état cartilagineux PF à S1). C'est exactement le **point ② du fil rouge** : *la réponse à « les groupes sont-ils similaires ? » est NON sur les covariables, OUI sur le point de départ cartilagineux*.
 
+**Nuance importante (ajoutée par symétrie PF/FT).** Cette équivalence cartilagineuse est solide pour le **bloc PF** (celui qui porte l'hypothèse) et pour le **global 6-compartiments**, mais **pas** pour le bloc **FT** pris isolément : le TOST y échoue ($p = 0{,}186$) avec une SMD de $+0{,}26$ — les cyclops démarrent avec un peu plus de lésion fémorotibiale. La ligne de départ est donc commune **là où on en a besoin** (PF, où vit l'affirmation causale), mais **pas parfaitement symétrique** entre les deux blocs. Ce n'est pas un problème pour la lecture du contraste PF *contre zéro*, mais ça en est un pour le contraste PF *moins* FT — voir §6.
+
 #### 6 · Ce que ça déclenche ensuite
 
 Les deux constats partent dans deux directions :
 
 - Les **covariables rouges (sexe, âge) motivent l'analyse ajustée** : on ne peut pas les ignorer, donc le §04 fera une analyse **ajustée sexe+âge en co-primaire** (régression pénalisée de Firth) — pas une simple sensibilité, mais un bras de décision à part entière, précisément parce que le sexe se projette spécifiquement sur le bloc PF.
 - Le **TOST PF équivalent autorise la lecture causale du contraste PF** : puisque les groupes démarrent au même niveau cartilagineux PF, on peut lire le contraste PF des §02/§05 comme une **vraie progression S1→S2**, et non comme un écart préexistant ou un effet de plancher. La ligne de départ commune est ce qui rend la course interprétable.
+- **Réserve sur le contraste PF−FT (localisation topographique).** Comme le bloc FT n'est **pas** prouvé équilibré à S1 (SMD $+0{,}26$, cyclops plus lésés), l'affirmation « l'effet est **spécifique au PF**, et non au FT » descend du statut confirmatoire au statut **exploratoire**. Mécanisme du biais : les cyclops partant **plus haut** en FT, la **régression vers la moyenne** (vers le plancher 0) tend à *atténuer* leur progression FT observée — ce qui peut **masquer** un vrai signal FT et faire paraître l'effet **plus PF-spécifique qu'il ne l'est réellement**. À noter : l'estimand primaire knee-wide ($\bar\delta$) et l'équivalence PF ne sont **pas** affectés — **aucun chiffre primaire ne change** ; c'est uniquement la *localisation* PF−FT qui hérite de cette réserve. **Lecture recommandée :** rapporter le contraste PF−FT en **divulguant l'écart baseline FT**, idéalement l'**ajuster sur le score FT à S1** (ANCOVA ou Δ ajusté), et le traiter comme *hypothesis-generating* — ce qui reste cohérent avec le statut déjà exploratoire du contraste dans le fil rouge.
 
 ```mermaid
 flowchart TB
     Q["01 · Les groupes sont-ils similaires ?"]
     Q --> COV["Covariables : sexe & age desequilibres (rouge)"]
     Q --> CART["Cartilage S1 PF : equivalent (TOST p=0.034)"]
+    Q --> CARTFT["Cartilage S1 FT : NON equivalent (TOST p=0.186, SMD +0.26)"]
     COV -->|"motive"| ADJ["04 · Analyse ajustee sexe+age (co-primaire)"]
-    CART -->|"autorise"| READ["02/05 · Contraste PF = vraie progression S1 to S2"]
+    CART -->|"autorise"| READ["02/05 · Contraste PF vs zero = vraie progression S1 to S2"]
+    CARTFT -->|"limite (RTM peut masquer FT)"| LOC["05 · Localisation PF-FT = exploratoire, ajuster sur FT S1"]
 ```
 
 #### 7 · Notebook à consulter
 
 - **Notebook :** `notebooks/01_baseline_balance.ipynb`
 - **Figures :** `figures/fig1_baseline_balance.png` (Love plot des SMD) et `figures/figS1_slopegraph_pf.png` (slopegraph PF par patient, S1→S2).
-- **Clés `results.json` :** `table1_age_smd` ($0{,}484$), `baseline_pf_mwu_p` ($0{,}818$), `baseline_pf_smd` ($-0{,}009$), `baseline_pf_tost_p` ($0{,}034$), `baseline_pf_equivalent` (`True`).
+- **Clés `results.json` :** `table1_age_smd` ($0{,}484$), `baseline_pf_mwu_p` ($0{,}818$), `baseline_pf_smd` ($-0{,}009$), `baseline_pf_tost_p` ($0{,}034$), `baseline_pf_equivalent` (`True`) ; et par symétrie `baseline_ft_mwu_p` ($0{,}770$), `baseline_ft_smd` ($+0{,}262$), `baseline_ft_tost_p` ($0{,}186$), `baseline_ft_equivalent` (`False`).
 
 ---
 
@@ -342,7 +376,7 @@ La figure (raincloud) montre tout : à gauche, le nuage **cyclops** s'étale du 
 
 **Modèle beta-binomial (M1).** Probabilité d'aggravation PF estimée à **0,569 [0,438 ; 0,695]** chez les cyclops vs **0,091 [0,013 ; 0,230]** chez les méniscus — **intervalles non chevauchants**.
 
-**Comparaison appariée intra-cas (PF vs FT).** Chez les cyclops eux-mêmes : **28 empirent en PF vs 1 seul en FT** (Wilcoxon $p = 2 \times 10^{-6}$). Le dégât est bien concentré sur le compartiment fémoro-patellaire, pas dispersé dans tout le genou.
+**Comparaison appariée intra-cas (PF vs FT).** Chez les cyclops eux-mêmes : **28 empirent en PF vs 1 seul en FT** (Wilcoxon signed-rank $p = 2 \times 10^{-6}$). Le dégât est bien concentré sur le compartiment fémoro-patellaire, pas dispersé dans tout le genou.
 
 #### 5 · Interprétation
 
@@ -386,8 +420,8 @@ On veut faire deux choses à la fois, et la première est une affaire d'**honnê
 #### 2 · Pourquoi cette méthode et pas une autre
 
 - **Full disclosure plutôt que « le meilleur des 6 ».** Choisir après coup le compartiment le plus parlant, c'est du HARKing déguisé. On affiche donc les **6**, dans les deux groupes, gagnants comme perdants.
-- **Benjamini-Hochberg (FDR, q = 0.10) plutôt que des p brutes.** On lance ici **12 tests** de Wilcoxon (6 compartiments × 2 sens de lecture utiles). Tester 12 fois sans correction, c'est s'offrir des faux positifs gratuits. BH **contrôle le taux de fausses découvertes** : il est moins brutal que Bonferroni (qui couperait trop fort à n petit) tout en gardant le contrôle des erreurs.
-- **Comparaison appariée PF vs FT (Wilcoxon).** Pour la spécificité topographique, on ne compare pas deux groupes mais **les deux blocs chez le même patient** : est-ce que, *à l'intérieur d'un même genou de cas*, le bloc PF s'aggrave plus que le bloc FT ? C'est un test apparié, donc il neutralise tout ce qui est propre au patient.
+- **Benjamini-Hochberg (FDR, q = 0.10) plutôt que des p brutes.** On lance ici **6 tests de Mann–Whitney U** — un par compartiment, comparant le score de progression (Δ = S2 − S1) **entre** cyclops et méniscus (effet : Cliff δ). ⚠️ Ce sont bien des **Mann–Whitney (= Wilcoxon rank-sum, entre deux groupes)**, *pas* des Wilcoxon signed-rank appariés. Tester 6 fois sans correction, c'est s'offrir des faux positifs gratuits ; BH **contrôle le taux de fausses découvertes** : moins brutal que Bonferroni (qui couperait trop fort à n petit) tout en gardant le contrôle des erreurs.
+- **Comparaison appariée PF vs FT (Wilcoxon signed-rank).** Pour la spécificité topographique, on ne compare pas deux groupes mais **les deux blocs chez le même patient** : est-ce que, *à l'intérieur d'un même genou de cas*, le bloc PF s'aggrave plus que le bloc FT ? C'est un test apparié, donc il neutralise tout ce qui est propre au patient.
 
 #### 3 · Comment on le calcule sur nos données
 
@@ -428,7 +462,7 @@ Décisions BH (q = 0.10) :
 
 ![Figure 4 — spécificité topographique](../figures/fig4_topographic_specificity.png)
 
-La **figure 4** montre la spécificité **intra-patient** chez les cas : un box-plot apparié « bloc PF » vs « bloc FT » du Δ de score (S2 − S1), avec un trait reliant chaque patient de gauche à droite. Presque tous les segments **plongent** du bloc PF (points en l'air, jusqu'à Δ = 4) vers le bloc FT (collés à zéro) — l'épaisseur des traits encode le nombre de patients suivant le même chemin. Bilan apparié : **28 patients s'aggravent dans PF contre 1 seul dans FT** (Wilcoxon p = 2 × 10⁻⁶, rank-biserial = 1.0).
+La **figure 4** montre la spécificité **intra-patient** chez les cas : un box-plot apparié « bloc PF » vs « bloc FT » du Δ de score (S2 − S1), avec un trait reliant chaque patient de gauche à droite. Presque tous les segments **plongent** du bloc PF (points en l'air, jusqu'à Δ = 4) vers le bloc FT (collés à zéro) — l'épaisseur des traits encode le nombre de patients suivant le même chemin. Bilan apparié : **28 patients s'aggravent dans PF contre 1 seul dans FT** (Wilcoxon signed-rank p = 2 × 10⁻⁶, rank-biserial = 1.0).
 
 #### 5 · Interprétation
 
@@ -478,13 +512,23 @@ La régression de **Firth** corrige exactement ça : sa pénalisation (le jacobi
 
 #### 3 · Comment on le calcule sur nos données
 
-Le modèle est une logistique pénalisée Firth sur l'aggravation PF, avec les deux covariables de déséquilibre :
+Le modèle est une **régression logistique pénalisée Firth** sur l'aggravation PF, ajustée sur les deux covariables de déséquilibre (sexe, âge).
 
-$$\operatorname{logit} P(\text{worsened\_pf}=1) = \beta_0 + \beta_{\text{grp}}\,\text{cyclope} + \beta_{\text{sexe}}\,\text{femme} + \beta_{\text{âge}}\,\text{âge},\qquad \text{OR}_{\text{cyclope}} = e^{\beta_{\text{grp}}}$$
+**De la cote (odds) à l'odds ratio.** La *cote* d'aggraver dans un groupe = (nombre qui empirent) / (nombre stables). Sur nos données :
 
-Et la E-value, à partir du risque relatif approché par l'OR :
+$$\text{odds}_{\text{cas}} = \frac{28}{21} = 1{,}33, \qquad \text{odds}_{\text{contrôles}} = \frac{1}{19} = 0{,}053, \qquad \text{OR} = \frac{1{,}33}{0{,}053} = 25{,}33$$
 
-$$\text{E-value} = \text{RR} + \sqrt{\text{RR}\,(\text{RR}-1)}$$
+L'**odds ratio** (OR) est le rapport de ces deux cotes — *à ne pas confondre* avec le **risque relatif** (RR), qui compare des probabilités (voir plus bas).
+
+**Pourquoi une régression logistique — et pourquoi $\text{OR}_{\text{cyclope}} = e^{\beta_{\text{grp}}}$.** Un tableau 2×2 brut donne *un* OR, mais il ne sait pas **ajuster** sur le sexe et l'âge (les confondeurs repérés au §01). La logistique, elle, modélise le **log-cote** (le logit) comme une somme d'effets :
+
+$$\operatorname{logit} P(\text{worsened\_pf}=1) = \ln\frac{p}{1-p} = \beta_0 + \beta_{\text{grp}}\,\text{cyclope} + \beta_{\text{sexe}}\,\text{femme} + \beta_{\text{âge}}\,\text{âge}$$
+
+Prends deux patients **identiques en sexe et en âge**, l'un cyclope ($\text{cyclope}=1$), l'autre ménisque ($0$). En soustrayant leurs deux logits, tout s'annule **sauf** le terme de groupe :
+
+$$\ln(\text{odds}_{\text{cyclope}}) - \ln(\text{odds}_{\text{ménisque}}) = \beta_{\text{grp}} \;\Longrightarrow\; \ln(\text{OR}) = \beta_{\text{grp}} \;\Longrightarrow\; \boxed{\;\text{OR}_{\text{cyclope}} = e^{\beta_{\text{grp}}}\;}$$
+
+Le coefficient de groupe **est** donc le log-odds-ratio (à covariables fixées) ; l'exponentielle le ramène sur l'échelle OR. *(Brut : $\beta_{\text{grp}} = 2{,}85 \Rightarrow e^{2{,}85} = 17{,}2$.)*
 
 > [!NOTE]
 > **Firth = « ajouter un demi-patient ».** Notre tableau 2×2 d'aggravation PF :
@@ -501,6 +545,25 @@ $$\text{E-value} = \text{RR} + \sqrt{\text{RR}\,(\text{RR}-1)}$$
 > $$\text{OR}_{\text{Firth}} \approx \frac{28{,}5 \times 19{,}5}{21{,}5 \times 1{,}5} \approx \mathbf{17{,}2}$$
 >
 > ce qui colle à la valeur exacte de l'algorithme (**17,23**). On le voit converger proprement en quelques pas de Newton-Raphson : $8{,}05 \to 14{,}72 \to 17{,}19 \to \mathbf{17{,}23}$ (convergé), avec $\beta_1 = 2{,}85$ et $\text{SE} = 0{,}91$. La case « 1 » ne dicte plus à elle seule le résultat.
+>
+> Formellement, Firth **pénalise la vraisemblance** par le *prior de Jeffreys* $|\mathcal{I}(\beta)|^{1/2}$ (avec $\mathcal{I}$ l'information de Fisher) : cette pénalité **retire le biais de premier ordre** de l'estimateur du maximum de vraisemblance et garantit une estimation **finie** même sous (quasi-)séparation — exactement notre cas avec une seule aggravation côté contrôles.
+
+**OR vs RR — le risque relatif.** Le **risque relatif** (RR) compare les *probabilités* d'aggraver, pas les cotes :
+
+$$\text{RR} = \frac{p_{\text{cas}}}{p_{\text{contrôles}}} = \frac{28/49}{1/20} = \frac{0{,}571}{0{,}050} = 11{,}4$$
+
+OR ($25{,}3$ brut) et RR ($11{,}4$) **divergent** ici parce que l'issue est **fréquente** (57 % des cas aggravent). Règle générale : pour une issue **rare**, $\text{OR} \approx \text{RR}$ ; pour une issue **fréquente**, l'OR **exagère** le RR. Ce point conditionne le calcul de l'E-value.
+
+**E-value (VanderWeele & Ding, 2017).** C'est la **force minimale** qu'un confondeur **non mesuré** devrait avoir — sur l'échelle du **risque relatif**, et **à la fois** avec l'exposition (être cyclope) *et* avec l'issue (aggravation PF) — pour expliquer *entièrement* l'association observée, une fois les covariables mesurées prises en compte. Elle se lit comme un RR :
+
+$$\text{E-value} = \text{RR} + \sqrt{\text{RR}\,(\text{RR}-1)}$$
+
+La formule attend un **RR**. Comme on part d'un **OR sur une issue fréquente**, on convertit d'abord $\text{RR} \approx \sqrt{\text{OR}}$ (recommandation de VanderWeele pour une issue commune). Le calcul est fait sur l'**OR brut de Firth** (17,2) et sa **borne basse d'IC à 95 %** (2,87) :
+
+$$\sqrt{17{,}2} \approx 4{,}15 \;\Rightarrow\; \text{E} = 4{,}15 + \sqrt{4{,}15 \times 3{,}15} \approx \mathbf{7{,}77}; \qquad \sqrt{2{,}87} \approx 1{,}69 \;\Rightarrow\; \text{E}_{\text{IC}} \approx \mathbf{2{,}78}$$
+
+> [!TIP]
+> **Comment lire une E-value.** Plus elle est grande, plus l'effet résiste à un biais de confusion caché. **7,77** signifie : il faudrait un confondeur non mesuré lié au groupe **et** à l'issue par un **RR ≥ 7,77 des deux côtés** pour ramener l'effet à rien ; et même au pire de l'intervalle (**2,78**), il faudrait encore un confondeur de force ≥ 2,78. Un facteur aussi puissant, et *non déjà capté* par le sexe et l'âge, est peu plausible ici. (À comparer aux RR typiques des confondeurs cliniques candidats, souvent < 2.)
 
 **L'analogie de l'ajustement.** Ajuster sur sexe + âge, c'est comparer cyclope vs ménisque **à sexe égal et à âge égal** : on apparie mentalement des tranches (mêmes femmes, mêmes hommes ; mêmes tranches d'âge) et on regarde l'effet **dans** chaque tranche. Du coup, le sexe et l'âge ne peuvent plus, par construction, expliquer l'écart restant — s'il survit, c'est qu'il vient bien du groupe.
 
