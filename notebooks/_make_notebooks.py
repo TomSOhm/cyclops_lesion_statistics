@@ -68,6 +68,15 @@ def code(text: str):
     return nbf.v4.new_code_cell(text)
 
 
+# --- src/ path bootstrap (first code cell, so the flat src/ modules import) --
+BOOTSTRAP = """\
+import sys
+from pathlib import Path
+
+current = Path().absolute().parent
+sys.path.insert(0, (current / "src").as_posix())
+"""
+
 # --- Reusable preamble (imports + style) ------------------------------------
 PREAMBLE = """\
 # --- Setup (idempotent, fresh-kernel reproducible) ---
@@ -127,6 +136,7 @@ nb_00 = make_nb([
        "cohort of **n = 69** analysable for PF progression, and a note on "
        "the **{0, 1, ≥2} collapse** used for modelling. No inferential decision "
        "here — description only."),
+    code(BOOTSTRAP),
     code(PREAMBLE),
     code(LOAD),
     md("## 0. Data-anomaly audit (source dates only — NOT the cartilage Δ)\n\n"
@@ -257,6 +267,7 @@ nb_01 = make_nb([
        "equivalence (absence of evidence ≠ evidence of absence; revue 2026-05-29). "
        "So the PF progression contrast is not driven by a starting-point "
        "difference or a ceiling effect."),
+    code(BOOTSTRAP),
     code(PREAMBLE),
     code(LOAD),
     md("## 1. Table 1 (SMD) recap"),
@@ -401,6 +412,7 @@ nb_02 = make_nb([
        "(two- and one-sided) but **not** decisional.\n"
        "- **M2** (NegBin on the 6-sum, Δ⁺ truncation): **removed** from the "
        "inferential chain."),
+    code(BOOTSTRAP),
     code(PREAMBLE),
     code(LOAD),
     md("## 1. Distribution of the primary outcome Δ`lesion_pf`"),
@@ -538,6 +550,7 @@ nb_03 = make_nb([
        "(cyclops vs meniscus) with Mann–Whitney + Cliff δ and BH-FDR (q = 0.10) "
        "and bar-plot the worsening %, then (2) show the **within-patient** "
        "topographic specificity — Δ`lesion_pf` vs Δ`lesion_ft` paired Wilcoxon."),
+    code(BOOTSTRAP),
     code(PREAMBLE),
     code(LOAD),
     md("## 1. Per-compartment progression (cyclops vs meniscus) + BH-FDR\n\n"
@@ -620,6 +633,7 @@ nb_04 = make_nb([
        "- **Sport/occupation sensitivity**: the group→worsened-PF effect **with and "
        "without** the Pivot / Physical-work covariates, via the now **Firth-based** "
        "`tf.sensitivity_covariate` (stable under the 1/19 separation)."),
+    code(BOOTSTRAP),
     code(PREAMBLE),
     code(LOAD),
     md("## 1. Cyclops subset (joined to covariates)"),
@@ -731,6 +745,7 @@ nb_05 = make_nb([
        "PyTensor backend). **Convergence**: R̂ ≤ 1.01, ESS_bulk ≥ 400, "
        "divergences = 0; `fit_m3_with_escalation` auto-escalates "
        "(target_accept=0.99, tune=4000) once if needed."),
+    code(BOOTSTRAP),
     code(PREAMBLE),
     code(LOAD),
     md("## 1. Model data shape (long-long, collapsed {0,1,≥2})\n\n"
@@ -948,6 +963,7 @@ nb_06 = make_nb([
        "`inter_surgery_d` — the latter is the **difference of two `date_chir`** "
        "(S2 − S1), neither of which is hygienised or negative here. H4 is therefore "
        "robust to those source-date issues."),
+    code(BOOTSTRAP),
     code(PREAMBLE),
     code(LOAD),
     md("## 1. DAG (time-at-risk, not a confounder)\n\n"
