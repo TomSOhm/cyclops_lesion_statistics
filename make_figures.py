@@ -129,8 +129,8 @@ def make_fig0b(wide: pd.DataFrame) -> Path:
     return out
 
 
-def make_fig1(patient: pd.DataFrame, results: dict) -> Path:
-    """Love plot of baseline SMDs (Cyclops − Meniscus)."""
+def _covariate_smd_rows(patient: pd.DataFrame) -> list[tuple[str, float]]:
+    """Patient-covariate SMD rows (Cyclops − Meniscus) shared by fig1 / fig1c."""
     c = patient[patient.group == "cyclops"]
     m = patient[patient.group == "meniscus"]
     rows = [
@@ -147,9 +147,15 @@ def make_fig1(patient: pd.DataFrame, results: dict) -> Path:
             pd.to_numeric(c["imc"], errors="coerce").values,
             pd.to_numeric(m["imc"], errors="coerce").values)),
     ]
-    rows = [(lbl, v) for lbl, v in rows if np.isfinite(v)]
+    return [(lbl, v) for lbl, v in rows if np.isfinite(v)]
+
+
+def make_fig1(patient: pd.DataFrame, results: dict) -> Path:
+    """View 1 — Love plot of baseline COVARIATE SMDs (Cyclops − Meniscus)."""
+    rows = _covariate_smd_rows(patient)
     fig = viz.love_plot_smd(
         rows, baseline_score_p=float(results.get("baseline_s1_p", float("nan"))),
+        title="Baseline covariate balance (SMD) — view 1: covariables",
     )
     out = viz.save_pub_fig(fig, "fig1_baseline_balance", FIG_DIR)
     plt.close(fig)
@@ -157,21 +163,34 @@ def make_fig1(patient: pd.DataFrame, results: dict) -> Path:
 
 
 def make_fig1b(results: dict) -> Path | None:
-    """Baseline cartilage equivalence love plot (PF / FT / global, TOST boxes)."""
+    """View 2 — Baseline CARTILAGE balance, PF + FT only, SAME love-plot style."""
     rows = []
-    for lvl, lbl in (("total", "Global (6-sum)"), ("ft", "FT"),
-                     ("pf", "PF (porte l'outcome)")):  # PF last → top row
+    for lvl, lbl in (("pf", "PF cartilage S1 (trochlea+patella)"),
+                     ("ft", "FT cartilage S1 (tibial+condylar)")):
         smd = results.get(f"baseline_{lvl}_smd")
-        bound = results.get(f"baseline_{lvl}_tost_bound")
-        tp = results.get(f"baseline_{lvl}_tost_p")
-        eq = results.get(f"baseline_{lvl}_equivalent")
-        if smd is None or bound is None or tp is None:
+        if smd is None:
             continue
-        rows.append((lbl, float(smd), float(bound), float(tp), bool(eq)))
+        rows.append((lbl, float(smd)))
     if not rows:
         return None
-    fig = viz.love_plot_cartilage_equivalence(rows)
+    fig = viz.love_plot_smd(
+        rows, title="Baseline cartilage balance (SMD) — view 2: PF / FT blocks",
+    )
     out = viz.save_pub_fig(fig, "fig1b_baseline_cartilage", FIG_DIR)
+    plt.close(fig)
+    return out
+
+
+def make_fig1c(patient: pd.DataFrame, results: dict) -> Path:
+    """View 3 — All covariables + GLOBAL cartilage, SAME love-plot style."""
+    rows = _covariate_smd_rows(patient)
+    smd_global = results.get("baseline_total_smd")
+    if smd_global is not None:
+        rows.append(("Cartilage S1 (global 6-sum)", float(smd_global)))
+    fig = viz.love_plot_smd(
+        rows, title="Baseline balance (SMD) — view 3: all covariables + global cartilage",
+    )
+    out = viz.save_pub_fig(fig, "fig1c_baseline_global", FIG_DIR)
     plt.close(fig)
     return out
 
@@ -407,6 +426,7 @@ def main() -> list[Path]:
         ("fig0b_baseline_lesions", lambda: make_fig0b(wide)),
         ("fig1_baseline_balance", lambda: make_fig1(patient, results)),
         ("fig1b_baseline_cartilage", lambda: make_fig1b(results)),
+        ("fig1c_baseline_global", lambda: make_fig1c(patient, results)),
         ("fig2_pf_progression", lambda: make_fig2(wide, results)),
         ("fig3_per_compartment", make_fig3),
         ("fig4_topographic_specificity", lambda: make_fig4(wide, results)),

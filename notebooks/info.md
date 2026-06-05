@@ -353,11 +353,18 @@ C'est exactement le piège du `[!WARNING]` du §2 : le MWU non-significatif ($0{
 
 Le **Love plot** (Figure 1) montre les SMD covariable par covariable sur un axe horizontal centré sur 0, avec la bande verte $|\text{SMD}| < 0{,}10$ (négligeable) et les pointillés à $\pm 0{,}25$ (notable). On voit clairement quatre **points rouges qui débordent à droite** au-dessus du seuil 0,25 — l'âge ($+0{,}48$) et le sexe ($+0{,}37$) en tête, puis le sport pivot ($+0{,}35$) ; à l'opposé le métier physique part à gauche ($-0{,}28$). Seuls le tabac ($-0{,}14$, point bleu) et l'**IMC ($-0{,}08$, dans la zone verte)** restent équilibrés. Un encart annote le **score lésionnel S1** (Mann–Whitney global $p = 0{,}66$) ; mais c'est le **bloc PF** qui est *positivement* équivalent (TOST $p = 0{,}034$) — la ligne de départ cartilagineuse est commune **là où le signal va émerger**.
 
-Le **Love plot des covariables** (Figure 1) répond à « les coureurs sont-ils comparables ? » (réponse : non sur sexe/âge). La **ligne de départ cartilagineuse**, elle, se lit sur une figure dédiée à l'**équivalence** :
+On regarde l'équilibre sous **trois vues partageant exactement le même style** (mêmes bandes $\pm0{,}10$ / $\pm0{,}25$, mêmes codes couleur), pour les comparer d'un coup d'œil. La **Vue 1** (Figure 1, ci-dessus) porte les **covariables** : âge ($+0{,}48$), sexe ($+0{,}37$), sport pivot ($+0{,}35$) débordent en rouge à droite ; seuls tabac et IMC restent dans la zone verte. Réponse à « les coureurs sont-ils comparables ? » → **non** sur sexe/âge.
 
-![Figure 1b — équivalence cartilagineuse à S1 (TOST) : PF / FT / global](../figures/fig1b_baseline_cartilage.png)
+![Figure 1b — équilibre cartilagineux S1 : blocs PF / FT (même style que la Vue 1)](../figures/fig1b_baseline_cartilage.png)
 
-La **Figure 1b** porte les SMD des **trois blocs cartilagineux à S1** (PF, FT, global), chacun avec sa **boîte d'équivalence TOST $[-\Delta,+\Delta]$** (verte si équivalent, rouge sinon). Lecture immédiate : **PF est équivalent** — son point ($-0{,}009$) est pile au centre d'une boîte verte ($\pm0{,}29$, TOST $p = 0{,}034$) — tandis que **FT** ($+0{,}26$, $\pm0{,}44$, $p = 0{,}186$) **et le global** ($+0{,}19$, $\pm0{,}58$, $p = 0{,}124$) sont en rouge : leur centre n'est **pas** collé à zéro, l'équivalence n'est pas prouvée. La ligne de départ est commune **là où on en a besoin** (PF, où vit l'affirmation causale), pas partout — le détail et sa conséquence sont au §6.
+**Vue 2 — cartilage PF / FT** (Figure 1b) : le bloc **PF** tombe **dans la bande verte** (SMD $-0{,}009$, point bleu = équilibré), tandis que le bloc **FT** franchit le seuil $0{,}25$ (SMD $+0{,}26$, point rouge = non équilibré). La ligne de départ cartilagineuse est commune **là où vit l'hypothèse** (PF), pas en FT.
+
+![Figure 1c — équilibre global : covariables + cartilage 6-sum (même style)](../figures/fig1c_baseline_global.png)
+
+**Vue 3 — tout au global** (Figure 1c) : les covariables **et** le cartilage global (6-sum, SMD $+0{,}19$, zone tampon) sur un seul axe. Le cartilage global reste plus proche de 0 que les covariables démographiques, mais hors de la bande « négligeable ».
+
+> [!NOTE]
+> Les love plots montrent l'**ampleur** (SMD vs seuils d'Austin). L'**équivalence formelle** — un vrai test, pas un simple écart — est dans le **tableau ci-dessus** (TOST) : seul **PF** la passe ($p = 0{,}034$) ; FT ($p = 0{,}186$) et global ($p = 0{,}124$) ne la passent pas. Ampleur (SMD) et équivalence (TOST) sont complémentaires.
 
 #### 5 · Interprétation
 
@@ -389,7 +396,7 @@ flowchart TB
 #### 7 · Notebook à consulter
 
 - **Notebook :** `notebooks/01_baseline_balance.ipynb`
-- **Figures :** `figures/fig1_baseline_balance.png` (Love plot des SMD covariables), `figures/fig1b_baseline_cartilage.png` (équivalence cartilagineuse PF/FT/global, TOST) et `figures/figS1_slopegraph_pf.png` (slopegraph PF par patient, S1→S2).
+- **Figures :** `figures/fig1_baseline_balance.png` (Love plot covariables — Vue 1), `figures/fig1b_baseline_cartilage.png` (cartilage PF/FT — Vue 2), `figures/fig1c_baseline_global.png` (covariables + cartilage global — Vue 3, même style) et `figures/figS1_slopegraph_pf.png` (slopegraph PF par patient, S1→S2).
 - **Clés `results.json` :** `table1_age_smd` ($0{,}484$), `baseline_pf_mwu_p` ($0{,}818$), `baseline_pf_smd` ($-0{,}009$), `baseline_pf_tost_p` ($0{,}034$), `baseline_pf_equivalent` (`True`) ; et par symétrie `baseline_ft_mwu_p` ($0{,}770$), `baseline_ft_smd` ($+0{,}262$), `baseline_ft_tost_p` ($0{,}186$), `baseline_ft_equivalent` (`False`).
 
 ---
@@ -630,7 +637,7 @@ Décisions BH (q = 0.10) :
 
 ![Figure 4 — spécificité topographique](../figures/fig4_topographic_specificity.png)
 
-La **figure 4** montre la spécificité **intra-patient** chez les cyclops : un box-plot apparié « bloc PF » vs « bloc FT » du Δ de score (S2 − S1), avec un trait reliant chaque patient de gauche à droite. Presque tous les segments **plongent** du bloc PF (points en l'air, jusqu'à Δ = 4) vers le bloc FT (collés à zéro) — l'épaisseur des traits encode le nombre de patients suivant le même chemin. Bilan apparié : **28 patients s'aggravent dans PF contre 1 seul dans FT** (Wilcoxon signed-rank p = 2 × 10⁻⁶, rank-biserial = 1.0).
+La **figure 4** montre la spécificité **intra-patient** chez les cyclops sous forme d'une **grille à bulles** : chaque patient est un couple (ΔPF en abscisse, ΔFT en ordonnée), et les patients identiques sont **regroupés en une bulle dont l'aire est proportionnelle à leur nombre** (chiffre inscrit dedans). La diagonale pointillée marque ΔPF = ΔFT. Lecture immédiate : **toute la masse longe la ligne ΔFT = 0** (bande verte « PF-spécifique »), à ΔPF > 0 — **15** patients à ΔPF = 1, **9** à ΔPF = 2, **3** à ΔPF = 3 — tandis qu'une **seule** bulle rouge s'élève au-dessus (le patient dont le FT s'aggrave aussi, ΔFT = 2) et **21** ne bougent pas (bulle grise à l'origine). Bilan apparié : **28/49 s'aggravent en PF contre 1 seul en FT** (Wilcoxon signed-rank p = 2 × 10⁻⁶, rank-biserial = 1.0).
 
 #### 5 · Interprétation
 

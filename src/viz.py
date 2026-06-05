@@ -1102,7 +1102,9 @@ def love_plot_smd(
     vals = [float(r[1]) for r in rows]
     y = np.arange(len(rows))
 
-    fig, ax = plt.subplots(figsize=(7.0, 0.55 * len(rows) + 1.8))
+    # Taller than before + a reserved empty band at the bottom (see set_ylim)
+    # so the lower-right legend never sits on top of the bottom data point.
+    fig, ax = plt.subplots(figsize=(7.2, 0.62 * len(rows) + 2.6))
     # Balance bands.
     t1, t2 = thresholds
     ax.axvspan(-t1, t1, color="#cfe8c2", alpha=0.45, zorder=0)
@@ -1124,7 +1126,8 @@ def love_plot_smd(
     ax.set_title(title)
     xmax = max(0.35, max(abs(v) for v in vals) * 1.25)
     ax.set_xlim(-xmax, xmax)
-    ax.set_ylim(-0.6, len(rows) - 0.4)
+    # Extra headroom below row 0 → the legend gets its own band, clear of points.
+    ax.set_ylim(-1.25, len(rows) - 0.4)
 
     # Threshold legend.
     from matplotlib.lines import Line2D
@@ -1326,11 +1329,17 @@ def topographic_specificity(
     wilcoxon_p: Optional[float] = None,
     title: str = "Topographic specificity within cyclops (paired ΔPF vs ΔFT)",
 ):
-    """Paired slope plot of per-patient ΔPF vs ΔFT in the cyclops group.
+    """Count-bubble grid of per-patient (ΔPF, ΔFT) in the cyclops group.
 
-    Each cyclops patient is a line joining their PF-block Δ and FT-block Δ;
-    lines are coloured by whether PF worsened. Boxplots summarise each block.
-    Annotates the within-patient count of PF-worsened vs FT-worsened.
+    Each cyclops patient contributes one (ΔPF, ΔFT) pair; identical pairs are
+    pooled into a **bubble** placed at that integer cell, its **area ∝ the number
+    of patients** and the count printed inside. Bubbles are coloured by region:
+    green = **PF-specific** (ΔPF > 0, ΔFT ≤ 0), red = **FT involved** (ΔFT > 0),
+    grey = neither. The ``ΔPF = ΔFT`` diagonal and the zero axes are drawn for
+    reference. The whole story — *the damage lands in PF, FT is spared* — reads
+    in one glance: the mass hugs the ΔFT = 0 row at ΔPF > 0.
+
+    Replaces the earlier paired-slope spaghetti (unreadable line crossings).
 
     Parameters
     ----------
@@ -1342,48 +1351,61 @@ def topographic_specificity(
     n_pf_worsened, n_ft_worsened, rank_biserial, wilcoxon_p : optional
         Stats for the banner (from :func:`tests_freq.paired_pf_vs_ft`).
     """
-    sub = df_wide[df_wide[group_col] == cyclops][[pf_col, ft_col]].dropna().astype(float)
-    pf = sub[pf_col].values
-    ft = sub[ft_col].values
-    rng = np.random.default_rng(RANDOM_SEED)
+    from collections import Counter
 
-    fig, ax = plt.subplots(figsize=(7.0, 5.4), layout="constrained")
-    x_pf, x_ft = 0.0, 1.0
-    jit = rng.normal(0, 0.03, size=len(sub))
-    for p, f, j in zip(pf, ft, jit):
-        worse = p > 0
-        ax.plot(
-            [x_pf + j, x_ft + j], [p, f],
-            color="#d1495b" if worse else "#9bb3c9",
-            alpha=0.6 if worse else 0.35,
-            linewidth=1.4 if worse else 0.9, zorder=2,
-        )
-    # Jittered endpoint markers.
-    ax.scatter(x_pf + jit, pf, s=34, color="#3b3b6b", edgecolor="white",
-               linewidth=0.5, zorder=3, label="PF (trochlea+patella)")
-    ax.scatter(x_ft + jit, ft, s=34, color="#6b3b3b", edgecolor="white",
-               linewidth=0.5, zorder=3, label="FT (tibial+condylar)")
-    # Block boxplots.
-    ax.boxplot([pf, ft], positions=[x_pf, x_ft], widths=0.16, showfliers=False,
-               patch_artist=True,
-               boxprops=dict(facecolor="white", edgecolor="#333", alpha=0.9),
-               medianprops=dict(color="black", linewidth=1.6),
-               manage_ticks=False, zorder=1)
+    sub = df_wide[df_wide[group_col] == cyclops][[pf_col, ft_col]].dropna()
+    pf = sub[pf_col].round().astype(int).values
+    ft = sub[ft_col].round().astype(int).values
+    n = len(sub)
+    counts = Counter(zip(pf.tolist(), ft.tolist()))
 
-    ax.axhline(0, color="#777", linestyle=":", linewidth=1.1)
-    ax.set_xticks([x_pf, x_ft])
-    ax.set_xticklabels(["PF block", "FT block"])
-    ax.set_ylabel("Δ block lesion score (S2 − S1)")
-    ax.set_xlim(-0.4, 1.4)
+    fig, ax = plt.subplots(figsize=(7.4, 5.8), layout="constrained")
 
-    # Worsened counts + stats banner (built first so it can sit as the smaller
-    # subtitle *beneath* the bold title).
+    lo = min(pf.min(), ft.min(), 0) - 0.7
+    hi = max(pf.max(), ft.max(), 1) + 0.9
+    # Shade the PF-specific region (ΔPF > 0, ΔFT ≤ 0).
+    ax.axhspan(lo, 0, xmin=0, xmax=1, color="#e8f3e6", zorder=0)
+    # Identity diagonal + zero axes.
+    ax.plot([lo, hi], [lo, hi], ls="--", color="#bbbbbb", lw=1.1, zorder=1,
+            label="ΔPF = ΔFT (equal worsening)")
+    ax.axhline(0, color="#777", ls=":", lw=1.0, zorder=1)
+    ax.axvline(0, color="#777", ls=":", lw=1.0, zorder=1)
+
+    for (x, yv), k in counts.items():
+        if x > 0 and yv <= 0:
+            color = "#1b7837"      # PF-specific
+        elif yv > 0:
+            color = "#d1495b"      # FT involved
+        else:
+            color = "#9aa7b3"      # neither
+        ax.scatter(x, yv, s=90 + 130 * k, color=color, alpha=0.85,
+                   edgecolor="white", linewidth=1.0, zorder=3)
+        ax.text(x, yv, str(k), ha="center", va="center", fontsize=9.5,
+                fontweight="bold", color="white", zorder=4)
+
+    pf_specific = sum(k for (x, yv), k in counts.items() if x > 0 and yv <= 0)
+    both = sum(k for (x, yv), k in counts.items() if x > 0 and yv > 0)
+    neither = sum(k for (x, yv), k in counts.items() if x <= 0 and yv <= 0)
     if n_pf_worsened is None:
         n_pf_worsened = int((pf > 0).sum())
     if n_ft_worsened is None:
         n_ft_worsened = int((ft > 0).sum())
-    banner = [f"Within-patient worsening: PF {n_pf_worsened} vs FT {n_ft_worsened} "
-              f"(n = {len(sub)})"]
+
+    ax.set_xlim(lo, hi)
+    ax.set_ylim(lo, hi)
+    ax.set_aspect("equal", adjustable="box")
+    ax.set_xlabel("ΔPF — patellofemoral worsening (S2 − S1)")
+    ax.set_ylabel("ΔFT — femorotibial worsening (S2 − S1)")
+
+    # Region key + counts box (top-left, clear of the data mass at bottom-right).
+    txt = (f"PF-specific (ΔPF>0, ΔFT≤0): {pf_specific}\n"
+           f"FT also worsens (ΔFT>0): {n_ft_worsened}\n"
+           f"neither: {neither}   ·   n = {n}")
+    ax.text(0.03, 0.97, txt, transform=ax.transAxes, ha="left", va="top",
+            fontsize=9, bbox=dict(boxstyle="round,pad=0.45", fc="#ffffff",
+                                  ec="#bbbbbb"), zorder=5)
+
+    banner = [f"Within-patient: {n_pf_worsened}/{n} worsen PF, only {n_ft_worsened}/{n} worsen FT"]
     stat_bits = []
     if rank_biserial is not None:
         stat_bits.append(f"matched-pairs r = {rank_biserial:+.2f}")
@@ -1392,15 +1414,9 @@ def topographic_specificity(
         stat_bits.append(f"Wilcoxon p {p_txt}")
     if stat_bits:
         banner.append("  •  ".join(stat_bits))
-
-    # Title (bold) and the stats banner are two stacked text objects — suptitle
-    # on top, axis subtitle just beneath — so they NEVER collide. The previous
-    # code drew the banner at axes-fraction y=1.005, directly on top of
-    # set_title(title); under constrained layout both get their own reserved row.
     ax.set_title("\n".join(banner), fontsize=9, color="#555", pad=4)
     fig.suptitle(title, fontsize=12.5, fontweight="bold")
-
-    ax.legend(loc="upper right", framealpha=1.0, fontsize=8.5, edgecolor="#cccccc")
+    ax.legend(loc="lower right", framealpha=1.0, fontsize=8.5, edgecolor="#cccccc")
     return fig
 
 
@@ -1754,63 +1770,6 @@ def flexum_panel(
                  "(present in cyclops, absent in meniscus)",
                  fontsize=12, fontweight="bold")
     fig.tight_layout(rect=(0, 0, 1, 0.95))
-    return fig
-
-
-# --- fig1b : baseline cartilage equivalence (TOST boxes) ------------------
-
-
-def love_plot_cartilage_equivalence(
-    rows: Sequence[tuple],
-    title: str = "Baseline cartilage equivalence at S1 (TOST) — PF / FT / global",
-):
-    """Equivalence-focused love plot of the S1 cartilage SMDs with TOST boxes.
-
-    Sibling of :func:`love_plot_smd`, but reads the *outcome* baseline (cartilage
-    blocks) instead of the patient covariables, and frames each row around
-    **equivalence** rather than imbalance. Each row is a tuple
-    ``(label, smd, bound, tost_p, equivalent)``: the standardised mean difference
-    (Cyclops − Meniscus) at S1, the per-block TOST margin (the equivalence box is
-    ``±bound``), the TOST p-value and the verdict. The box is shaded green when
-    the block is equivalent (its CI sits inside ±bound) else red; the SMD point
-    sits on top, and the TOST p is annotated.
-
-    Parameters
-    ----------
-    rows : sequence of (label, smd, bound, tost_p, equivalent)
-        Ordered bottom→top (put the headline PF row last to render it on top).
-    title : str
-    """
-    rows = list(rows)
-    labels = [r[0] for r in rows]
-    y = np.arange(len(rows))
-
-    fig, ax = plt.subplots(figsize=(7.6, 0.78 * len(rows) + 1.8))
-    xmax = max(0.65,
-               max(abs(r[1]) for r in rows) * 1.35,
-               max(r[2] for r in rows) * 1.15)
-
-    for yi, (lbl, smd, bound, tp, equiv) in zip(y, rows):
-        col = "#2e7d32" if equiv else "#c62828"
-        fc = "#cfe8c2" if equiv else "#f6cccc"
-        ax.add_patch(plt.Rectangle((-bound, yi - 0.26), 2 * bound, 0.52,
-                                   facecolor=fc, edgecolor=col, lw=1.2,
-                                   alpha=0.6, zorder=1))
-        ax.plot(smd, yi, "o", color=col, ms=10, zorder=3, mec="white", mew=0.9)
-        verdict = "équivalent" if equiv else "non équivalent"
-        ax.annotate(f"SMD {smd:+.2f} · ±{bound:.2f} · TOST p = {tp:.3f}  ({verdict})",
-                    (smd, yi), xytext=(0, 15), textcoords="offset points",
-                    ha="center", va="bottom", fontsize=8.6, color=col)
-
-    ax.axvline(0, color="#222", lw=1.1, zorder=2)
-    ax.set_yticks(y)
-    ax.set_yticklabels(labels)
-    ax.set_xlim(-xmax, xmax)
-    ax.set_ylim(-0.6, len(rows) - 0.3)
-    ax.set_xlabel("Standardised mean difference at S1 (Cyclops − Meniscus)"
-                  "  ·  shaded box = ± TOST equivalence margin")
-    ax.set_title(title)
-    fig.tight_layout()
     return fig
 
 
