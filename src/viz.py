@@ -1680,3 +1680,242 @@ def slopegraph_pf_mpl(
     fig.suptitle(title, y=1.02, fontsize=13, fontweight="bold")
     fig.tight_layout()
     return fig
+
+
+# --- fig10 : flexum — the mechanical driver -------------------------------
+
+
+def flexum_panel(
+    df_flexum: pd.DataFrame,
+    spearman_rho: Optional[float] = None,
+    spearman_ci: Optional[Sequence[float]] = None,
+    spearman_p: Optional[float] = None,
+    fisher_p: Optional[float] = None,
+    group_col: str = "group",
+    flexum_col: str = "flexum_pre_s2",
+    delta_col: str = "delta_lesion_pf",
+):
+    """Two-panel flexum figure: group separation + intra-cyclops dose-response.
+
+    (a) Pre-S2 extension deficit by group — cyclops carry a flexum (−3…−10°),
+    meniscus sit at 0° (no nodule), a near-total separation (Fisher p tiny).
+    (b) Within cyclops, the flexum *depth* vs the patellofemoral progression
+    Δ_PF, with the Spearman ρ: a present/absent **mechanistic marker**, not a
+    graded dose (ρ ≈ 0). The honest pair — strong group signal, no within-group
+    dose-response.
+    """
+    order = [g for g in ("meniscus", "cyclops") if g in df_flexum[group_col].unique()]
+    pal = {g: _group_color(g) for g in order}
+
+    fig, (axa, axb) = plt.subplots(1, 2, figsize=(11.0, 4.6))
+
+    # (a) deficit by group — box + strip.
+    sns.boxplot(data=df_flexum, x=group_col, y=flexum_col, order=order,
+                hue=group_col, palette=pal, legend=False, width=0.5,
+                showcaps=False, fliersize=0, boxprops=dict(alpha=0.35), ax=axa)
+    sns.stripplot(data=df_flexum, x=group_col, y=flexum_col, order=order,
+                  hue=group_col, palette=pal, legend=False, jitter=0.22,
+                  size=5, alpha=0.8, edgecolor="white", linewidth=0.4, ax=axa)
+    axa.axhline(0, color="#222", lw=0.9, ls="--")
+    axa.set_xlabel("")
+    axa.set_ylabel("Pre-S2 extension deficit (°) — flexum")
+    axa.set_xticklabels([GROUP_LABELS.get(g, g) for g in order])
+    axa.set_title("(a) Flexum by group")
+    if fisher_p is not None:
+        axa.text(0.5, 0.03, f"any flexum: Fisher p = {fisher_p:.1e}",
+                 transform=axa.transAxes, ha="center", va="bottom", fontsize=9,
+                 bbox=dict(boxstyle="round,pad=0.3", fc="#f4f9f0", ec="#9fcb86"))
+
+    # (b) dose-response within cyclops: deficit (positive degrees) vs Δ_PF.
+    cyc = df_flexum[(df_flexum[group_col] == "cyclops")
+                    & df_flexum[delta_col].notna()].copy()
+    cyc["deficit"] = -cyc[flexum_col].astype(float)
+    rng = np.random.default_rng(RANDOM_SEED)
+    jx = cyc["deficit"].values + rng.uniform(-0.18, 0.18, len(cyc))
+    jy = cyc[delta_col].astype(float).values + rng.uniform(-0.06, 0.06, len(cyc))
+    axb.scatter(jx, jy, s=46, color=_group_color("cyclops"), alpha=0.8,
+                edgecolor="white", linewidth=0.5)
+    axb.axhline(0, color="#222", lw=0.8, ls=":")
+    axb.set_xlabel("Flexum depth (° of extension lost)")
+    axb.set_ylabel("Δ patellofemoral lesion score (S2 − S1)")
+    axb.set_title("(b) Dose-response within cyclops")
+    if spearman_rho is not None:
+        lab = f"Spearman ρ = {spearman_rho:+.2f}"
+        if spearman_ci is not None:
+            lab += f"  [{spearman_ci[0]:+.2f}, {spearman_ci[1]:+.2f}]"
+        if spearman_p is not None:
+            verdict = "no graded dose-response" if spearman_p > 0.05 else "graded"
+            lab += f"\np = {spearman_p:.2f} → {verdict}"
+        axb.text(0.03, 0.97, lab, transform=axb.transAxes, ha="left", va="top",
+                 fontsize=9.5,
+                 bbox=dict(boxstyle="round,pad=0.4", fc="#fff3e9", ec="#fc8d62"))
+
+    fig.suptitle("Flexum — the mechanical driver "
+                 "(present in cyclops, absent in meniscus)",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    return fig
+
+
+# --- fig1b : baseline cartilage equivalence (TOST boxes) ------------------
+
+
+def love_plot_cartilage_equivalence(
+    rows: Sequence[tuple],
+    title: str = "Baseline cartilage equivalence at S1 (TOST) — PF / FT / global",
+):
+    """Equivalence-focused love plot of the S1 cartilage SMDs with TOST boxes.
+
+    Sibling of :func:`love_plot_smd`, but reads the *outcome* baseline (cartilage
+    blocks) instead of the patient covariables, and frames each row around
+    **equivalence** rather than imbalance. Each row is a tuple
+    ``(label, smd, bound, tost_p, equivalent)``: the standardised mean difference
+    (Cyclops − Meniscus) at S1, the per-block TOST margin (the equivalence box is
+    ``±bound``), the TOST p-value and the verdict. The box is shaded green when
+    the block is equivalent (its CI sits inside ±bound) else red; the SMD point
+    sits on top, and the TOST p is annotated.
+
+    Parameters
+    ----------
+    rows : sequence of (label, smd, bound, tost_p, equivalent)
+        Ordered bottom→top (put the headline PF row last to render it on top).
+    title : str
+    """
+    rows = list(rows)
+    labels = [r[0] for r in rows]
+    y = np.arange(len(rows))
+
+    fig, ax = plt.subplots(figsize=(7.6, 0.78 * len(rows) + 1.8))
+    xmax = max(0.65,
+               max(abs(r[1]) for r in rows) * 1.35,
+               max(r[2] for r in rows) * 1.15)
+
+    for yi, (lbl, smd, bound, tp, equiv) in zip(y, rows):
+        col = "#2e7d32" if equiv else "#c62828"
+        fc = "#cfe8c2" if equiv else "#f6cccc"
+        ax.add_patch(plt.Rectangle((-bound, yi - 0.26), 2 * bound, 0.52,
+                                   facecolor=fc, edgecolor=col, lw=1.2,
+                                   alpha=0.6, zorder=1))
+        ax.plot(smd, yi, "o", color=col, ms=10, zorder=3, mec="white", mew=0.9)
+        verdict = "équivalent" if equiv else "non équivalent"
+        ax.annotate(f"SMD {smd:+.2f} · ±{bound:.2f} · TOST p = {tp:.3f}  ({verdict})",
+                    (smd, yi), xytext=(0, 15), textcoords="offset points",
+                    ha="center", va="bottom", fontsize=8.6, color=col)
+
+    ax.axvline(0, color="#222", lw=1.1, zorder=2)
+    ax.set_yticks(y)
+    ax.set_yticklabels(labels)
+    ax.set_xlim(-xmax, xmax)
+    ax.set_ylim(-0.6, len(rows) - 0.3)
+    ax.set_xlabel("Standardised mean difference at S1 (Cyclops − Meniscus)"
+                  "  ·  shaded box = ± TOST equivalence margin")
+    ax.set_title(title)
+    fig.tight_layout()
+    return fig
+
+
+# --- fig0a / fig0b : first-glance descriptive views -----------------------
+
+
+def descriptive_demographics(patient: pd.DataFrame, group_col: str = "group"):
+    """First-glance demographic panel by group: age, % female, BMI.
+
+    Three small multiples (violin + strip for age and BMI, a proportion bar for
+    sex) so the reader sees the cohort imbalance the Love plot quantifies.
+    """
+    order = [g for g in ("meniscus", "cyclops") if g in patient[group_col].unique()]
+    pal = {g: _group_color(g) for g in order}
+    p = patient.copy()
+    for c in ("age_at_trauma", "imc", "female"):
+        if c in p.columns:
+            p[c] = pd.to_numeric(p[c], errors="coerce")
+
+    fig, axs = plt.subplots(1, 3, figsize=(12.0, 4.2))
+    # (a) age
+    sns.violinplot(data=p, x=group_col, y="age_at_trauma", order=order,
+                   hue=group_col, palette=pal, legend=False, inner="quartile",
+                   cut=0, ax=axs[0])
+    sns.stripplot(data=p, x=group_col, y="age_at_trauma", order=order,
+                  color="#333", size=3, alpha=0.5, jitter=0.18, ax=axs[0])
+    axs[0].set_title("(a) Âge au trauma")
+    axs[0].set_xlabel("")
+    axs[0].set_ylabel("Âge (ans)")
+    axs[0].set_xticklabels([GROUP_LABELS.get(g, g) for g in order])
+    # (b) % female
+    fem = (p.groupby(group_col)["female"].mean().reindex(order) * 100.0)
+    axs[1].bar(range(len(order)), fem.values, color=[pal[g] for g in order],
+               width=0.6, edgecolor="white")
+    for i, v in enumerate(fem.values):
+        axs[1].text(i, v + 1.5, f"{v:.0f}%", ha="center", va="bottom", fontsize=10)
+    axs[1].set_xticks(range(len(order)))
+    axs[1].set_xticklabels([GROUP_LABELS.get(g, g) for g in order])
+    axs[1].set_ylim(0, 100)
+    axs[1].set_ylabel("% féminin")
+    axs[1].set_title("(b) Sexe (% féminin)")
+    # (c) BMI
+    sns.violinplot(data=p, x=group_col, y="imc", order=order, hue=group_col,
+                   palette=pal, legend=False, inner="quartile", cut=0, ax=axs[2])
+    sns.stripplot(data=p, x=group_col, y="imc", order=order, color="#333",
+                  size=3, alpha=0.5, jitter=0.18, ax=axs[2])
+    axs[2].set_title("(c) IMC")
+    axs[2].set_xlabel("")
+    axs[2].set_ylabel("IMC (kg/m²)")
+    axs[2].set_xticklabels([GROUP_LABELS.get(g, g) for g in order])
+
+    fig.suptitle("Démographie de base par groupe (cyclops vs méniscus)",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    return fig
+
+
+def descriptive_lesion_baseline(wide: pd.DataFrame, group_col: str = "group"):
+    """First-glance baseline cartilage view by group at S1.
+
+    (a) Total S1 lesion load (sum of 6 compartments) by group — box + strip;
+    (b) per-compartment prevalence of any lesion (score ≥ 1) at S1 by group —
+    grouped bars. Shows the starting cartilage state the equivalence test
+    (fig1b) summarises.
+    """
+    order = [g for g in ("meniscus", "cyclops") if g in wide[group_col].unique()]
+    pal = {g: _group_color(g) for g in order}
+    w = wide.copy()
+    w["lesion_total_S1"] = pd.to_numeric(w["lesion_total_S1"], errors="coerce")
+
+    fig, (axa, axb) = plt.subplots(1, 2, figsize=(11.8, 4.4))
+    # (a) total S1 load
+    sns.boxplot(data=w, x=group_col, y="lesion_total_S1", order=order,
+                hue=group_col, palette=pal, legend=False, width=0.5,
+                showcaps=False, fliersize=0, boxprops=dict(alpha=0.35), ax=axa)
+    sns.stripplot(data=w, x=group_col, y="lesion_total_S1", order=order,
+                  hue=group_col, palette=pal, legend=False, jitter=0.2,
+                  size=4, alpha=0.7, ax=axa)
+    axa.set_title("(a) Charge lésionnelle S1 (somme 6 compartiments)")
+    axa.set_xlabel("")
+    axa.set_ylabel("Score lésionnel total S1")
+    axa.set_xticklabels([GROUP_LABELS.get(g, g) for g in order])
+    # (b) per-compartment S1 prevalence (% with score ≥ 1)
+    labels, cyc_v, men_v = [], [], []
+    for s in SITES:
+        col = f"{s}_S1"
+        if col not in w.columns:
+            continue
+        labels.append(s)
+        for g, store in (("cyclops", cyc_v), ("meniscus", men_v)):
+            sub = pd.to_numeric(w.loc[w[group_col] == g, col], errors="coerce").dropna()
+            store.append(100.0 * float((sub >= 1).mean()) if len(sub) else 0.0)
+    x = np.arange(len(labels))
+    bw = 0.38
+    axb.bar(x - bw / 2, men_v, bw, label=GROUP_LABELS.get("meniscus", "meniscus"),
+            color=_group_color("meniscus"), edgecolor="white")
+    axb.bar(x + bw / 2, cyc_v, bw, label=GROUP_LABELS.get("cyclops", "cyclops"),
+            color=_group_color("cyclops"), edgecolor="white")
+    axb.set_xticks(x)
+    axb.set_xticklabels(labels, rotation=20, ha="right")
+    axb.set_ylabel("% avec lésion ≥ 1 à S1")
+    axb.set_title("(b) Prévalence lésionnelle par compartiment (S1)")
+    axb.legend(fontsize=8)
+
+    fig.suptitle("État cartilagineux de départ (S1) par groupe",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    return fig

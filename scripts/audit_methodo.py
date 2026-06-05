@@ -36,9 +36,11 @@ for s in STALE:
     if s in norm:
         errors.append(f"Stale/forbidden token present: {s!r}")
 
-# 5. Canonical numbers MUST appear (sample of must-haves; normalised text)
-MUST = ["49", "20", "0.5347", "17.2", "13.5", "7.77", "0.233", "2.28",
-        "240", "528", "0.997"]
+# 5. Canonical numbers MUST appear (sample of must-haves; normalised text).
+# M3 means refreshed to the latest run (δ̄ 0.247, derived PF contrast 2.29);
+# 29/49 is the flexum separation sentinel (§02b).
+MUST = ["49", "20", "0.5347", "17.2", "13.5", "7.77", "0.247", "2.29",
+        "240", "528", "0.999", "29/49"]
 for m in MUST:
     if m not in norm:
         errors.append(f"Missing canonical number: {m!r}")

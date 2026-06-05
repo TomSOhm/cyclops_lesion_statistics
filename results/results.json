@@ -91,7 +91,7 @@
     }
   },
   "m3_escalated": false,
-  "m3_fit_seconds": 90.4,
+  "m3_fit_seconds": 95.4,
   "pooling_loo": [
     {
       "model": "two_block",
@@ -312,6 +312,24 @@
     }
   ],
   "h3_any_bh_significant": false,
+  "flexum_n_cyc": 49,
+  "flexum_n_men": 19,
+  "flexum_cyc_n_deficit": 29,
+  "flexum_men_n_deficit": 0,
+  "flexum_cyc_median": -3.0,
+  "flexum_cyc_min": -10.0,
+  "flexum_fisher_p": 3.24459707671453e-06,
+  "flexum_fisher_or": null,
+  "flexum_cliff": -0.5918,
+  "flexum_mwu_p": 2.198726377920956e-05,
+  "flexum_dpf_spearman_rho": 0.0352,
+  "flexum_dpf_spearman_ci": [
+    -0.2546,
+    0.3194
+  ],
+  "flexum_dpf_spearman_p": 0.8104,
+  "flexum_dpf_n": 49,
+  "flexum_ok": true,
   "elapsed_seconds": 133.7,
   "artefacts_dir": "E:\\Projet_Solo\\lino_stats\\results"
 }

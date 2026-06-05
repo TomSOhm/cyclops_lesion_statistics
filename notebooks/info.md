@@ -123,6 +123,29 @@ Pourquoi **2 événements ne peuvent pas identifier un seuil ordinal supérieur*
 > [!NOTE]
 > Les 3 anomalies touchent l'âge / le délai / le baseline, **jamais** le Δ fémoro-patellaire (les colonnes de score ne portent pas de dates). Elles forment la liste d'exclusion pour la sensibilité sur le délai (§06), pas pour l'analyse principale.
 
+**Vue d'ensemble — Table 1 (STROBE).** Le profil des deux groupes en un coup d'œil (médiane [IQR] pour le continu, n (%) pour le catégoriel ; $p$ = MWU pour le continu, Fisher/chi² pour le catégoriel ; SMD = différence standardisée cyclops − méniscus) :
+
+| Variable | Cyclops (n = 49) | Méniscus (n = 20) | $p$ | SMD |
+|---|:---:|:---:|:---:|:---:|
+| Âge au trauma, méd. [IQR] | 30,9 [22,5–37,0] | 24,9 [19,8–31,2] | 0,084 | **+0,48** |
+| IMC, méd. [IQR] | 24,4 [22,0–26,4] | 24,8 [23,0–26,8] | 0,615 | −0,08 |
+| Taille (m), méd. [IQR] | 1,7 [1,6–1,8] | 1,7 [1,7–1,8] | 0,272 | −0,25 |
+| Poids (kg), méd. [IQR] | 70,0 [63,0–81,0] | 76,5 [65,0–83,0] | 0,340 | −0,19 |
+| Sexe féminin, n (%) | 31 (63,3 %) | 9 (45,0 %) | 0,188 | **+0,37** |
+| Sport pivot/contact (≥ 1), n (%) | 45 (91,8 %) | 16 (80,0 %) | 0,060 | +0,35¹ |
+| Travail physique, n (%) | 11 (22,4 %) | 7 (35,0 %) | 0,366 | −0,28 |
+| Tabac, n (%) | 5 (10,2 %) | 3 (15,0 %) | 0,682 | −0,14 |
+
+¹ SMD sur la version binarisée (pivot ≥ 1), comme au §01 ; le $p = 0{,}060$ est le chi² sur les 3 niveaux. *(Source : `results/table1.csv`.)*
+
+![Figure 0a — démographie de base par groupe](../figures/fig0a_demographics.png)
+
+La **figure 0a** confronte âge, % féminin et IMC : les cyclops sont **plus âgés** (médiane 30,9 vs 24,9 ans) et **plus féminins** (63 % vs 45 %), l'IMC se superpose. C'est le déséquilibre que le §01 va quantifier (et le §04 ajuster).
+
+![Figure 0b — état cartilagineux de départ (S1) par groupe](../figures/fig0b_baseline_lesions.png)
+
+La **figure 0b** montre l'état cartilagineux **à S1** : (a) la charge totale 6-compartiments se chevauche entre groupes, (b) la prévalence par compartiment est basse et comparable au départ — la « ligne de départ » cartilagineuse est globalement commune (l'équivalence formelle, bloc par bloc, est testée au §01).
+
 #### 5 · Interprétation
 
 L'EDA n'est pas un préambule décoratif : c'est elle qui **fixe l'échelle de modélisation**.
@@ -144,6 +167,8 @@ L'échelle ainsi fixée **alimente tout le pipeline** : descriptifs, tests de pr
 #### 7 · Notebook à consulter
 
 - **Notebook** : `notebooks/00_eda.ipynb`
+- **Figures** : `figures/fig0a_demographics.png` (démographie par groupe) et `figures/fig0b_baseline_lesions.png` (cartilage S1 par groupe).
+- **Artefacts** : `results/table1.csv` (Table 1 STROBE).
 - **Clés `results/results.json`** : `n_patients` (= 69), `data_anomalies` (les 3 anomalies de dates ci-dessus).
 
 ---
@@ -328,6 +353,12 @@ C'est exactement le piège du `[!WARNING]` du §2 : le MWU non-significatif ($0{
 
 Le **Love plot** (Figure 1) montre les SMD covariable par covariable sur un axe horizontal centré sur 0, avec la bande verte $|\text{SMD}| < 0{,}10$ (négligeable) et les pointillés à $\pm 0{,}25$ (notable). On voit clairement quatre **points rouges qui débordent à droite** au-dessus du seuil 0,25 — l'âge ($+0{,}48$) et le sexe ($+0{,}37$) en tête, puis le sport pivot ($+0{,}35$) ; à l'opposé le métier physique part à gauche ($-0{,}28$). Seuls le tabac ($-0{,}14$, point bleu) et l'**IMC ($-0{,}08$, dans la zone verte)** restent équilibrés. Un encart annote le **score lésionnel S1** (Mann–Whitney global $p = 0{,}66$) ; mais c'est le **bloc PF** qui est *positivement* équivalent (TOST $p = 0{,}034$) — la ligne de départ cartilagineuse est commune **là où le signal va émerger**.
 
+Le **Love plot des covariables** (Figure 1) répond à « les coureurs sont-ils comparables ? » (réponse : non sur sexe/âge). La **ligne de départ cartilagineuse**, elle, se lit sur une figure dédiée à l'**équivalence** :
+
+![Figure 1b — équivalence cartilagineuse à S1 (TOST) : PF / FT / global](../figures/fig1b_baseline_cartilage.png)
+
+La **Figure 1b** porte les SMD des **trois blocs cartilagineux à S1** (PF, FT, global), chacun avec sa **boîte d'équivalence TOST $[-\Delta,+\Delta]$** (verte si équivalent, rouge sinon). Lecture immédiate : **PF est équivalent** — son point ($-0{,}009$) est pile au centre d'une boîte verte ($\pm0{,}29$, TOST $p = 0{,}034$) — tandis que **FT** ($+0{,}26$, $\pm0{,}44$, $p = 0{,}186$) **et le global** ($+0{,}19$, $\pm0{,}58$, $p = 0{,}124$) sont en rouge : leur centre n'est **pas** collé à zéro, l'équivalence n'est pas prouvée. La ligne de départ est commune **là où on en a besoin** (PF, où vit l'affirmation causale), pas partout — le détail et sa conséquence sont au §6.
+
 #### 5 · Interprétation
 
 Le constat est net et **assumé : on n'est PAS équilibré** sur le sexe et l'âge — ce sont les points rouges du Love plot, des covariables où les cyclops sont en moyenne plus âgés et de répartition sexe différente. **Mais** — et c'est tout l'enjeu — **le cartilage de départ, lui, est équivalent**, y compris (surtout) sur le bloc PF qui porte l'hypothèse : MWU $p = 0{,}818$, SMD $-0{,}009$, TOST $p = 0{,}034$ → équivalent.
@@ -358,7 +389,7 @@ flowchart TB
 #### 7 · Notebook à consulter
 
 - **Notebook :** `notebooks/01_baseline_balance.ipynb`
-- **Figures :** `figures/fig1_baseline_balance.png` (Love plot des SMD) et `figures/figS1_slopegraph_pf.png` (slopegraph PF par patient, S1→S2).
+- **Figures :** `figures/fig1_baseline_balance.png` (Love plot des SMD covariables), `figures/fig1b_baseline_cartilage.png` (équivalence cartilagineuse PF/FT/global, TOST) et `figures/figS1_slopegraph_pf.png` (slopegraph PF par patient, S1→S2).
 - **Clés `results.json` :** `table1_age_smd` ($0{,}484$), `baseline_pf_mwu_p` ($0{,}818$), `baseline_pf_smd` ($-0{,}009$), `baseline_pf_tost_p` ($0{,}034$), `baseline_pf_equivalent` (`True`) ; et par symétrie `baseline_ft_mwu_p` ($0{,}770$), `baseline_ft_smd` ($+0{,}262$), `baseline_ft_tost_p` ($0{,}186$), `baseline_ft_equivalent` (`False`).
 
 ---
@@ -473,6 +504,68 @@ Deux questions immédiates restent ouvertes.
 - **Notebook :** `notebooks/02_progression_total.ipynb`
 - **Figure :** `figures/fig2_pf_progression.png`
 - **Clés `results.json` :** `pf_cliff_delta`, `pf_bca_lo` / `pf_bca_hi`, `pf_prob_superiority`, `pf_vs_ft_*`, `m1_worsened_pf`
+
+---
+
+### 02b · Flexum — le moteur mécanique
+
+#### 1 · But — ce qu'on veut fixer / vérifier
+
+Jusqu'ici on a **constaté** l'effet PF (§02) sans nommer son **moteur physique**. Le voici : le **cyclope** est un nodule fibreux dans l'échancrure intercondylienne qui **bloque l'extension terminale** du genou. Le genou ne se tend plus complètement → **flexum** (déficit d'extension fixé). Or un genou en flexum permanent **surcharge le compartiment fémoro-patellaire** (contact rotule/trochlée maintenu, pression PF soutenue) → usure cartilagineuse **PF**. C'est exactement la cible de l'hypothèse.
+
+> [!IMPORTANT]
+> **Pourquoi ce §02b est l'argument anti-HARKing par excellence.** Le choix de regarder le **PF** (et pas un autre bloc) n'est **pas** né des données : il découle d'un **mécanisme physique pré-spécifié** (flexum → surcharge PF). Tester le flexum, c'est vérifier ce **chaînon causal** : *le moteur est-il présent là où la casse arrive ?*
+
+#### 2 · Pourquoi cette méthode et pas une autre
+
+On lit le flexum sur **deux plans distincts**, parce que « le flexum compte » peut vouloir dire deux choses très différentes :
+
+1. **Séparation de groupe** — le flexum est-il **présent chez cyclops, absent chez méniscus** ? Issue quasi-binaire (présent/absent) → **Fisher exact** 2×2 sur « a un flexum » + MWU/Cliff δ sur les degrés signés (comme au §04, on est en quasi-séparation).
+2. **Dose-réponse intra-cyclops** — *parmi les cyclops*, un flexum **plus profond** prédit-il une **plus grosse** aggravation PF ? → **Spearman ρ** (profondeur du flexum ↔ Δ_PF), avec IC BCa. La dose-réponse est **cyclops-only** : le flexum méniscus est constant à 0° (aucune variance à corréler).
+
+#### 3 · Comment on le calcule sur nos données
+
+Données : `data/flexum.xlsx` (« flexum avant S2 », en degrés ; $0$ = extension complète, $-5$ = 5° perdus). On joint au cohorte par `(group, anonyme)`.
+
+- **Séparation :** table $2\times2$ « flexum présent ($<0$) vs absent » × groupe → `fisher_exact_2x2`. MWU/Cliff sur les degrés signés via `mwu_with_effects`.
+- **Dose-réponse :** sur les cyclops, $\text{profondeur} = -\text{flexum}$ (degrés perdus, $\ge 0$) corrélée à $\Delta_{\text{PF}}$ via `spearman_bca` (BCa $B=10000$, seed 42).
+
+> [!WARNING]
+> **Caveat d'appariement.** La feuille `Ménisque` du fichier flexum compte **49 lignes (toutes à 0°)** alors que le cohorte n'a que **20 méniscus** ; l'inner-join sur `(group, anonyme)` retient **19** méniscus appariés (un patient non apparié, héritage de la reclassification du patient 25). Sans conséquence : le flexum méniscus est de toute façon **constant à 0**.
+
+#### 4 · Résultat
+
+![Figure 10 — flexum : séparation de groupe + dose-réponse](../figures/fig10_flexum.png)
+
+La **figure 10** a deux panneaux : **(a)** le flexum par groupe — les cyclops s'étalent de $0$ à $-10°$, les méniscus restent **collés à $0$** ; **(b)** la profondeur du flexum vs $\Delta_{\text{PF}}$ chez les cyclops — un nuage **sans pente**.
+
+| Plan | Mesure | Valeur | Lecture |
+|---|---|---|---|
+| **Séparation** | flexum présent | **29/49 cyclops** vs **0/19 méniscus** | quasi-totale |
+| | Fisher (présent vs absent) | **OR → ∞, p = 3,2 × 10⁻⁶** | le flexum **marque** le groupe |
+| | Cliff δ (degrés signés) | **−0,59** (large) | cyclops nettement plus bas (= plus de flexum) |
+| | flexum cyclops | médiane **−3°**, min **−10°** | déficit réel mais modéré |
+| **Dose-réponse** | Spearman ρ (profondeur ↔ Δ_PF) | **+0,035**, IC [−0,26 ; +0,32] | **≈ 0** |
+| | p | **0,81** (n = 49) | **non concluant** |
+
+#### 5 · Interprétation
+
+Lecture **honnête en deux temps**, et c'est tout l'intérêt :
+
+- **Le moteur est présent là où la casse arrive.** Le flexum sépare les groupes de façon quasi-totale (29/49 vs 0/19, Fisher $p \approx 3\times10^{-6}$) : le mécanisme physique pré-spécifié est **bien présent chez les cyclops et absent chez les méniscus**. Le chaînon *cyclope → flexum* est solide.
+- **Mais le flexum agit comme un marqueur présent/absent, pas comme une dose graduée.** Parmi les cyclops, la **profondeur** du flexum ne prédit **pas** l'ampleur de l'aggravation PF ($\rho = +0{,}03$, $p = 0{,}81$). Ce n'est **pas** « pas d'effet » mais « **pas de dose-réponse graduée détectée** » — cohérent avec le fil rouge (*absence de preuve ≠ preuve d'absence*). Raisons plausibles : plage étroite (surtout $-5°$), un **instantané** pré-S2 face à une usure **cumulée**, mécanisme à **seuil** plutôt que gradué, et faible $n$ porteur de déficit.
+
+Le flexum **renforce donc le mécanisme** (présent/absent tracke le groupe) sans fournir de gradient — exactement le genre de nuance qu'un papier rigoureux **rapporte** au lieu de la masquer.
+
+#### 6 · Ce que ça déclenche ensuite
+
+Le moteur identifié, la question du **timing** revient (les cyclops, symptomatiques par leur flexum douloureux, sont ré-opérés **plus tôt** — §05/§06). Et la **localisation PF** du §05 cesse d'être un simple choix statistique : elle est **physiquement adossée** au flexum. C'est ce qui rend le §05 « *là où le flexum prédit la casse* » non-circulaire au plan mécanique.
+
+#### 7 · Notebook à consulter
+
+- **Notebook :** `notebooks/02_progression_total.ipynb` (bloc flexum) ; analyse dans `run_all.py` §9.
+- **Figure :** `figures/fig10_flexum.png`
+- **Clés `results.json` :** `flexum_cyc_n_deficit`, `flexum_fisher_p`, `flexum_cliff`, `flexum_dpf_spearman_rho`, `flexum_dpf_spearman_ci`, `flexum_dpf_spearman_p`
 
 ---
 
@@ -718,6 +811,9 @@ Le forest plot (échelle log, ligne pointillée à OR = 1) empile les estimation
 - Robustesse : + IMC → OR 13,9 [2,3 ; 83,4] ; en excluant les 3 anomalies de dates → OR 14,2.
 - **H3** (modulation par facteurs intrinsèques, cyclops seulement) : **aucun facteur BH-significatif** (âge, IMC, sexe, tabac, travail physique, pivot).
 
+> [!NOTE]
+> **Comment lire ce tableau pour la conclusion.** La **ligne brute** n'a pas de $p$ « de modèle » : c'est le tableau $2\times2$ réécrit en logit (la pénalité de Firth sert juste à décoller du bord créé par l'unique méniscus aggravé). La **conclusion fréquentiste** se lit sur la **ligne ajustée** : OR **13,5**, IC 95 % **[2,3 ; 80,1]** *entièrement au-dessus de 1*, **$p = 0{,}004$**. L'IC dit la **précision** (large, car $n = 20$ méniscus), le $p$ la **significativité**, l'OR l'**ampleur** ; les trois concordent. Le tableau consolidé de toutes les preuves est en **§ Synthèse → « Tableau final fréquentiste »**.
+
 #### 5 · Interprétation
 
 > [!IMPORTANT]
@@ -849,8 +945,8 @@ Pour M1 (bêta-binomial, conjugué), l'*a posteriori* a une **forme close** (une
 
 Chaque tirage MCMC est un **jeu complet** $(\beta_c,\gamma,\delta_c,\ldots)$. Pour chacun des 8000, on calcule l'estimand voulu — p. ex. $\bar\delta=\tfrac16\sum_c\delta_c$. On obtient alors **8000 valeurs de $\bar\delta$** : *c'est* l'a posteriori de $\bar\delta$, un histogramme. On le résume **sans aucune formule de test** :
 
-- **moyenne** des 8000 → estimation ponctuelle ($\bar\delta=+0.233$) ;
-- **HDI 94 %** → l'intervalle le plus court contenant 94 % des tirages ($[-0.872,+1.453]$) ;
+- **moyenne** des 8000 → estimation ponctuelle ($\bar\delta=+0.247$) ;
+- **HDI 94 %** → l'intervalle le plus court contenant 94 % des tirages ($[-0.861,+1.405]$) ;
 - **$P(\bar\delta>0)$ = simplement la fraction des 8000 tirages qui sont positifs = 0.66**. Pas de *p-value*, on **compte**. Lecture : « dans 66 % des mondes compatibles avec les données, l'effet knee-wide est positif » — sous le seuil 0.95, donc **non concluant**.
 
 ```mermaid
@@ -863,7 +959,7 @@ flowchart LR
   E --> F["P(δ̄ > 0) = 66 %<br/>fraction des tirages positifs"]
 ```
 
-Le **contraste PF dérivé** se lit pareil : pour chaque tirage, (moyenne des $\delta_c$ sur PF) − (moyenne sur FT) ; les 8000 valeurs donnent $+2.28$ et $P(>0)=0.997$.
+Le **contraste PF dérivé** se lit pareil : pour chaque tirage, (moyenne des $\delta_c$ sur PF) − (moyenne sur FT) ; les 8000 valeurs donnent $+2.29$ et $P(>0)=0.999$.
 
 ##### f) Les estimands et les derniers réglages
 
@@ -883,34 +979,34 @@ $$
 
 La **figure 5** est un *forest plot* sur l'échelle logit latente (contraste S2 − S1) : une ligne par estimand, chaque effet en point avec sa barre d'HDI à 94 %, et une **verticale pointillée à 0** comme repère. De haut en bas, sur la structure two-block (descriptive) :
 
-- **δ PF (patellofemoral)** : point à **+2.42**, HDI [+0.65, +4.11], **P(>0) = 0.99** — entièrement à droite de 0.
-- **δ FT (femorotibial)** : point à **−0.76**, HDI [−1.92, +0.37], **P(>0) = 0.10** — centré près de 0, légèrement négatif, chevauchant la verticale.
-- **Contraste PF − FT** : point à **+3.18**, HDI [+0.96, +5.20], **P(>0) = 0.99** — franchement à droite de 0.
-- **γ (décalage de base du groupe)** : point à **−3.14**, HDI [−4.07, −2.34], **P(>0) = 0.00** — entièrement à gauche.
+- **δ PF (patellofemoral)** : point à **+2.44**, HDI [+0.74, +4.10], **P(>0) = 0.99** — entièrement à droite de 0.
+- **δ FT (femorotibial)** : point à **−0.77**, HDI [−1.88, +0.38], **P(>0) = 0.09** — centré près de 0, légèrement négatif, chevauchant la verticale.
+- **Contraste PF − FT** : point à **+3.21**, HDI [+1.15, +5.30], **P(>0) = 1.00** — franchement à droite de 0.
+- **γ (décalage de base du groupe)** : point à **−3.16**, HDI [−4.01, −2.30], **P(>0) = 0.00** — entièrement à gauche.
 
 Les barres PF et contraste sont vertes (excluent 0), la barre FT est orange/ocre (chevauche 0). Visuellement : PF s'aggrave, FT non, et leur écart est large et net.
 
 Les nombres canoniques de décision (modèle **échangeable**, le neutre) :
 
-- **Estimand primaire — δ̄ = +0.233**, HDI 94 % **[−0.872, +1.453]**, **P(δ̄ > 0) = 0.66**. Sous le seuil 0.95 → **NON CONCLUANT** (dilution attendue). Décalage de base γ = **−3.14**.
-- **Contraste PF dérivé** (du postérieur échangeable neutre) = **+2.28**, HDI **[0.85, 3.81]**, **P(>0) = 0.997**.
-- **Modèle two-block** (descriptif uniquement) : δ_PF = **+2.42**, δ_FT = **−0.76**, contraste = **+3.18** [0.97, 5.20].
+- **Estimand primaire — δ̄ = +0.247**, HDI 94 % **[−0.861, +1.405]**, **P(δ̄ > 0) = 0.66**. Sous le seuil 0.95 → **NON CONCLUANT** (dilution attendue). Décalage de base γ = **−3.13**.
+- **Contraste PF dérivé** (du postérieur échangeable neutre) = **+2.29**, HDI **[0.86, 3.63]**, **P(>0) = 0.999**.
+- **Modèle two-block** (descriptif uniquement) : δ_PF = **+2.44**, δ_FT = **−0.77**, contraste = **+3.21** [1.15, 5.30].
 - **LOO** : favorise **faiblement** le two-block (avertissements Pareto-k̂ → **indicatif, pas décisif**).
-- **Convergence** : max R̂ = **1.003**, ESS_bulk min = **1607**, **0 divergence**.
+- **Convergence** : max R̂ = **1.002**, ESS_bulk min = **1557**, **0 divergence**.
 
 ![Figure 6 — diagnostics de convergence](../figures/fig6_m3_diagnostics.png)
 
-La **figure 6** est une grille de diagnostics MCMC : à gauche, les **traces des 4 chaînes** (δ_pf, δ_ft, contrast_pf_ft) — des « chenilles » bien mélangées, denses, sans dérive ni décrochage, les 4 couleurs superposées (signe que les chaînes explorent le même postérieur) ; à droite, les emplacements des *rank plots*. Le titre annonce **0 divergence**. Bilan : échantillonnage sain, postérieur fiable (les valeurs canoniques de convergence — R̂ = 1.003, ESS = 1607 — proviennent du modèle échangeable primaire).
+La **figure 6** est une grille de diagnostics MCMC : à gauche, les **traces des 4 chaînes** (δ_pf, δ_ft, contrast_pf_ft) — des « chenilles » bien mélangées, denses, sans dérive ni décrochage, les 4 couleurs superposées (signe que les chaînes explorent le même postérieur) ; à droite, les emplacements des *rank plots*. Le titre annonce **0 divergence**. Bilan : échantillonnage sain, postérieur fiable (les valeurs canoniques de convergence — R̂ = 1.002, ESS = 1557 — proviennent du modèle échangeable primaire).
 
 #### 5 · Interprétation
 
 Lis les deux résultats **ensemble**, dans le bon ordre :
 
-- **Le test conservateur knee-wide est non concluant** (δ̄ = +0.23, P>0 = 0.66). C'est **attendu** : la dilution noie un signal localisé dans la moyenne des 6. Ce n'est ni un échec ni une preuve d'absence — c'est le prix d'un estimand qu'on ne peut pas truquer.
-- **MAIS lu là où le mécanisme prédit** — le bloc PF — l'effet est **large et hautement probable** (contraste +2.28, **P>0 = 0.997**). Et surtout **non-circulaire** : il est dérivé d'un modèle échangeable neutre qui n'a jamais vu la partition PF/FT. On ne s'est donc pas mordu la queue.
+- **Le test conservateur knee-wide est non concluant** (δ̄ = +0.25, P>0 = 0.66). C'est **attendu** : la dilution noie un signal localisé dans la moyenne des 6. Ce n'est ni un échec ni une preuve d'absence — c'est le prix d'un estimand qu'on ne peut pas truquer.
+- **MAIS lu là où le mécanisme prédit** — le bloc PF — l'effet est **large et hautement probable** (contraste +2.29, **P>0 = 0.999**). Et surtout **non-circulaire** : il est dérivé d'un modèle échangeable neutre qui n'a jamais vu la partition PF/FT. On ne s'est donc pas mordu la queue.
 - La partition elle-même n'est que **faiblement** soutenue par LOO (avec avertissements Pareto-k̂) : plausible mécaniquement, mais pas démontrée prédictivement. D'où la prudence.
 
-Le partage des rôles est explicite : **la décision repose sur δ̄** (conservateur, invariant, non concluant ici, et c'est honnête) ; **la localisation PF est exploratoire** (la lecture, là où le flexum prédit la casse). Garder ces deux niveaux séparés est exactement ce qui protège l'étude contre la sélection et la circularité.
+Le partage des rôles est explicite : **la décision repose sur δ̄** (conservateur, invariant, non concluant ici, et c'est honnête) ; **la localisation PF est exploratoire** (la lecture, là où le flexum prédit la casse — mécanisme documenté au **§02b**). Garder ces deux niveaux séparés est exactement ce qui protège l'étude contre la sélection et la circularité.
 
 #### 6 · Ce que ça déclenche ensuite
 
@@ -1021,6 +1117,33 @@ Le même mètre étalon — la Cliff δ — relie les deux bouts de l'histoire :
 
 C'est la **symétrie** qui rend l'argument propre : **même mètre étalon**, un **départ neutre** (la borne du haut contient 0 → les groupes sont indiscernables au baseline) qui débouche sur une **arrivée tranchée** (la borne du bas exclut 0 → l'effet est bien réel). Et la décision n'est pas ancrée sur cette lecture-là : elle repose sur le **δ̄ conservateur** ; la lecture PF, elle, reste **dérivée et exploratoire**.
 
+### Tableau final fréquentiste — toutes les preuves en une lecture
+
+Les chiffres de décision, rassemblés (tous alignés sur `results/results.json`). Lecture : **p-value** = significativité, **IC/HDI** = précision, **taille d'effet** = ampleur. La ligne grisée est l'**ancre décisionnelle** (bayésienne, conservatrice) ; le reste est le **support fréquentiste** (caractérise l'ampleur, ne décide pas — cf. vault [[02.4-tests-non-param]] / [[02.3-strategie-stats]]).
+
+| Quantité | §  | Effet | IC / HDI | $p$ | Verdict |
+|---|:--:|:---:|:---:|:---:|---|
+| **Contraste PF** (cyclops vs ménisque) | 02 | Cliff δ **+0,535** (large) | BCa [0,367 ; 0,684] | MWU 1×10⁻⁴ ; perm 2×10⁻⁴ | effet **réel** |
+| Aggravation PF | 02 | **28/49 (57 %)** vs **1/20 (5 %)** | M1 [0,44 ; 0,70] vs [0,01 ; 0,23] | — | non chevauchant |
+| Spécificité PF vs FT (intra-cyclops) | 02 | 28 PF vs 1 FT | $r_{rb}$ ≈ 1,0 | Wilcoxon 2×10⁻⁶ | localisé PF |
+| Dilution somme-6 | 03 | Cliff δ **+0,204** | — | 0,156 (2-côtés) | **noyé** (attendu) |
+| Réfutation H2 (PTI) | 03 | δ **−0,230** (sens inverse) | — | BH 0,007 | **H2 réfutée** |
+| **Flexum** présent (cyclops vs ménisque) | 02b | 29/49 vs 0/19 ; Cliff δ −0,59 | — | Fisher **3,2×10⁻⁶** | mécanisme présent |
+| Flexum → Δ_PF (dose-réponse) | 02b | Spearman ρ **+0,03** | [−0,26 ; +0,32] | 0,81 | **pas de gradient** |
+| **OR PF brut** (Firth) | 04 | OR **17,2** | [2,9 ; 103,5] | — ¹ | quasi-séparation gérée |
+| **OR PF ajusté sexe+âge** (co-primaire) | 04 | OR **13,5** | [2,3 ; 80,1] | **0,004** | **survit à l'ajustement** |
+| Robustesse OR | 04 | +IMC 13,9 ; +activité 15,3 ² ; excl. dates 14,2 ; +délai 28,4 | — | — | stable |
+| E-value (sur OR brut) | 04 | **7,77** | borne IC 2,78 | — | robuste au confondeur caché |
+| ⟶ **Ancre décisionnelle : δ̄ knee-wide** | 05 | **+0,247** | HDI [−0,86 ; +1,40] | $P(>0)=0{,}66$ | **non concluant** (honnête) |
+| Contraste PF dérivé (neutre) | 05 | **+2,29** | HDI [0,86 ; 3,63] | $P(>0)=0{,}999$ | localisé, exploratoire |
+
+¹ La ligne « brut » n'a pas de $p$ de modèle : c'est le 2×2 écrit en logit (Firth pour décoller du bord de la cellule méniscus = 1). Le **$p$ de décision** est celui de l'ajusté : **0,004**. ² OR ajusté **sexe+âge = 13,5** ; OR ajusté **activité (pivot+métier) = 15,3** — deux jeux de covariables distincts (`sensitivity_or_adjusted`), non contradictoires.
+
+> [!IMPORTANT]
+> **HARKing — pourquoi le support non-paramétrique ne décide pas seul, et pourquoi la cible PF n'est pas du *data-dredging*.** Deux garde-fous, et ils ne se substituent pas l'un à l'autre :
+> 1. **Pré-spécification physique.** Le choix de regarder le **PF** découle d'un **mécanisme posé *avant* les données** : cyclope → **flexum** (§02b, présent 29/49 vs 0/19) → surcharge fémoro-patellaire. Ce n'est pas un bloc « gagnant » repêché après coup ; c'est l'organe que la mécanique désignait.
+> 2. **Décision sur un estimand non sélectif.** Même ainsi, la **décision** ne repose **pas** sur le contraste PF (qui resterait un choix de bloc) mais sur le **δ̄ invariant par partition** (bayésien, §05), avec le contraste PF lu comme **dérivé/exploratoire**. C'est pour ça que les tests non-param (MWU, Cliff, BH, perm) restent du **support d'ampleur**, jamais le juge final — conformément à la stratégie du vault ([[02.3-strategie-stats]] §1.2). La pré-spécification physique **atténue** le HARKing ; l'estimand δ̄ le **neutralise**.
+
 ## Prochaine étape
 
 > [!WARNING]
@@ -1030,7 +1153,7 @@ Conséquence directe : puisque la prédiction pré-enregistrée est tombée, le 
 
 Trois garde-fous restent en place :
 
-- **L'ancre décisionnelle est le δ̄ conservateur** ($+0{,}233$, $P(\bar{\delta} > 0) = 0{,}66$, non concluant) — c'est la dilution attendue d'un signal localisé moyenné sur tout le genou, rapportée honnêtement, pas comme une preuve d'absence.
+- **L'ancre décisionnelle est le δ̄ conservateur** ($+0{,}247$, $P(\bar{\delta} > 0) = 0{,}66$, non concluant) — c'est la dilution attendue d'un signal localisé moyenné sur tout le genou, rapportée honnêtement, pas comme une preuve d'absence.
 - **Les associations ne sont pas causales** : le design est **observationnel**, non randomisé.
 - **Les déséquilibres baseline (sexe, âge) sont gérés par l'ajustement co-primaire**, pas ignorés ; et le délai inter-chirurgie, plus court chez les cyclops (240 vs 528 jours), ne fait que **renforcer** la conclusion — l'effet apparaît malgré ~½ du temps d'exposition.
 
@@ -1038,6 +1161,10 @@ Trois garde-fous restent en place :
 
 - **Le manuscrit complet** (audience revue, version exhaustive) : [`../paper/manuscript.md`](../paper/manuscript.md).
 - **Les chiffres canoniques** (source de vérité unique de tous les nombres cités ici) : [`../results/results.json`](../results/results.json).
+- **Notes de méthode (vault Obsidian)** — théorie et stratégie, en miroir de ce walkthrough :
+  - [[02.3-strategie-stats]] — stratégie globale (distribution-free + bayésien ; pourquoi la décision est bayésienne).
+  - [[02.4-tests-non-param]] — catalogue des tests non-paramétriques (MWU/Cliff, Wilcoxon signed-rank, Fisher mid-p, Spearman BCa, permutation).
+  - [[03-Results]] — table de résultats canoniques (p-values / IC), reflétée dans le « Tableau final fréquentiste » ci-dessus.
 
 > [!TIP]
 > Cohorte de référence : **49 cyclops + 20 méniscus = 69** patients analysables. Tout nombre de ce document s'aligne sur `results/results.json` ; en cas de doute, c'est ce fichier qui tranche.

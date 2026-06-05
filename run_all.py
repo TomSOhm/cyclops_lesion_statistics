@@ -618,6 +618,66 @@ def main(smoke: bool = False) -> dict:
         print(f"     {r['factor']:18s} {r['effect_name']}={eff:+.3f} "
               f"p={r['p']:.3f} p_adj={padj:.3f} [{sig}]")
 
+    # --- 9. Flexum (pre-S2 extension deficit) — the mechanical driver ------
+    # Cyclops nodule blocks extension → fixed flexum → patellofemoral overload.
+    # Two honest reads: (i) GROUP separation — is the flexum present where the PF
+    # damage is? — and (ii) intra-cyclops DOSE-RESPONSE — does a deeper flexum
+    # predict a bigger Δ_PF? The flexum workbook (data/flexum.xlsx) is joined to
+    # the cohort by (group, anonyme); unmatched rows (the meniscus sheet carries
+    # 49 padding rows, all 0°, vs the 20 cohort meniscus → 19 match after the
+    # patient-25 reclassification) are dropped by the inner join — a documented
+    # caveat. Meniscus flexum is constant 0, so the dose-response is cyclops-only.
+    try:
+        flex = loaders.load_flexum()
+        wflex = wide[["group", "anonyme", "delta_lesion_pf"]].copy()
+        wflex["anonyme"] = pd.to_numeric(wflex["anonyme"], errors="coerce").astype("Int64")
+        fm = wflex.merge(flex, on=["group", "anonyme"], how="inner")
+        fcyc = fm[fm.group == "cyclops"]
+        fmen = fm[fm.group == "meniscus"]
+        cyc_any = int((fcyc["flexum_pre_s2"] < 0).sum())
+        men_any = int((fmen["flexum_pre_s2"] < 0).sum())
+        results["flexum_n_cyc"] = int(len(fcyc))
+        results["flexum_n_men"] = int(len(fmen))
+        results["flexum_cyc_n_deficit"] = cyc_any
+        results["flexum_men_n_deficit"] = men_any
+        results["flexum_cyc_median"] = float(fcyc["flexum_pre_s2"].median())
+        results["flexum_cyc_min"] = float(fcyc["flexum_pre_s2"].min())
+        # (i) group separation: any-flexum 2×2 (Fisher) + signed-degree MWU/Cliff.
+        tab = np.array([[cyc_any, len(fcyc) - cyc_any],
+                        [men_any, len(fmen) - men_any]])
+        fish = tf.fisher_exact_2x2(tab)
+        results["flexum_fisher_p"] = float(fish["pvalue"])
+        results["flexum_fisher_or"] = (
+            round(float(fish["odds_ratio"]), 3)
+            if np.isfinite(fish["odds_ratio"]) else None
+        )
+        fmwu = tf.mwu_with_effects(fcyc["flexum_pre_s2"].values.astype(float),
+                                   fmen["flexum_pre_s2"].values.astype(float),
+                                   n_boot=n_boot, seed=RANDOM_SEED)
+        results["flexum_cliff"] = round(float(fmwu["cliffs_delta"]), 4)
+        results["flexum_mwu_p"] = float(fmwu["pvalue"])
+        # (ii) intra-cyclops dose-response: deeper flexum (deficit = −flexum) vs Δ_PF.
+        cc = fcyc[fcyc["delta_lesion_pf"].notna()]
+        sp = tf.spearman_bca((-cc["flexum_pre_s2"]).values.astype(float),
+                             cc["delta_lesion_pf"].values.astype(float),
+                             n_boot=n_boot, seed=RANDOM_SEED)
+        results["flexum_dpf_spearman_rho"] = round(float(sp["rho"]), 4)
+        results["flexum_dpf_spearman_ci"] = [round(sp["ci_lo"], 4), round(sp["ci_hi"], 4)]
+        results["flexum_dpf_spearman_p"] = round(float(sp["pvalue"]), 4)
+        results["flexum_dpf_n"] = int(sp["n"])
+        results["flexum_ok"] = True
+        print(f"[9] Flexum: cyclops {cyc_any}/{len(fcyc)} with deficit "
+              f"(median {fcyc['flexum_pre_s2'].median():.0f}°, min {fcyc['flexum_pre_s2'].min():.0f}°) "
+              f"vs meniscus {men_any}/{len(fmen)} → Fisher p={fish['pvalue']:.2e}, "
+              f"Cliff δ={fmwu['cliffs_delta']:+.3f} ({fmwu['cliffs_delta_magnitude']})")
+        print(f"     intra-cyclops dose-response ρ(deficit,Δ_PF)={sp['rho']:+.3f} "
+              f"[{sp['ci_lo']:+.2f},{sp['ci_hi']:+.2f}] p={sp['pvalue']:.3f} (n={sp['n']}) "
+              f"→ {'NULL (present/absent marker, not graded)' if sp['pvalue'] > 0.05 else 'graded'}")
+    except Exception as exc:  # noqa: BLE001
+        results["flexum_ok"] = False
+        results["flexum_error"] = repr(exc)
+        print(f"[9] [warn] flexum analysis failed: {exc!r}")
+
     # --- Save results.json ------------------------------------------------
     results["elapsed_seconds"] = round(time.time() - t_start, 1)
     results["artefacts_dir"] = str(RESULTS_DIR)

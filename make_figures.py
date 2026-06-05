@@ -113,6 +113,22 @@ def _smd_binary(a: pd.Series, b: pd.Series) -> float:
 # Figure builders (each returns the written Path)
 # ---------------------------------------------------------------------------
 
+def make_fig0a(patient: pd.DataFrame) -> Path:
+    """First-glance demographic panel by group (age, % female, BMI)."""
+    fig = viz.descriptive_demographics(patient)
+    out = viz.save_pub_fig(fig, "fig0a_demographics", FIG_DIR)
+    plt.close(fig)
+    return out
+
+
+def make_fig0b(wide: pd.DataFrame) -> Path:
+    """First-glance baseline cartilage view by group at S1."""
+    fig = viz.descriptive_lesion_baseline(wide)
+    out = viz.save_pub_fig(fig, "fig0b_baseline_lesions", FIG_DIR)
+    plt.close(fig)
+    return out
+
+
 def make_fig1(patient: pd.DataFrame, results: dict) -> Path:
     """Love plot of baseline SMDs (Cyclops − Meniscus)."""
     c = patient[patient.group == "cyclops"]
@@ -136,6 +152,26 @@ def make_fig1(patient: pd.DataFrame, results: dict) -> Path:
         rows, baseline_score_p=float(results.get("baseline_s1_p", float("nan"))),
     )
     out = viz.save_pub_fig(fig, "fig1_baseline_balance", FIG_DIR)
+    plt.close(fig)
+    return out
+
+
+def make_fig1b(results: dict) -> Path | None:
+    """Baseline cartilage equivalence love plot (PF / FT / global, TOST boxes)."""
+    rows = []
+    for lvl, lbl in (("total", "Global (6-sum)"), ("ft", "FT"),
+                     ("pf", "PF (porte l'outcome)")):  # PF last → top row
+        smd = results.get(f"baseline_{lvl}_smd")
+        bound = results.get(f"baseline_{lvl}_tost_bound")
+        tp = results.get(f"baseline_{lvl}_tost_p")
+        eq = results.get(f"baseline_{lvl}_equivalent")
+        if smd is None or bound is None or tp is None:
+            continue
+        rows.append((lbl, float(smd), float(bound), float(tp), bool(eq)))
+    if not rows:
+        return None
+    fig = viz.love_plot_cartilage_equivalence(rows)
+    out = viz.save_pub_fig(fig, "fig1b_baseline_cartilage", FIG_DIR)
     plt.close(fig)
     return out
 
@@ -229,6 +265,26 @@ def make_figS1(wide: pd.DataFrame) -> Path:
     """Supplementary PF slopegraph S1 → S2 by group."""
     fig = viz.slopegraph_pf_mpl(wide)
     out = viz.save_pub_fig(fig, "figS1_slopegraph_pf", FIG_DIR)
+    plt.close(fig)
+    return out
+
+
+def make_fig10(wide: pd.DataFrame, results: dict) -> Path | None:
+    """Flexum panel: group separation + intra-cyclops dose-response."""
+    if not results.get("flexum_ok"):
+        return None
+    flex = loaders.load_flexum()
+    wj = wide[["group", "anonyme", "delta_lesion_pf"]].copy()
+    wj["anonyme"] = pd.to_numeric(wj["anonyme"], errors="coerce").astype("Int64")
+    fm = wj.merge(flex, on=["group", "anonyme"], how="inner")
+    fig = viz.flexum_panel(
+        fm,
+        spearman_rho=results.get("flexum_dpf_spearman_rho"),
+        spearman_ci=results.get("flexum_dpf_spearman_ci"),
+        spearman_p=results.get("flexum_dpf_spearman_p"),
+        fisher_p=results.get("flexum_fisher_p"),
+    )
+    out = viz.save_pub_fig(fig, "fig10_flexum", FIG_DIR)
     plt.close(fig)
     return out
 
@@ -347,7 +403,10 @@ def main() -> list[Path]:
 
     written: list[Path] = []
     builders = [
+        ("fig0a_demographics", lambda: make_fig0a(patient)),
+        ("fig0b_baseline_lesions", lambda: make_fig0b(wide)),
         ("fig1_baseline_balance", lambda: make_fig1(patient, results)),
+        ("fig1b_baseline_cartilage", lambda: make_fig1b(results)),
         ("fig2_pf_progression", lambda: make_fig2(wide, results)),
         ("fig3_per_compartment", make_fig3),
         ("fig4_topographic_specificity", lambda: make_fig4(wide, results)),
@@ -356,6 +415,7 @@ def main() -> list[Path]:
         ("fig7_h4_delay", lambda: make_fig7(wide, idata_m5, results)),
         ("fig8_global_vs_localised", lambda: make_fig8(idata_exch, results)),
         ("fig9_firth_or_forest", lambda: make_fig9(results)),
+        ("fig10_flexum", lambda: make_fig10(wide, results)),
         ("figS1_slopegraph_pf", lambda: make_figS1(wide)),
     ]
     for name, fn in builders:

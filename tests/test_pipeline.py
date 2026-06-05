@@ -64,6 +64,18 @@ def test_load_combined_shape():
     assert g["cyclops"] == N_CYCLOPS_ROWS
 
 
+def test_load_flexum_shape_and_separation():
+    """Flexum workbook loads long; cyclops carry a deficit, meniscus do not."""
+    fx = loaders.load_flexum()
+    assert {"anonyme", "group", "flexum_pre_s2"} <= set(fx.columns)
+    cyc = fx[fx["group"] == "cyclops"]["flexum_pre_s2"]
+    men = fx[fx["group"] == "meniscus"]["flexum_pre_s2"]
+    # Cyclops have ≤0 values with some real deficit; meniscus are all 0 (no nodule).
+    assert (cyc <= 0).all() and int((cyc < 0).sum()) == 29
+    assert (men == 0).all()
+    assert cyc.min() == -10
+
+
 def test_normalised_columns():
     df = loaders.load_combined()
     expected = {

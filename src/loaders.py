@@ -16,6 +16,13 @@ import pandas as pd
 
 DATA_PATH: Path = Path(__file__).resolve().parents[1] / "data_paper_cyclops_stats.xlsx"
 
+# Flexum (pre-S2 extension deficit, in degrees) — a separate workbook with the
+# same two-sheet (Ménisque / Cyclop) layout but a single measurement column.
+# Negative values = loss of extension (a fixed-flexion / flexum, the mechanical
+# driver of patellofemoral overload in cyclops syndrome). Kept out of git
+# (patient data, see .gitignore); loaded locally for the pipeline.
+FLEXUM_PATH: Path = Path(__file__).resolve().parents[1] / "data" / "flexum.xlsx"
+
 
 def _normalise_cols(df: pd.DataFrame) -> pd.DataFrame:
     """Strip surrounding whitespace, lowercase, replace ' / ' and ' ' by '_'.
@@ -110,3 +117,36 @@ def load_combined(path: Path = DATA_PATH) -> pd.DataFrame:
         if col in combined.columns:
             combined[col] = combined[col].astype("Int64")
     return combined
+
+
+def load_flexum(path: Path = FLEXUM_PATH) -> pd.DataFrame:
+    """Load the pre-S2 flexum (extension-deficit) workbook into a long frame.
+
+    The workbook has the same two-sheet layout as the main dataset
+    (``Ménisque`` / ``Cyclop``) but a single measurement column
+    ``Flexum avant S2`` (header on row 0, unlike the lesion sheets whose header
+    is on row 1). Values are signed degrees: ``0`` = full extension,
+    ``-5`` = 5° of extension lost (a flexum). Meniscus patients have no cyclops
+    nodule, so their flexum is ``0`` throughout.
+
+    Parameters
+    ----------
+    path : Path, default FLEXUM_PATH
+        Excel workbook path (``data/flexum.xlsx``).
+
+    Returns
+    -------
+    pd.DataFrame
+        Columns ``anonyme`` (int), ``group`` (``meniscus`` / ``cyclops``),
+        ``flexum_pre_s2`` (float, ≤ 0). One row per patient.
+    """
+    frames = []
+    for sheet, grp in (("Ménisque", "meniscus"), ("Cyclop", "cyclops")):
+        sub = pd.read_excel(path, sheet_name=sheet)
+        sub = _normalise_cols(sub)
+        sub = sub.rename(columns={"flexum_avant_s2": "flexum_pre_s2"})
+        sub["anonyme"] = pd.to_numeric(sub["anonyme"], errors="coerce").astype("Int64")
+        sub["flexum_pre_s2"] = pd.to_numeric(sub["flexum_pre_s2"], errors="coerce")
+        sub["group"] = grp
+        frames.append(sub[["anonyme", "group", "flexum_pre_s2"]])
+    return pd.concat(frames, ignore_index=True).dropna(subset=["anonyme"])
