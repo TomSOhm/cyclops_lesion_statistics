@@ -14,7 +14,7 @@ from typing import Tuple
 
 import pandas as pd
 
-DATA_PATH: Path = Path(__file__).resolve().parents[1] / "data_paper_cyclops_stats.xlsx"
+DATA_PATH: Path = Path(__file__).resolve().parents[1] / "data" / "data_paper_cyclops_stats.xlsx"
 
 # Flexum (pre-S2 extension deficit, in degrees)  a separate workbook with the
 # same two-sheet (Ménisque / Cyclop) layout but a single measurement column.
@@ -117,6 +117,13 @@ def load_combined(path: Path = DATA_PATH) -> pd.DataFrame:
     for col in SITES:
         if col in combined.columns:
             combined[col] = combined[col].astype("Int64")
+    # Date columns arrive as DD/MM/YYYY text in the corrected workbook (earlier
+    # versions stored them as Excel date cells, which pandas read as Timestamps).
+    # Coerce to datetime — dayfirst for the French DD/MM/YYYY notation — so that
+    # age/delay derivation and the date-anomaly audit operate on real dates.
+    for col in ("date_de_naissance", "date_du_trauma", "date_chir"):
+        if col in combined.columns:
+            combined[col] = pd.to_datetime(combined[col], dayfirst=True, errors="coerce")
     return combined
 
 

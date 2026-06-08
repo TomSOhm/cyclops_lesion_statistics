@@ -3,27 +3,8 @@
   "smoke": false,
   "n_patients": 69,
   "n_analysable_pf": 69,
-  "data_anomalies": [
-    {
-      "group": "cyclops",
-      "anonyme": 9,
-      "kind": "date_du_trauma_drift",
-      "detail": "61 d between rows (2023-10-11 to 2023-12-11)"
-    },
-    {
-      "group": "cyclops",
-      "anonyme": 38,
-      "kind": "negative_trauma_to_surgery_d",
-      "detail": "min -488 d (surgery before trauma)"
-    },
-    {
-      "group": "meniscus",
-      "anonyme": 25,
-      "kind": "negative_trauma_to_surgery_d",
-      "detail": "min -384 d (surgery before trauma)"
-    }
-  ],
-  "table1_age_smd": 0.4836,
+  "data_anomalies": [],
+  "table1_age_smd": 0.4913,
   "table1_age_median_cyc": 30.937713894592743,
   "table1_age_median_men": 24.87748117727584,
   "baseline_s1_p": 0.6617,
@@ -91,7 +72,7 @@
     }
   },
   "m3_escalated": false,
-  "m3_fit_seconds": 95.4,
+  "m3_fit_seconds": 55.1,
   "pooling_loo": [
     {
       "model": "two_block",
@@ -175,19 +156,19 @@
   "m3_idata_path": "E:\\Projet_Solo\\lino_stats\\results\\idata_m3_exchangeable.nc",
   "isd_med_cyc": 240.0,
   "isd_med_men": 528.5,
-  "isd_mwu_p": 3.576281130723019e-05,
-  "isd_cliff": -0.6388,
-  "m4_group_coef": -0.6134,
+  "isd_mwu_p": 1.4798011438602444e-05,
+  "isd_cliff": -0.6694,
+  "m4_group_coef": -0.6867,
   "m4_ok": true,
   "m5_convergence": {
     "ok": true,
-    "max_rhat": 1.0004,
-    "min_ess_bulk": 7906.2,
+    "max_rhat": 1.001,
+    "min_ess_bulk": 7872.6,
     "n_divergent": 0
   },
   "m5_median_delay_by_group": {
-    "cyclops": 237.4,
-    "meniscus": 482.8
+    "cyclops": 231.0,
+    "meniscus": 485.7
   },
   "m5_idata_path": "E:\\Projet_Solo\\lino_stats\\results\\idata_m5.nc",
   "m4_note": "M4 is a lifelines MLE Weibull AFT (no idata); the bayesian H4 artefact is idata_m5.nc.",
@@ -208,29 +189,27 @@
   ],
   "pf_or_crude_method": "firth-irls(wald)",
   "pf_or_crude_min_cell": 1,
-  "pf_or_adj_sex_age": 13.505,
+  "pf_or_adj_sex_age": 13.462,
   "pf_or_adj_sex_age_ci": [
-    2.278,
-    80.067
+    2.27,
+    79.817
   ],
-  "pf_or_adj_sex_age_p": 0.0041,
+  "pf_or_adj_sex_age_p": 0.0042,
   "pf_evalue_point": 7.768,
   "pf_evalue_ci": 2.777,
-  "pf_or_adj_sex_age_imc": 13.942,
+  "pf_or_adj_sex_age_imc": 13.898,
   "pf_or_adj_sex_age_imc_ci": [
-    2.331,
-    83.371
+    2.324,
+    83.118
   ],
   "pf_or_adj_sex_age_imc_n": 69,
-  "pf_or_adj_sex_age_excl_anomalies": 14.214,
-  "pf_or_adj_sex_age_excl_n": 66,
-  "pf_or_adj_delay": 28.424,
+  "pf_or_adj_delay": 78.933,
   "pf_or_adj_delay_ci": [
-    3.469,
-    232.885
+    5.267,
+    1182.864
   ],
-  "delay_worsened_pf_rho": -0.028,
-  "delay_worsened_pf_rho_p": 0.8193,
+  "delay_worsened_pf_rho": -0.0044,
+  "delay_worsened_pf_rho_p": 0.9712,
   "h3_factors": [
     {
       "factor": "age_at_trauma",
@@ -313,15 +292,15 @@
   ],
   "h3_any_bh_significant": false,
   "flexum_n_cyc": 49,
-  "flexum_n_men": 19,
+  "flexum_n_men": 20,
   "flexum_cyc_n_deficit": 29,
   "flexum_men_n_deficit": 0,
   "flexum_cyc_median": -3.0,
   "flexum_cyc_min": -10.0,
-  "flexum_fisher_p": 3.24459707671453e-06,
+  "flexum_fisher_p": 1.4325085730712566e-06,
   "flexum_fisher_or": null,
   "flexum_cliff": -0.5918,
-  "flexum_mwu_p": 2.198726377920956e-05,
+  "flexum_mwu_p": 1.444462458723131e-05,
   "flexum_dpf_spearman_rho": 0.0352,
   "flexum_dpf_spearman_ci": [
     -0.2546,
@@ -330,6 +309,6 @@
   "flexum_dpf_spearman_p": 0.8104,
   "flexum_dpf_n": 49,
   "flexum_ok": true,
-  "elapsed_seconds": 133.7,
+  "elapsed_seconds": 89.2,
   "artefacts_dir": "E:\\Projet_Solo\\lino_stats\\results"
 }

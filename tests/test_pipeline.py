@@ -123,8 +123,9 @@ def test_composite_patient_key_balanced():
     """Each physical patient = (group, anonyme) appears exactly twice (S1, S2).
 
     Sentinel for consensus point I.1: the ``Anonyme`` id is reused across the
-    two sheets (19 shared ids); grouping by the composite key must yield 69
-    patients each with 2 rows. A failure here means a sheet-crossing merge.
+    two sheets (20 shared ids: meniscus 1..20 all fall within cyclops 1..49);
+    grouping by the composite key must yield 69 patients each with 2 rows.
+    A failure here means a sheet-crossing merge.
     """
     df = loaders.load_combined()
     sizes = df.groupby(["group", "anonyme"]).size()
@@ -133,10 +134,10 @@ def test_composite_patient_key_balanced():
         f"{sizes[sizes != 2].to_dict()}"
     )
     assert len(sizes) == N_TOTAL == 69
-    # 19 ids are shared between the two sheets (the bug's root cause).
+    # 20 ids shared between the two sheets (meniscus 1..20 within cyclops 1..49).
     m_ids = set(df.loc[df.group == "meniscus", "anonyme"].unique())
     c_ids = set(df.loc[df.group == "cyclops", "anonyme"].unique())
-    assert len(m_ids & c_ids) == 19
+    assert len(m_ids & c_ids) == 20
 
 
 def test_date_hygiene_uses_composite_key():
@@ -584,16 +585,20 @@ def test_bca_zero_variance_warns():
 # --- Revue 2026-05-29 additions (A–E) --------------------------------------
 
 
-def test_detect_date_anomalies_flags_known():
-    """detect_date_anomalies (on RAW frame) flags #9 drift and #38 negative delay."""
+def test_detect_date_anomalies_clean_after_source_fix():
+    """Source dates corrected (2026-06): detect_date_anomalies finds NO residual anomaly.
+
+    Regression guard for the source fix (cyc#37 surgery-year typo 2020->2022 and
+    men#20 trauma year 2025->2023). The audit still exposes its canonical schema,
+    but with zero rows: no surgery-before-trauma, no >1-day static-date drift.
+    """
     df = loaders.load_combined()
     an = pp.detect_date_anomalies(df)
     assert {"group", "anonyme", "kind", "detail"}.issubset(an.columns)
-    negs = an[an["kind"] == "negative_trauma_to_surgery_d"]
-    assert not negs.empty and 38 in set(negs["anonyme"]), an.to_dict("records")
-    # #9 trauma date drifts ~2 months between S1 and S2 (a drift anomaly).
-    drifts = an[an["kind"].str.contains("drift")]
-    assert 9 in set(drifts["anonyme"]), an.to_dict("records")
+    assert an.empty, an.to_dict("records")
+    # And the derived delay carries no impossible (negative) value.
+    derived = pp.add_derived(pp.apply_date_hygiene(df))
+    assert (derived["trauma_to_surgery_d"].dropna() >= 0).all()
 
 
 def test_negative_delay_coerced_to_nan():
