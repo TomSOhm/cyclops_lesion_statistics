@@ -6,9 +6,10 @@ session (``df_long``); the cheap pivots (``wide``, ``patient``, ``merged``) are
 re-derived per test so no test can mutate another's frame.
 
 Tests that exercise a *raw* load stage on purpose (e.g. ``test_load_*``,
-``test_detect_date_anomalies_flags_known``) keep their own inline load — they
+``test_detect_date_anomalies_flags_known``) keep their own inline load  they
 must not go through the hygiene/derive chain these fixtures apply.
 """
+
 from __future__ import annotations
 
 import warnings
@@ -21,8 +22,17 @@ import preprocessing as pp
 # Covariate columns joined onto the wide frame for adjusted/sensitivity models
 # (mirrors run_all.py); filtered to those actually present.
 _COV_COLS = [
-    "group", "anonyme", "female", "sexe", "pivot_pivot_contact",
-    "travail_physique", "tabac", "age_at_trauma", "imc", "taille", "poids",
+    "group",
+    "anonyme",
+    "female",
+    "sexe",
+    "pivot_pivot_contact",
+    "travail_physique",
+    "tabac",
+    "age_at_trauma",
+    "imc",
+    "taille",
+    "poids",
 ]
 
 
@@ -51,6 +61,6 @@ def patient(df_long):
 
 @pytest.fixture
 def merged(wide, patient):
-    """Wide frame joined with patient covariates — for adjusted/sensitivity models."""
+    """Wide frame joined with patient covariates  for adjusted/sensitivity models."""
     cols = [c for c in _COV_COLS if c in patient.columns]
     return wide.merge(patient[cols], on=["group", "anonyme"], how="left")

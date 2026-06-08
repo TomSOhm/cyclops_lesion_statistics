@@ -1,6 +1,6 @@
-# stats.ipynb — Note de préservation historique
+# stats.ipynb  Note de préservation historique
 
-## Statut : ARCHIVÉ — ne pas modifier
+## Statut : ARCHIVÉ  ne pas modifier
 
 Le notebook `stats.ipynb` constitue la **phase 1 exploratoire** du projet Linos Stats. Il contient l'analyse initiale **uniquement sur la cohorte Ménisque** (n=19, 38 lignes), réalisée avant la décision d'intégrer la cohorte Cyclops (n=50) pour une étude cas-témoin formelle.
 

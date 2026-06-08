@@ -6,7 +6,7 @@ g++ not available, if using conda: `conda install gxx`
 NUTS[nutpie]: [mu_block, sigma_beta, beta_offset, gamma, delta_block, sigma_u, u_offset, cut]
 NUTS[nutpie]: [mu, sigma]
 ==============================================================================
-LINO_STATS — run_all.py   (seed=42, smoke=False)
+LINO_STATS  run_all.py   (seed=42, smoke=False)
 ==============================================================================
 [1] data: 69 patients (composite key OK); analysable PF n = 68 (49 cyc + 19 mén)
 [2] Table 1 saved; age SMD = +0.381; baseline S1 lesion MWU p = 0.7779 (medians 0/0)
@@ -34,7 +34,7 @@ CONVERGENCE REPORT
 ==============================================================================
 M3 (primary): ok=True  r̂_max=1.0021  ESS_bulk_min=1492  divergences=0  escalated=False
 M5 (H4 lognormal): ok=True  r̂_max=1.0004  ESS_bulk_min=7855  divergences=0
-M4 (Weibull AFT): lifelines MLE — no MCMC convergence (fit ok=True)
+M4 (Weibull AFT): lifelines MLE  no MCMC convergence (fit ok=True)
 
 ==============================================================================
 CANONICAL NUMBERS (vs reference)

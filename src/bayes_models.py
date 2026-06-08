@@ -16,15 +16,15 @@ M3 refactor (revue-methodo 2026-05 + 2026-05-29 amendment, consensus points C/E)
   (2 free cutpoints) only for trochlée & rotule.
 * SELECTABLE pooling (E2 generalised, point C): both β_c (time slope) and δ_c
   (Group×Time interaction) are partially pooled toward group means whose grouping
-  is set by ``pooling`` — "exchangeable" (one mean = knee-wide δ̄, the selection-
+  is set by ``pooling``  "exchangeable" (one mean = knee-wide δ̄, the selection-
   immune primary), "two_block" (PF/FT) or "three_cluster". The topographic
   structure is TESTED by LOO (:func:`compare_pooling_structures`), never assumed.
 * δ_c per compartment ~ Normal(μ_group[grouping(c)], σ_δ); ``delta_comp`` is always
   exposed. exchangeable → ``delta_bar``; two_block → ``delta_pf`` / ``delta_ft`` /
   ``contrast_pf_ft`` (a candidate-structure output, NOT a pre-specified co-primary).
   The PF localisation is read as a DERIVED contrast from the exchangeable posterior
-  (:func:`derived_pf_contrast`) — non-circular.
-* FREE cutpoints per ordinal compartment (E3) — never shared (measurement ≠ effect).
+  (:func:`derived_pf_contrast`)  non-circular.
+* FREE cutpoints per ordinal compartment (E3)  never shared (measurement ≠ effect).
 * η = β_c[comp]·t + γ·g + δ_c[comp]·t·g + u[patient].
 * t ∈ {−0.5, +0.5} is the S2−S1 CONTRAST, **not** a per-year slope (E5).
 * Student-t(3) priors on effects (E4); tightened HalfNormal on σ.
@@ -70,11 +70,16 @@ from constants import (
 
 
 # ============================================================================
-# M1 — Beta-Binomial conjugate (analytical)
+# M1  Beta-Binomial conjugate (analytical)
 # ============================================================================
 
+
 def fit_m1_beta_binomial(
-    k: int, N: int, alpha: float = 1.0, beta: float = 1.0, hdi_prob: float = 0.94,
+    k: int,
+    N: int,
+    alpha: float = 1.0,
+    beta: float = 1.0,
+    hdi_prob: float = 0.94,
 ) -> dict:
     """Beta-binomial conjugate posterior for P(worsening).
 
@@ -112,15 +117,24 @@ def fit_m1_beta_binomial(
     hi = 1 - lo
     ci_lo, ci_hi = sps.beta.ppf([lo, hi], a_post, b_post)
     return dict(
-        alpha_post=a_post, beta_post=b_post, mean=float(mean), mode=float(mode),
-        hdi_lo=float(ci_lo), hdi_hi=float(ci_hi), hdi_prob=hdi_prob,
-        k=int(k), N=int(N), alpha=alpha, beta=beta,
+        alpha_post=a_post,
+        beta_post=b_post,
+        mean=float(mean),
+        mode=float(mode),
+        hdi_lo=float(ci_lo),
+        hdi_hi=float(ci_hi),
+        hdi_prob=hdi_prob,
+        k=int(k),
+        N=int(N),
+        alpha=alpha,
+        beta=beta,
     )
 
 
 # ============================================================================
-# M2 — NegBin SANITY-CHECK on PF score S2 | S1 (NOT primary; no Δ⁺ truncation)
+# M2  NegBin SANITY-CHECK on PF score S2 | S1 (NOT primary; no Δ⁺ truncation)
 # ============================================================================
+
 
 def fit_m2_negbin_sanity(
     df_wide: pd.DataFrame,
@@ -138,7 +152,7 @@ def fit_m2_negbin_sanity(
        information and is doctrinally incoherent. The truncation is
        **removed**. This function is retained only as a labelled descriptive
        sanity-check: a count regression of the post-operative PF score
-       (``lesion_pf_S2`` ∈ {0..4}, already ≥ 0 — **no shift, no truncation**)
+       (``lesion_pf_S2`` ∈ {0..4}, already ≥ 0  **no shift, no truncation**)
        on the group, adjusting for the baseline PF score (``lesion_pf_S1``).
        Primary inference is M3 + the permutation test.
 
@@ -175,15 +189,18 @@ def fit_m2_negbin_sanity(
     kwargs = {**NUTS_KWARGS, **sample_kwargs}
     idata = model.fit(**kwargs)
     return dict(
-        model=model, idata=idata,
-        outcome_col=outcome_col, baseline_col=baseline_col,
+        model=model,
+        idata=idata,
+        outcome_col=outcome_col,
+        baseline_col=baseline_col,
         note="SANITY-CHECK only (point D): no Δ⁺ truncation; not primary.",
     )
 
 
 # ============================================================================
-# M3 — Hierarchical ordinal cumulative logit ⭐⭐ PRIMARY INFERENTIAL
+# M3  Hierarchical ordinal cumulative logit ⭐⭐ PRIMARY INFERENTIAL
 # ============================================================================
+
 
 def _melt_long_long(
     df_long: pd.DataFrame,
@@ -197,14 +214,14 @@ def _melt_long_long(
     Encodes the indices and design variables consumed by the M3 PyMC model
     (consensus point E):
 
-    * ``patient_idx`` — composite ``(group, anonyme)`` factorisation (so the
+    * ``patient_idx``  composite ``(group, anonyme)`` factorisation (so the
       19 reused ids are never merged).
-    * ``comp_idx`` — compartment code (fixed ``sites`` order).
-    * ``block_idx`` — topographic block, 0 = PF, 1 = FT (point B/E2).
-    * ``is_binary`` — True for PTI / CFI (Bernoulli sites, point E1).
-    * ``t`` — **centred time contrast** ∈ {−0.5 (S1), +0.5 (S2)} (point E5);
+    * ``comp_idx``  compartment code (fixed ``sites`` order).
+    * ``block_idx``  topographic block, 0 = PF, 1 = FT (point B/E2).
+    * ``is_binary``  True for PTI / CFI (Bernoulli sites, point E1).
+    * ``t``  **centred time contrast** ∈ {−0.5 (S1), +0.5 (S2)} (point E5);
       β_c·t is algebraically the S2−S1 contrast, *not* a per-year slope.
-    * ``g`` — group indicator (0 = meniscus, 1 = cyclops).
+    * ``g``  group indicator (0 = meniscus, 1 = cyclops).
 
     Parameters
     ----------
@@ -226,7 +243,9 @@ def _melt_long_long(
     src = _pp.collapse_scores(df_long, sites) if collapse else df_long
     long = src.melt(
         id_vars=[id_col, group_col, "surgery_num"],
-        value_vars=sites, var_name="comp", value_name="y",
+        value_vars=sites,
+        var_name="comp",
+        value_name="y",
     ).dropna(subset=["y"])
     # Coerce nullable Int64 → numpy int, absorbing any residual pd.NA.
     y_num = pd.to_numeric(long["y"], errors="coerce")
@@ -236,7 +255,7 @@ def _melt_long_long(
     long["y"] = y_num.astype(int).values
     upper = SCORE_MAX_COLLAPSED if collapse else SCORE_MAX
     assert long["y"].between(SCORE_MIN, upper).all(), (
-        f"y outside [{SCORE_MIN}, {upper}] after melt — check input scoring/collapse."
+        f"y outside [{SCORE_MIN}, {upper}] after melt  check input scoring/collapse."
     )
     long["patient_idx"] = pd.factorize(
         long[group_col].astype(str) + "_" + long[id_col].astype(str)
@@ -253,11 +272,11 @@ def _melt_long_long(
 def _pooling_grouping(pooling: str, sites: Sequence[str]):
     """Map each compartment to a pooling-group index for the chosen structure.
 
-    * ``"exchangeable"`` — one group ``["all"]`` (fully exchangeable 6 sites);
+    * ``"exchangeable"``  one group ``["all"]`` (fully exchangeable 6 sites);
       the group mean is the knee-wide δ̄, the **selection-immune global estimand**.
-    * ``"two_block"``    — ``["PF", "FT"]`` (the topographic partition; now a
+    * ``"two_block"``     ``["PF", "FT"]`` (the topographic partition; now a
       *candidate structure* compared by LOO, not an assumed hypothesis).
-    * ``"three_cluster"``— ``["PF", "FT_antlat", "FT_med"]`` = {trochlée,rotule} /
+    * ``"three_cluster"`` ``["PF", "FT_antlat", "FT_med"]`` = {trochlée,rotule} /
       {pte,cfe} / {pti,cfi}, the 2–3 clusters the Δ-correlations actually show
       (PTE–CFE ≈ 0.70, PTI–CFI ≈ 0.39; revue-methodo 2026-05-29).
 
@@ -308,7 +327,7 @@ def _build_m3_model(
     * **Heterogeneous likelihood (E1, amended 2026-05-29).** Ordinal sites
       (trochlée, rotule) use ``pm.OrderedLogistic`` on {0,1,≥2} with **free**
       per-compartment cutpoints (2 each). Binary sites (pte, pti, cfe, cfi) use
-      ``pm.Bernoulli`` with ``p = sigmoid(η)`` — pte/cfe reclassed to binary as
+      ``pm.Bernoulli`` with ``p = sigmoid(η)``  pte/cfe reclassed to binary as
       their grade-≥2 cutpoint rests on only 2 events. Both likelihood blocks
       share β_c, γ, δ_c and u.
     * **Selectable pooling on β_c and δ_c (E2 generalised, point C).** Both the
@@ -318,7 +337,7 @@ def _build_m3_model(
       *effect*, never on the measurement.
     * **Estimands.** ``exchangeable`` exposes ``delta_bar`` (selection-immune
       global knee-wide interaction); ``two_block`` exposes ``delta_pf``,
-      ``delta_ft``, ``contrast_pf_ft`` — now a *candidate structure* compared by
+      ``delta_ft``, ``contrast_pf_ft``  now a *candidate structure* compared by
       LOO (:func:`compare_pooling_structures`), not an assumed co-primary.
       ``delta_comp`` (per-compartment δ) is always exposed for the derived PF
       contrast (:func:`derived_pf_contrast`).
@@ -346,7 +365,7 @@ def _build_m3_model(
 
     sites = list(sites)
     n_patients = long["patient_idx"].nunique()
-    n_cuts = score_max - score_min          # = 2 on the collapsed scale
+    n_cuts = score_max - score_min  # = 2 on the collapsed scale
     ordinal_sites = [s for s in sites if s in SITES_ORDINAL]
     binary_sites = [s for s in sites if s in SITES_BINARY]
 
@@ -378,7 +397,9 @@ def _build_m3_model(
         sigma_beta = pm.HalfNormal("sigma_beta", sigma=prior_sigma_beta)
         beta_offset = pm.StudentT("beta_offset", nu=3, mu=0.0, sigma=1.0, dims="comp")
         beta_c = pm.Deterministic(
-            "beta_c", mu_beta[group_of_comp] + sigma_beta * beta_offset, dims="comp",
+            "beta_c",
+            mu_beta[group_of_comp] + sigma_beta * beta_offset,
+            dims="comp",
         )
 
         # --- Group main effect ---------------------------------------------
@@ -392,19 +413,20 @@ def _build_m3_model(
         sigma_delta = pm.HalfNormal("sigma_delta", sigma=prior_sigma_delta)
         delta_offset = pm.Normal("delta_offset", mu=0.0, sigma=1.0, dims="comp")
         delta_comp = pm.Deterministic(
-            "delta_comp", mu_delta[group_of_comp] + sigma_delta * delta_offset,
+            "delta_comp",
+            mu_delta[group_of_comp] + sigma_delta * delta_offset,
             dims="comp",
         )
 
         # Named estimands per structure.
         if pooling == "exchangeable":
-            pm.Deterministic("delta_bar", mu_delta[0])          # knee-wide global
+            pm.Deterministic("delta_bar", mu_delta[0])  # knee-wide global
         elif pooling == "two_block":
             pm.Deterministic("delta_pf", mu_delta[0])
             pm.Deterministic("delta_ft", mu_delta[1])
             pm.Deterministic("contrast_pf_ft", mu_delta[0] - mu_delta[1])
 
-        # --- Patient random intercept (non-centred, retained — E5) --------
+        # --- Patient random intercept (non-centred, retained  E5) --------
         sigma_u = pm.HalfNormal("sigma_u", sigma=1.0)
         u_offset = pm.Normal("u_offset", mu=0.0, sigma=1.0, dims="patient")
         u = pm.Deterministic("u", sigma_u * u_offset, dims="patient")
@@ -416,10 +438,7 @@ def _build_m3_model(
         g = long["g"].values.astype(float)
 
         eta = (
-            beta_c[comp_idx] * t
-            + gamma * g
-            + delta_comp[comp_idx] * t * g
-            + u[pat_idx]
+            beta_c[comp_idx] * t + gamma * g + delta_comp[comp_idx] * t * g + u[pat_idx]
         )
 
         # --- Ordinal likelihood block (free cutpoints per compartment) ----
@@ -432,7 +451,7 @@ def _build_m3_model(
                 transform=pm.distributions.transforms.ordered,
                 # No explicit initval: mu=cut_init ([-1, 1], already increasing)
                 # is a valid ordered moment, and a non-default initial_value
-                # breaks pm.compute_log_likelihood for external NUTS (nutpie) —
+                # breaks pm.compute_log_likelihood for external NUTS (nutpie)
                 # which we need for the LOO pooling-structure comparison.
                 dims=("ord_comp", "cutpoint_idx"),
             )
@@ -445,7 +464,7 @@ def _build_m3_model(
             pm.OrderedLogistic(
                 "y_ord",
                 eta=eta_ord,
-                cutpoints=cut[ord_idx],          # per-obs cutpoint row
+                cutpoints=cut[ord_idx],  # per-obs cutpoint row
                 observed=y_ord,
                 compute_p=False,
             )
@@ -489,7 +508,7 @@ def fit_m3(
         Long format (one row per patient × surgery), with ``surgery_num``,
         ``group``, ``id_col`` and the site columns.
     sites : sequence of str
-        Compartment columns (default: SITES — all six).
+        Compartment columns (default: SITES  all six).
     score_min, score_max : int
         Collapsed bounds (0..2).
     nuts_sampler : str, default "nutpie"
@@ -508,14 +527,19 @@ def fit_m3(
 
     long = _melt_long_long(df_long, sites, id_col, group_col, collapse=True)
     model = _build_m3_model(
-        long, sites, score_min=score_min, score_max=score_max,
-        prior_sigma_delta=prior_sigma_delta, pooling=pooling,
+        long,
+        sites,
+        score_min=score_min,
+        score_max=score_max,
+        prior_sigma_delta=prior_sigma_delta,
+        pooling=pooling,
     )
     with model:
         kwargs = {**NUTS_KWARGS, **sample_kwargs}
         if compute_log_likelihood:
             kwargs["idata_kwargs"] = {
-                **kwargs.get("idata_kwargs", {}), "log_likelihood": True,
+                **kwargs.get("idata_kwargs", {}),
+                "log_likelihood": True,
             }
         idata = pm.sample(nuts_sampler=nuts_sampler, **kwargs)
     return idata
@@ -558,8 +582,10 @@ def fit_m3_with_prior(
 
     long = _melt_long_long(df_long, sites, id_col, group_col, collapse=True)
     model = _build_m3_model(
-        long, sites,
-        score_min=score_min, score_max=score_max,
+        long,
+        sites,
+        score_min=score_min,
+        score_max=score_max,
         prior_sigma_beta=prior_sigma_beta,
     )
     with model:
@@ -593,11 +619,15 @@ def derived_pf_contrast(idata, hdi_prob: float = HDI_PROB) -> dict:
     s = np.sort(contrast)
     n = len(s)
     k = max(1, int(np.floor(hdi_prob * n)))
-    w = s[k - 1:] - s[: n - k + 1]
+    w = s[k - 1 :] - s[: n - k + 1]
     i = int(np.argmin(w))
     return dict(
-        mean=float(contrast.mean()), hdi_lo=float(s[i]), hdi_hi=float(s[i + k - 1]),
-        p_gt0=float((contrast > 0).mean()), pf_sites=pf, ft_sites=ft,
+        mean=float(contrast.mean()),
+        hdi_lo=float(s[i]),
+        hdi_hi=float(s[i + k - 1]),
+        p_gt0=float((contrast > 0).mean()),
+        pf_sites=pf,
+        ft_sites=ft,
         hdi_prob=hdi_prob,
     )
 
@@ -649,14 +679,14 @@ def compare_pooling_structures(
     Makes the topographic organisation an empirical RESULT rather than an
     assumption: if LOO favours ``two_block`` / ``three_cluster`` over
     ``exchangeable``, the data REJECT 6-site exchangeability and support a block
-    structure — dissolving the circularity of *assuming* PF/FT. At n=69 the
+    structure  dissolving the circularity of *assuming* PF/FT. At n=69 the
     comparison may be inconclusive (flat ELPD); report the ELPD differences and
     their SE and say so rather than over-claiming.
 
     Returns
     -------
     dict
-        ``{idatas, loos, compare}`` — ``idatas`` keyed by pooling,
+        ``{idatas, loos, compare}``  ``idatas`` keyed by pooling,
         ``loos`` the per-model :func:`arviz.loo`, ``compare`` the
         :func:`arviz.compare` table (ranked by ELPD-LOO).
     """
@@ -665,9 +695,14 @@ def compare_pooling_structures(
     idatas, combined = {}, {}
     for pool in poolings:
         idata = fit_m3(
-            df_long, sites=sites, id_col=id_col, group_col=group_col,
-            nuts_sampler=nuts_sampler, pooling=pool,
-            compute_log_likelihood=True, **sample_kwargs,
+            df_long,
+            sites=sites,
+            id_col=id_col,
+            group_col=group_col,
+            nuts_sampler=nuts_sampler,
+            pooling=pool,
+            compute_log_likelihood=True,
+            **sample_kwargs,
         )
         idatas[pool] = idata
         combined[pool] = _combine_loglik(idata)
@@ -708,7 +743,7 @@ def ppc_m3(
     -------
     dict
         ``{idata_ppc, observed_freq, predicted_freq_mean, predicted_freq_hdi,
-        n_categories}`` — each ``*_freq`` is long-form
+        n_categories}``  each ``*_freq`` is long-form
         (group, time, comp, y, freq).
     """
     import pymc as pm
@@ -720,11 +755,14 @@ def ppc_m3(
     bin_mask = long["is_binary"].values
 
     rng = np.random.default_rng(random_seed)
-    var_names = [v for v in ("y_ord", "y_bin")
-                 if v in [rv.name for rv in model.observed_RVs]]
+    var_names = [
+        v for v in ("y_ord", "y_bin") if v in [rv.name for rv in model.observed_RVs]
+    ]
     with model:
         idata_ppc = pm.sample_posterior_predictive(
-            idata, var_names=var_names, random_seed=rng,
+            idata,
+            var_names=var_names,
+            random_seed=rng,
         )
 
     # Reassemble per-observation predictions into the full long order.
@@ -751,37 +789,43 @@ def ppc_m3(
     ).reset_index(drop=True)
 
     observed_freq = (
-        obs.groupby(["group", "time", "comp", "y"]).size()
-        .rename("count").reset_index()
+        obs.groupby(["group", "time", "comp", "y"]).size().rename("count").reset_index()
     )
-    observed_freq["freq"] = (
-        observed_freq.groupby(["group", "time", "comp"])["count"]
-        .transform(lambda s: s / s.sum())
-    )
+    observed_freq["freq"] = observed_freq.groupby(["group", "time", "comp"])[
+        "count"
+    ].transform(lambda s: s / s.sum())
 
     rows = []
     for d in range(min(n_draws, n_samp)):
         tmp = obs.assign(y_pred=yrep[d])
         freq = (
-            tmp.groupby(["group", "time", "comp", "y_pred"]).size()
-            .rename("count").reset_index()
+            tmp
+            .groupby(["group", "time", "comp", "y_pred"])
+            .size()
+            .rename("count")
+            .reset_index()
         )
-        freq["freq"] = (
-            freq.groupby(["group", "time", "comp"])["count"]
-            .transform(lambda s: s / s.sum())
+        freq["freq"] = freq.groupby(["group", "time", "comp"])["count"].transform(
+            lambda s: s / s.sum()
         )
         freq["draw"] = d
         rows.append(freq.rename(columns={"y_pred": "y"}))
     pred = pd.concat(rows, ignore_index=True)
 
     pred_mean = (
-        pred.groupby(["group", "time", "comp", "y"])["freq"].mean()
-        .rename("freq_mean").reset_index()
+        pred
+        .groupby(["group", "time", "comp", "y"])["freq"]
+        .mean()
+        .rename("freq_mean")
+        .reset_index()
     )
     pred_hdi = (
-        pred.groupby(["group", "time", "comp", "y"])["freq"]
-        .agg(lo=lambda s: float(np.quantile(s, 0.03)),
-             hi=lambda s: float(np.quantile(s, 0.97)))
+        pred
+        .groupby(["group", "time", "comp", "y"])["freq"]
+        .agg(
+            lo=lambda s: float(np.quantile(s, 0.03)),
+            hi=lambda s: float(np.quantile(s, 0.97)),
+        )
         .reset_index()
     )
 
@@ -795,8 +839,9 @@ def ppc_m3(
 
 
 # ============================================================================
-# M4 — Weibull AFT on inter_surgery_d
+# M4  Weibull AFT on inter_surgery_d
 # ============================================================================
+
 
 def fit_m4_weibull_aft(
     df_wide: pd.DataFrame,
@@ -823,12 +868,12 @@ def fit_m4_weibull_aft(
     # Encode categorical group → 0/1.
     if "group" in sub.columns and sub["group"].dtype == object:
         sub["group"] = (sub["group"] == "cyclops").astype(int)
-    # lifelines requires plain float64 — it chokes on pandas nullable Int64
+    # lifelines requires plain float64  it chokes on pandas nullable Int64
     # (inter_surgery_d) and object columns ("Values must be numeric").
     for c in sub.columns:
         sub[c] = pd.to_numeric(sub[c], errors="coerce")
     # Drop covariates with NO usable values (e.g. ``imc`` is not recorded in this
-    # cohort) — otherwise a full-NaN column makes ``dropna`` empty the frame.
+    # cohort)  otherwise a full-NaN column makes ``dropna`` empty the frame.
     usable_cov = [c for c in covariates if sub[c].notna().any()]
     sub = sub[[duration_col, *usable_cov]].dropna().astype(float)
     sub["event"] = 1.0
@@ -839,8 +884,9 @@ def fit_m4_weibull_aft(
 
 
 # ============================================================================
-# M5 — LogNormal on a delay variable
+# M5  LogNormal on a delay variable
 # ============================================================================
+
 
 def fit_m5_lognormal(
     df: pd.DataFrame,
@@ -868,8 +914,9 @@ def fit_m5_lognormal(
     with pm.Model(coords=coords) as model:
         mu = pm.Normal("mu", mu=np.log(sub[var].median()), sigma=2.0, dims="group")
         sigma = pm.HalfNormal("sigma", sigma=2.0, dims="group")
-        pm.LogNormal("y", mu=mu[g_idx], sigma=sigma[g_idx],
-                     observed=sub[var].values, dims="obs")
+        pm.LogNormal(
+            "y", mu=mu[g_idx], sigma=sigma[g_idx], observed=sub[var].values, dims="obs"
+        )
         kwargs = {**NUTS_KWARGS, **sample_kwargs}
         idata = pm.sample(**kwargs)
     return idata
@@ -879,11 +926,12 @@ def fit_m5_lognormal(
 # Sensitivity / structural checks for M3
 # ============================================================================
 
+
 def cutpoint_summary(idata, var_name: str = "cut") -> dict:
     """Posterior summary of the per-compartment free cutpoints.
 
     The refactored M3 uses **free** cutpoints per ordinal compartment
-    (consensus point E3 — measurement is never pooled). The old
+    (consensus point E3  measurement is never pooled). The old
     proportional-odds gap check is therefore not the relevant diagnostic;
     instead we report, per ordinal compartment, the posterior mean cutpoints
     and the inter-cutpoint gap ``cut[·,1] − cut[·,0]`` (which encodes how the
@@ -944,7 +992,7 @@ def loo_compare(
     Notes
     -----
     LOO comparison across different likelihoods/data is **descriptive**, not
-    a formal inferential test — the two models use different outcomes
+    a formal inferential test  the two models use different outcomes
     (Δlesion_total shifted for M2, ordinal per-compartment for M3) and the
     ELPD scales are not directly comparable. We report it as in
     [[02.5-modeles-bayesiens]] §6.3 with the explicit caveat that selection
@@ -974,7 +1022,10 @@ def loo_compare(
 # Convergence diagnostics
 # ============================================================================
 
-def check_convergence(idata, rhat_max: float = RHAT_MAX, ess_min: float = ESS_MIN) -> dict:
+
+def check_convergence(
+    idata, rhat_max: float = RHAT_MAX, ess_min: float = ESS_MIN
+) -> dict:
     """Assert r_hat ≤ ``rhat_max`` and ess_bulk ≥ ``ess_min`` for all params.
 
     Parameters
@@ -1002,7 +1053,9 @@ def check_convergence(idata, rhat_max: float = RHAT_MAX, ess_min: float = ESS_MI
     max_rhat = float(max(np.nanmax(rhat[v].values) for v in rhat.data_vars))
     min_ess = float(min(np.nanmin(ess[v].values) for v in ess.data_vars))
     groups = idata.groups() if callable(idata.groups) else idata.groups
-    n_div = int(idata.sample_stats["diverging"].sum()) if "sample_stats" in groups else 0
+    n_div = (
+        int(idata.sample_stats["diverging"].sum()) if "sample_stats" in groups else 0
+    )
 
     offenders = []
     for v in rhat.data_vars:
@@ -1012,9 +1065,14 @@ def check_convergence(idata, rhat_max: float = RHAT_MAX, ess_min: float = ESS_MI
             offenders.append((v, "ess_bulk", float(np.nanmin(ess[v].values))))
 
     ok = (max_rhat <= rhat_max) and (min_ess >= ess_min) and (n_div == 0)
-    return dict(ok=bool(ok), max_rhat=max_rhat, min_ess_bulk=min_ess,
-                n_divergent=n_div, offenders=offenders,
-                thresholds=dict(rhat_max=rhat_max, ess_min=ess_min))
+    return dict(
+        ok=bool(ok),
+        max_rhat=max_rhat,
+        min_ess_bulk=min_ess,
+        n_divergent=n_div,
+        offenders=offenders,
+        thresholds=dict(rhat_max=rhat_max, ess_min=ess_min),
+    )
 
 
 def fit_m3_with_escalation(
@@ -1045,28 +1103,44 @@ def fit_m3_with_escalation(
     """
     base = {k: v for k, v in NUTS_KWARGS.items()}
     base.update(sample_kwargs)
-    idata = fit_m3(df_long, sites=sites, id_col=id_col, group_col=group_col,
-                   nuts_sampler=nuts_sampler, pooling=pooling,
-                   compute_log_likelihood=compute_log_likelihood, **base)
+    idata = fit_m3(
+        df_long,
+        sites=sites,
+        id_col=id_col,
+        group_col=group_col,
+        nuts_sampler=nuts_sampler,
+        pooling=pooling,
+        compute_log_likelihood=compute_log_likelihood,
+        **base,
+    )
     conv0 = check_convergence(idata, rhat_max=rhat_max, ess_min=ess_min)
     escalated = False
     if not conv0["ok"]:
         escalated = True
         esc = {k: v for k, v in NUTS_KWARGS_ESCALATED.items()}
         esc.update(sample_kwargs)
-        idata = fit_m3(df_long, sites=sites, id_col=id_col, group_col=group_col,
-                       nuts_sampler=nuts_sampler, pooling=pooling,
-                       compute_log_likelihood=compute_log_likelihood, **esc)
+        idata = fit_m3(
+            df_long,
+            sites=sites,
+            id_col=id_col,
+            group_col=group_col,
+            nuts_sampler=nuts_sampler,
+            pooling=pooling,
+            compute_log_likelihood=compute_log_likelihood,
+            **esc,
+        )
         conv = check_convergence(idata, rhat_max=rhat_max, ess_min=ess_min)
     else:
         conv = conv0
-    return dict(idata=idata, convergence=conv, escalated=escalated,
-                convergence_initial=conv0)
+    return dict(
+        idata=idata, convergence=conv, escalated=escalated, convergence_initial=conv0
+    )
 
 
 # ============================================================================
 # Clinician-facing posterior risk extractor (plan item I10)
 # ============================================================================
+
 
 def posterior_risk_at_S2(
     ppc_out: dict,
@@ -1094,7 +1168,7 @@ def posterior_risk_at_S2(
     score : int
         Ordinal score value (default ``SCORE_MAX`` = 2, "complete loss").
     time : str
-        ``"S1"`` or ``"S2"`` (default S2 — the post-second-surgery state).
+        ``"S1"`` or ``"S2"`` (default S2  the post-second-surgery state).
     comp : str, optional
         Compartment label; if ``None`` averages across all compartments.
     hdi_prob : float
@@ -1105,7 +1179,7 @@ def posterior_risk_at_S2(
     Returns
     -------
     dict
-        ``{group, time, comp, score, p_mean, p_lo, p_hi, narrative}`` —
+        ``{group, time, comp, score, p_mean, p_lo, p_hi, narrative}``
         ``narrative`` is a French one-liner suitable for a clinical summary.
     """
     pred_mean = ppc_out.get("pred_mean", ppc_out.get("predicted_freq_mean"))
@@ -1127,8 +1201,13 @@ def posterior_risk_at_S2(
 
     if sel_mean.empty:
         return dict(
-            group=group, time=time, comp=comp, score=score,
-            p_mean=float("nan"), p_lo=float("nan"), p_hi=float("nan"),
+            group=group,
+            time=time,
+            comp=comp,
+            score=score,
+            p_mean=float("nan"),
+            p_lo=float("nan"),
+            p_hi=float("nan"),
             narrative=(
                 f"P(y={score} | {group}, {time}, comp={comp}) introuvable "
                 f"dans pred_mean."
@@ -1146,10 +1225,15 @@ def posterior_risk_at_S2(
     comp_str = comp if comp else "toutes compartiments"
     narrative = (
         f"P(lésion {label_score} à {time} | {group}, {comp_str}) = "
-        f"{p_mean:.1%} [HDI {int(hdi_prob*100)}% {p_lo:.1%}, {p_hi:.1%}]."
+        f"{p_mean:.1%} [HDI {int(hdi_prob * 100)}% {p_lo:.1%}, {p_hi:.1%}]."
     )
     return dict(
-        group=group, time=time, comp=comp, score=score,
-        p_mean=p_mean, p_lo=p_lo, p_hi=p_hi,
+        group=group,
+        time=time,
+        comp=comp,
+        score=score,
+        p_mean=p_mean,
+        p_lo=p_lo,
+        p_hi=p_hi,
         narrative=narrative,
     )

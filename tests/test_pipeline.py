@@ -41,6 +41,7 @@ from loaders import _normalise_cols
 
 # --- Loaders ----------------------------------------------------------------
 
+
 def test_load_meniscus_shape():
     df = loaders.load_meniscus()
     assert df.shape[0] == N_MENISCUS_ROWS == 40
@@ -79,15 +80,25 @@ def test_load_flexum_shape_and_separation():
 def test_normalised_columns():
     df = loaders.load_combined()
     expected = {
-        "anonyme", "sexe", "date_de_naissance", "taille", "poids", "imc",
-        "pivot_pivot_contact", "travail_physique", "tabac",
-        "date_du_trauma", "date_chir", "group",
+        "anonyme",
+        "sexe",
+        "date_de_naissance",
+        "taille",
+        "poids",
+        "imc",
+        "pivot_pivot_contact",
+        "travail_physique",
+        "tabac",
+        "date_du_trauma",
+        "date_chir",
+        "group",
     } | set(SITES)
     missing = expected - set(df.columns)
     assert not missing, f"Missing cols: {missing}"
 
 
 # --- Preprocessing ----------------------------------------------------------
+
 
 def test_surgery_num_balanced():
     df = loaders.load_combined()
@@ -137,8 +148,9 @@ def test_date_hygiene_uses_composite_key():
     df = loaders.load_combined()
     hy = pp.apply_date_hygiene(df)
     # Pick a shared id and assert per-(group) birth dates stay group-specific.
-    shared = (set(df.loc[df.group == "meniscus", "anonyme"]) &
-              set(df.loc[df.group == "cyclops", "anonyme"]))
+    shared = set(df.loc[df.group == "meniscus", "anonyme"]) & set(
+        df.loc[df.group == "cyclops", "anonyme"]
+    )
     # For every shared id, birth date within a (group, id) is constant (min),
     # and the per-group hygienised value equals that group's own minimum.
     for aid in list(shared)[:5]:
@@ -218,6 +230,7 @@ def test_delta_range(wide):
 
 # --- tests_freq smoke ------------------------------------------------------
 
+
 def test_mwu_with_effects_smoke():
     rng = np.random.default_rng(RANDOM_SEED)
     x = rng.normal(0, 1, 50)
@@ -291,6 +304,7 @@ def test_sensitivity_covariate_with_without(merged):
 
 # --- Constants -------------------------------------------------------------
 
+
 def test_constants():
     assert SITES == ["trochlée", "rotule", "pte", "pti", "cfe", "cfi"]
     assert GROUPS == ["meniscus", "cyclops"]
@@ -318,13 +332,14 @@ def test_constants():
 
 # --- Edge-case tests (pass 2) ----------------------------------------------
 
+
 def test_load_handles_missing_data():
     """Site columns load as nullable Int64 (NaN would survive without float promotion).
 
     The single all-NaN cyclops row (patient 25, operated-today) was completed and
     reclassified to meniscus on 2026-05-29, so the site grid is now fully populated
     in BOTH groups. The invariant under test is the nullable-Int64 dtype that
-    *guarantees* NaN-preservation if any reappears — not the (now zero) NaN count.
+    *guarantees* NaN-preservation if any reappears  not the (now zero) NaN count.
     """
     df = loaders.load_combined()
     # Cohort is now complete: no NaN in either group's site grid.
@@ -412,7 +427,7 @@ def test_summary_bayes_api():
             dims={"beta_c": ["comp"]},
         )
     except TypeError:
-        # Legacy ArviZ (< 1.0) — keyword API
+        # Legacy ArviZ (< 1.0)  keyword API
         idata = az.from_dict(  # type: ignore[call-arg]
             posterior=posterior,
             coords={"comp": ["c0", "c1", "c2"]},
@@ -443,12 +458,14 @@ def test_bca_bootstrap_seed_determinism():
     )
     # Different seed should (generally) give different CI
     r3 = tf.mwu_with_effects(x, y, n_boot=400, seed=RANDOM_SEED + 1)
-    assert (r1["delta_ci_lo"], r1["delta_ci_hi"]) != (r3["delta_ci_lo"], r3["delta_ci_hi"]), (
-        "BCa CI suspiciously identical across two different seeds."
-    )
+    assert (r1["delta_ci_lo"], r1["delta_ci_hi"]) != (
+        r3["delta_ci_lo"],
+        r3["delta_ci_hi"],
+    ), "BCa CI suspiciously identical across two different seeds."
 
 
 # --- Interpretability helpers (code-review high pass) ----------------------
+
 
 def test_interpret_cliffs_delta_thresholds():
     """Romano (2006) verbal magnitudes around boundary values."""
@@ -464,10 +481,15 @@ def test_interpret_cliffs_delta_thresholds():
 def test_format_test_result_mwu_shape():
     """format_test_result returns a non-empty French sentence with stats + magnitude."""
     fake = dict(
-        statistic=349.5, pvalue=0.088,
-        cliffs_delta=-0.25, delta_ci_lo=-0.48, delta_ci_hi=0.03,
-        cliffs_delta_magnitude="small", probability_of_superiority=0.38,
-        n_x=19, n_y=50,
+        statistic=349.5,
+        pvalue=0.088,
+        cliffs_delta=-0.25,
+        delta_ci_lo=-0.48,
+        delta_ci_hi=0.03,
+        cliffs_delta_magnitude="small",
+        probability_of_superiority=0.38,
+        n_x=19,
+        n_y=50,
     )
     sentence = rpt.format_test_result(fake, "mwu")
     assert isinstance(sentence, str) and len(sentence) > 30
@@ -526,11 +548,11 @@ def test_lesion_total_strict_nan_when_site_missing():
         "date_du_trauma": pd.to_datetime(["2023-01-01", "2023-01-01"]),
         # 5 sites = 1 each, 6th = NaN at S1 → strict total = NaN, permissive = 5
         "trochlée": pd.array([1, 1], dtype="Int64"),
-        "rotule":   pd.array([1, 1], dtype="Int64"),
-        "pte":      pd.array([1, 1], dtype="Int64"),
-        "pti":      pd.array([1, 1], dtype="Int64"),
-        "cfe":      pd.array([1, 1], dtype="Int64"),
-        "cfi":      pd.array([pd.NA, 1], dtype="Int64"),
+        "rotule": pd.array([1, 1], dtype="Int64"),
+        "pte": pd.array([1, 1], dtype="Int64"),
+        "pti": pd.array([1, 1], dtype="Int64"),
+        "cfe": pd.array([1, 1], dtype="Int64"),
+        "cfi": pd.array([pd.NA, 1], dtype="Int64"),
     })
     fake = pp.add_derived(fake)
     s1 = fake.loc[fake["surgery_num"] == 1].iloc[0]
@@ -538,7 +560,11 @@ def test_lesion_total_strict_nan_when_site_missing():
     assert pd.isna(s1["lesion_total"]), "strict total must be NaN when any site NaN"
     assert int(s2["lesion_total"]) == 6
     assert int(s1["lesion_total_permissive"]) == 5
-    assert int(s1["lesion_total_strict"]) == s1["lesion_total"] if pd.notna(s1["lesion_total"]) else pd.isna(s1["lesion_total_strict"])
+    assert (
+        int(s1["lesion_total_strict"]) == s1["lesion_total"]
+        if pd.notna(s1["lesion_total"])
+        else pd.isna(s1["lesion_total_strict"])
+    )
     assert int(s1["n_sites_observed"]) == 5
     assert int(s2["n_sites_observed"]) == 6
     # PF block sum present at both times (both PF sites observed).
@@ -556,6 +582,7 @@ def test_bca_zero_variance_warns():
 
 
 # --- Revue 2026-05-29 additions (A–E) --------------------------------------
+
 
 def test_detect_date_anomalies_flags_known():
     """detect_date_anomalies (on RAW frame) flags #9 drift and #38 negative delay."""
@@ -594,10 +621,11 @@ def test_evalue_or_monotone_and_null_crossing():
 
 
 # --- Baseline balance & equivalence (MWU + SMD + TOST) ---------------------
-# All three S1 levels — global 6-sum, PF block, FT block — go through the SAME
+# All three S1 levels  global 6-sum, PF block, FT block  go through the SAME
 # baseline_block_balance (MWU difference + SMD magnitude + TOST equivalence).
 # Only PF is positively equivalent; the 6-sum and FT are non-significant on MWU
 # yet fail TOST at n = 20 (absence of evidence is not evidence of absence).
+
 
 def test_tost_equivalence_basic():
     """TOST: equal samples are equivalent within a modest bound; far apart aren't."""
@@ -615,9 +643,9 @@ def test_smd_continuous_sign():
     (previously exercised only implicitly via the balance dicts)."""
     rng = np.random.default_rng(RANDOM_SEED)
     y = rng.normal(0.0, 1.0, 200)
-    assert abs(tf.smd_continuous(rng.normal(0.0, 1.0, 200), y)) < 0.3   # same dist → ~0
-    assert tf.smd_continuous(rng.normal(1.0, 1.0, 200), y) > 0.5        # x up → +large
-    assert tf.smd_continuous(y, rng.normal(1.0, 1.0, 200)) < -0.5       # antisymmetric
+    assert abs(tf.smd_continuous(rng.normal(0.0, 1.0, 200), y)) < 0.3  # same dist → ~0
+    assert tf.smd_continuous(rng.normal(1.0, 1.0, 200), y) > 0.5  # x up → +large
+    assert tf.smd_continuous(y, rng.normal(1.0, 1.0, 200)) < -0.5  # antisymmetric
 
 
 def test_baseline_pf_balance_keys(wide):
@@ -634,14 +662,21 @@ def test_baseline_total_equivalent_keys(wide):
     key schema. Like FT (and unlike PF), the 6-sum is non-significant on MWU yet
     NOT established as equivalent by TOST at n = 20."""
     res = tf.baseline_block_balance(wide, col="lesion_total_S1")
-    for k in ("mwu_p", "smd", "tost_p", "tost_bound", "equivalent",
-              "median_cyclops", "median_meniscus"):
+    for k in (
+        "mwu_p",
+        "smd",
+        "tost_p",
+        "tost_bound",
+        "equivalent",
+        "median_cyclops",
+        "median_meniscus",
+    ):
         assert k in res
-    assert res["mwu_p"] > 0.05            # no difference *detected* overall
+    assert res["mwu_p"] > 0.05  # no difference *detected* overall
 
 
 def test_baseline_block_balance_ft_not_equivalent(wide):
-    """FT block is NOT proven equivalent at S1 — the 'absence of evidence is not
+    """FT block is NOT proven equivalent at S1  the 'absence of evidence is not
     evidence of absence' case that motivates testing FT symmetrically to PF.
 
     MWU is non-significant (no *detected* difference) yet TOST fails (equivalence
@@ -651,16 +686,18 @@ def test_baseline_block_balance_ft_not_equivalent(wide):
     """
     ft = tf.baseline_block_balance(wide, col="lesion_ft_S1")
     assert ft["col"] == "lesion_ft_S1"
-    assert ft["mwu_p"] > 0.05            # no difference *detected*
-    assert ft["equivalent"] is False     # ...but equivalence NOT established
-    assert ft["smd"] > 0.147             # at least a "small" imbalance (cyclops higher)
+    assert ft["mwu_p"] > 0.05  # no difference *detected*
+    assert ft["equivalent"] is False  # ...but equivalence NOT established
+    assert ft["smd"] > 0.147  # at least a "small" imbalance (cyclops higher)
 
 
 # --- Bayesian model structure ----------------------------------------------
 
+
 def test_pooling_grouping_structures():
     """_pooling_grouping yields 1/2/3 groups covering all six sites."""
     import bayes_models as bm
+
     for pool, n in (("exchangeable", 1), ("two_block", 2), ("three_cluster", 3)):
         names, idx = bm._pooling_grouping(pool, SITES)
         assert len(names) == n and len(idx) == len(SITES)
@@ -672,6 +709,7 @@ def test_pooling_grouping_structures():
 def test_build_m3_three_poolings(df_long):
     """All three pooling structures build and expose the right named estimands."""
     import bayes_models as bm
+
     long = bm._melt_long_long(df_long, SITES, "anonyme", "group", collapse=True)
     want = {"exchangeable": "delta_bar", "two_block": "contrast_pf_ft"}
     for pool in ("exchangeable", "two_block", "three_cluster"):

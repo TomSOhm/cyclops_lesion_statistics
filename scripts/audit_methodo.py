@@ -1,4 +1,5 @@
 """Audit notebooks/info.md: render balance, stale numbers, figure paths, garble."""
+
 import re, sys, pathlib
 
 try:  # ensure Unicode-safe output on Windows cp1252 consoles
@@ -30,7 +31,7 @@ norm = re.sub(r"(\d)\{\.\}(\d)", r"\1.\2", norm)
 norm = re.sub(r"(\d),(\d)", r"\1.\2", norm)
 
 # 4. Stale / forbidden tokens must NOT appear (checked on normalised text;
-# "50 cyclop" is the unambiguous stale-cohort sentinel — the real cohort is 49/20)
+# "50 cyclop" is the unambiguous stale-cohort sentinel  the real cohort is 49/20)
 STALE = ["50 cyclop", "16.3", "-0.040", "−0.040", "lino_stats import"]
 for s in STALE:
     if s in norm:
@@ -39,8 +40,20 @@ for s in STALE:
 # 5. Canonical numbers MUST appear (sample of must-haves; normalised text).
 # M3 means refreshed to the latest run (δ̄ 0.247, derived PF contrast 2.29);
 # 29/49 is the flexum separation sentinel (§02b).
-MUST = ["49", "20", "0.5347", "17.2", "13.5", "7.77", "0.247", "2.29",
-        "240", "528", "0.999", "29/49"]
+MUST = [
+    "49",
+    "20",
+    "0.5347",
+    "17.2",
+    "13.5",
+    "7.77",
+    "0.247",
+    "2.29",
+    "240",
+    "528",
+    "0.999",
+    "29/49",
+]
 for m in MUST:
     if m not in norm:
         errors.append(f"Missing canonical number: {m!r}")

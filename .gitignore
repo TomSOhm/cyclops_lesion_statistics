@@ -19,10 +19,10 @@ env/
 # Intermediate methodology-doc build fragments
 build/
 
-# Internal planning docs (specs + plans) — not for a public repo
+# Internal planning docs (specs + plans)  not for a public repo
 docs/superpowers/
 
-# Patient data (privacy) — kept locally, never tracked. The pipeline reads
+# Patient data (privacy)  kept locally, never tracked. The pipeline reads
 # these from disk; they are out of version control by design.
 data/
 data_paper_cyclops_stats.xlsx

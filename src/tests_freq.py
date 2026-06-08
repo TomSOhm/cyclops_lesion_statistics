@@ -33,6 +33,7 @@ from constants import (
 
 # --- Effect sizes --------------------------------------------------------
 
+
 def cliffs_delta(x: Sequence[float], y: Sequence[float]) -> float:
     """Cliff's δ for ordinal/non-parametric effect size.
 
@@ -116,6 +117,7 @@ def rank_biserial(x: Sequence[float], y: Sequence[float]) -> float:
 
 # --- Bootstrap (BCa) -----------------------------------------------------
 
+
 def _bca_endpoints(
     theta_hat: float,
     boot_stats: np.ndarray,
@@ -189,7 +191,7 @@ def _bca_ci(
     n_boot, ci : int, float
     rng : numpy.random.Generator
     paired : bool, default False
-        If True, resample joint indices (keeps pairing — required for Spearman).
+        If True, resample joint indices (keeps pairing  required for Spearman).
         If False, resample each array independently (two-sample statistics).
 
     Returns
@@ -232,6 +234,7 @@ def _bca_ci(
 
 # --- Tests ---------------------------------------------------------------
 
+
 def mwu_with_effects(
     x: Sequence[float],
     y: Sequence[float],
@@ -262,14 +265,25 @@ def mwu_with_effects(
     rng = np.random.default_rng(seed)
     lo, hi = _bca_ci(cliffs_delta, (x, y), n_boot=n_boot, ci=ci, rng=rng)
     n_x_, n_y_ = len(x), len(y)
-    prob_superiority = float(U / (n_x_ * n_y_)) if (n_x_ > 0 and n_y_ > 0) else float("nan")
-    return dict(statistic=float(U), pvalue=float(p), n_x=n_x_, n_y=n_y_,
-                cliffs_delta=delta, delta_ci_lo=lo, delta_ci_hi=hi, ci=ci,
-                cliffs_delta_magnitude=interpret_cliffs_delta(delta),
-                probability_of_superiority=prob_superiority)
+    prob_superiority = (
+        float(U / (n_x_ * n_y_)) if (n_x_ > 0 and n_y_ > 0) else float("nan")
+    )
+    return dict(
+        statistic=float(U),
+        pvalue=float(p),
+        n_x=n_x_,
+        n_y=n_y_,
+        cliffs_delta=delta,
+        delta_ci_lo=lo,
+        delta_ci_hi=hi,
+        ci=ci,
+        cliffs_delta_magnitude=interpret_cliffs_delta(delta),
+        probability_of_superiority=prob_superiority,
+    )
 
 
 # --- Permutation inference on Cliff's δ (consensus point H) --------------
+
 
 def _cliffs_delta_from_pooled(pooled: np.ndarray, n_x: int) -> float:
     """Cliff's δ where the first ``n_x`` entries of ``pooled`` are group x."""
@@ -321,9 +335,15 @@ def permutation_test_cliff(
     x, y = x[~np.isnan(x)], y[~np.isnan(y)]
     n_x, n_y = len(x), len(y)
     if n_x == 0 or n_y == 0:
-        return dict(cliffs_delta=float("nan"), pvalue=float("nan"),
-                    method="degenerate", n_perm_effective=0,
-                    alternative=alternative, n_x=n_x, n_y=n_y)
+        return dict(
+            cliffs_delta=float("nan"),
+            pvalue=float("nan"),
+            method="degenerate",
+            n_perm_effective=0,
+            alternative=alternative,
+            n_x=n_x,
+            n_y=n_y,
+        )
 
     pooled = np.concatenate([x, y])
     n = n_x + n_y
@@ -365,9 +385,13 @@ def permutation_test_cliff(
         m_eff = n_perm
 
     return dict(
-        cliffs_delta=float(obs), pvalue=float(min(pval, 1.0)),
-        method=method, n_perm_effective=int(m_eff),
-        alternative=alternative, n_x=n_x, n_y=n_y,
+        cliffs_delta=float(obs),
+        pvalue=float(min(pval, 1.0)),
+        method=method,
+        n_perm_effective=int(m_eff),
+        alternative=alternative,
+        n_x=n_x,
+        n_y=n_y,
     )
 
 
@@ -417,29 +441,23 @@ def cliff_ci_inversion(
 
     dij = np.sign(x[:, None] - y[None, :])  # (n_x, n_y) in {-1,0,1}
     d = float(dij.mean())
-    di = dij.mean(axis=1)   # per-x dominance
-    dj = dij.mean(axis=0)   # per-y dominance
+    di = dij.mean(axis=1)  # per-x dominance
+    dj = dij.mean(axis=0)  # per-y dominance
     s_di2 = float(((di - d) ** 2).sum() / (n_x - 1)) if n_x > 1 else 0.0
     s_dj2 = float(((dj - d) ** 2).sum() / (n_y - 1)) if n_y > 1 else 0.0
     s_dij2 = float(((dij - d) ** 2).sum() / (n_x * n_y - 1))
     # Consistent (Cliff) variance of d.
-    var_d = (
-        ((n_y - 1) * s_di2) + ((n_x - 1) * s_dj2) + s_dij2
-    ) / (n_x * n_y)
+    var_d = (((n_y - 1) * s_di2) + ((n_x - 1) * s_dj2) + s_dij2) / (n_x * n_y)
     if not np.isfinite(var_d) or var_d <= 0:
         return float(d), float(d)
     sd = math.sqrt(var_d)
 
     z = float(stats.norm.ppf(1 - (1 - ci) / 2))
-    # Asymmetric interval (Feng & Cliff 2004) — stays within ±1 even when d
+    # Asymmetric interval (Feng & Cliff 2004)  stays within ±1 even when d
     # is near the boundary, which is the small-n robustness the BCa lacks.
-    num_lo = d - d ** 3 - z * sd * math.sqrt(
-        max((1 - d ** 2) ** 2 + z ** 2 * sd ** 2, 0.0)
-    )
-    num_hi = d - d ** 3 + z * sd * math.sqrt(
-        max((1 - d ** 2) ** 2 + z ** 2 * sd ** 2, 0.0)
-    )
-    den = (1 - d ** 2) + z ** 2 * sd ** 2
+    num_lo = d - d**3 - z * sd * math.sqrt(max((1 - d**2) ** 2 + z**2 * sd**2, 0.0))
+    num_hi = d - d**3 + z * sd * math.sqrt(max((1 - d**2) ** 2 + z**2 * sd**2, 0.0))
+    den = (1 - d**2) + z**2 * sd**2
     if den == 0:
         return float(d), float(d)
     lo = num_lo / den
@@ -468,15 +486,27 @@ def wilcoxon_exact_with_rrb(x: Sequence[float], y: Sequence[float]) -> dict:
     d = x - y
     nz = (d != 0).sum()
     if nz == 0:
-        return dict(statistic=0.0, pvalue=1.0, n_pairs=len(x), n_nonzero=0,
-                    rank_biserial=0.0, method="degenerate",
-                    rrb_magnitude=interpret_rank_biserial(0.0))
+        return dict(
+            statistic=0.0,
+            pvalue=1.0,
+            n_pairs=len(x),
+            n_nonzero=0,
+            rank_biserial=0.0,
+            method="degenerate",
+            rrb_magnitude=interpret_rank_biserial(0.0),
+        )
     method = "exact" if nz <= 25 else "approx"
     W, p = stats.wilcoxon(x, y, zero_method="wilcox", method=method)
     rrb = rank_biserial(x, y)
-    return dict(statistic=float(W), pvalue=float(p), n_pairs=len(x), n_nonzero=int(nz),
-                rank_biserial=rrb, method=method,
-                rrb_magnitude=interpret_rank_biserial(rrb))
+    return dict(
+        statistic=float(W),
+        pvalue=float(p),
+        n_pairs=len(x),
+        n_nonzero=int(nz),
+        rank_biserial=rrb,
+        method=method,
+        rrb_magnitude=interpret_rank_biserial(rrb),
+    )
 
 
 def mcnemar_exact_midp(table) -> dict:
@@ -488,11 +518,12 @@ def mcnemar_exact_midp(table) -> dict:
         ``[[both_neg, neg_to_pos], [pos_to_neg, both_pos]]``.
     """
     from statsmodels.stats.contingency_tables import mcnemar
+
     arr = np.asarray(table)
     res = mcnemar(arr, exact=True, correction=False)
     # res.pvalue = exact two-sided binomial(b, n, 0.5). We additionally compute
     # the mid-p variant manually (Lancaster 1961): mid_p = 2 × [F(k) − 0.5·f(k)]
-    # where k = min(b, c). This is a separate, less conservative p-value —
+    # where k = min(b, c). This is a separate, less conservative p-value
     # NOT a "correction" applied to res.pvalue. Both are returned as distinct
     # fields so the caller chooses.
     b = int(arr[0, 1])
@@ -507,8 +538,9 @@ def mcnemar_exact_midp(table) -> dict:
     assert midp <= float(res.pvalue) + 1e-9, (
         f"mid_p={midp} > exact p={res.pvalue}: distributional invariant broken."
     )
-    return dict(statistic=float(res.statistic), pvalue=float(res.pvalue),
-                mid_p=midp, b=b, c=c)
+    return dict(
+        statistic=float(res.statistic), pvalue=float(res.pvalue), mid_p=midp, b=b, c=c
+    )
 
 
 def kw_dunn(df: pd.DataFrame, group_col: str, value_col: str) -> dict:
@@ -521,10 +553,17 @@ def kw_dunn(df: pd.DataFrame, group_col: str, value_col: str) -> dict:
     n = len(sub)
     k = len(groups)
     epsilon_sq = (H - k + 1) / (n - k) if n > k else float("nan")
-    posthoc = sp.posthoc_dunn(sub, val_col=value_col, group_col=group_col,
-                              p_adjust="bonferroni")
-    return dict(statistic=float(H), pvalue=float(p), epsilon_sq=float(epsilon_sq),
-                n=int(n), k=int(k), posthoc=posthoc)
+    posthoc = sp.posthoc_dunn(
+        sub, val_col=value_col, group_col=group_col, p_adjust="bonferroni"
+    )
+    return dict(
+        statistic=float(H),
+        pvalue=float(p),
+        epsilon_sq=float(epsilon_sq),
+        n=int(n),
+        k=int(k),
+        posthoc=posthoc,
+    )
 
 
 def fisher_exact_2x2(table: np.ndarray) -> dict:
@@ -537,14 +576,19 @@ def fisher_exact_2x2(table: np.ndarray) -> dict:
     table = np.asarray(table)
     odds, p = stats.fisher_exact(table, alternative="two-sided")
     # Mid-p two-sided approximation
-    midp = max(0.0, p - stats.hypergeom.pmf(
-        table[0, 0],
-        table.sum(),
-        table[0].sum(),
-        table[:, 0].sum(),
-    ))
-    return dict(odds_ratio=float(odds), pvalue=float(p), mid_p=float(midp),
-                table=table.tolist())
+    midp = max(
+        0.0,
+        p
+        - stats.hypergeom.pmf(
+            table[0, 0],
+            table.sum(),
+            table[0].sum(),
+            table[:, 0].sum(),
+        ),
+    )
+    return dict(
+        odds_ratio=float(odds), pvalue=float(p), mid_p=float(midp), table=table.tolist()
+    )
 
 
 def spearman_bca(
@@ -566,8 +610,9 @@ def spearman_bca(
 
     rng = np.random.default_rng(seed)
     lo, hi = _bca_ci(_stat, (x, y), n_boot=n_boot, ci=ci, rng=rng, paired=True)
-    return dict(rho=float(rho), pvalue=float(p), ci_lo=lo, ci_hi=hi,
-                ci=ci, n=int(len(x)))
+    return dict(
+        rho=float(rho), pvalue=float(p), ci_lo=lo, ci_hi=hi, ci=ci, n=int(len(x))
+    )
 
 
 def bh_fdr(pvals: Sequence[float], q: float = 0.10) -> dict:
@@ -585,9 +630,11 @@ def bh_fdr(pvals: Sequence[float], q: float = 0.10) -> dict:
         ``{reject, pvals_corrected, q, n}``.
     """
     from statsmodels.stats.multitest import multipletests
+
     reject, p_adj, _, _ = multipletests(pvals, alpha=q, method="fdr_bh")
-    return dict(reject=reject.tolist(), pvals_corrected=p_adj.tolist(),
-                q=q, n=len(pvals))
+    return dict(
+        reject=reject.tolist(), pvals_corrected=p_adj.tolist(), q=q, n=len(pvals)
+    )
 
 
 def smd_continuous(x: Sequence[float], y: Sequence[float]) -> float:
@@ -622,6 +669,7 @@ def smd_with_magnitude(x: Sequence[float], y: Sequence[float]) -> dict:
 # High-level contrast helpers (consensus points B, D, G, H)
 # ============================================================================
 
+
 def pf_contrast(
     df_wide: pd.DataFrame,
     value_col: str = "delta_lesion_pf",
@@ -643,7 +691,7 @@ def pf_contrast(
     * Mann-Whitney U (two-sided), exact small-n method.
     * Cliff's δ with Romano verbal magnitude.
     * **Permutation test** on δ (exact if tractable, else Monte-Carlo
-      ``n_perm``) — the decisional frequentist support.
+      ``n_perm``)  the decisional frequentist support.
     * **BCa CI** (B = 10 000) on δ.
     * **Permutation-inversion CI** on δ as a guard-rail (point H).
 
@@ -667,20 +715,30 @@ def pf_contrast(
     y = sub.loc[sub[group_col] == meniscus, value_col].astype(float).values
 
     mwu = mwu_with_effects(x, y, n_boot=n_boot, ci=ci, seed=seed)
-    perm = permutation_test_cliff(x, y, n_perm=n_perm, seed=seed,
-                                  alternative="two-sided")
+    perm = permutation_test_cliff(
+        x, y, n_perm=n_perm, seed=seed, alternative="two-sided"
+    )
     inv_lo, inv_hi = cliff_ci_inversion(x, y, ci=ci)
     return dict(
-        value_col=value_col, cyclops=cyclops, meniscus=meniscus,
-        n_cyclops=int(len(x)), n_meniscus=int(len(y)),
-        mwu_U=mwu["statistic"], mwu_p=mwu["pvalue"],
+        value_col=value_col,
+        cyclops=cyclops,
+        meniscus=meniscus,
+        n_cyclops=int(len(x)),
+        n_meniscus=int(len(y)),
+        mwu_U=mwu["statistic"],
+        mwu_p=mwu["pvalue"],
         cliffs_delta=mwu["cliffs_delta"],
         cliffs_delta_magnitude=mwu["cliffs_delta_magnitude"],
         probability_of_superiority=mwu["probability_of_superiority"],
-        bca_lo=mwu["delta_ci_lo"], bca_hi=mwu["delta_ci_hi"], bca_B=n_boot,
-        perm_p=perm["pvalue"], perm_method=perm["method"],
+        bca_lo=mwu["delta_ci_lo"],
+        bca_hi=mwu["delta_ci_hi"],
+        bca_B=n_boot,
+        perm_p=perm["pvalue"],
+        perm_method=perm["method"],
         perm_n=perm["n_perm_effective"],
-        inv_ci_lo=inv_lo, inv_ci_hi=inv_hi, ci=ci,
+        inv_ci_lo=inv_lo,
+        inv_ci_hi=inv_hi,
+        ci=ci,
     )
 
 
@@ -717,7 +775,9 @@ def paired_pf_vs_ft(
     ft = sub[ft_col].astype(float).values
     res = wilcoxon_exact_with_rrb(pf, ft)
     res.update(
-        cyclops=cyclops, pf_col=pf_col, ft_col=ft_col,
+        cyclops=cyclops,
+        pf_col=pf_col,
+        ft_col=ft_col,
         n_pf_worsened=int((pf > 0).sum()),
         n_ft_worsened=int((ft > 0).sum()),
         median_delta_pf=float(np.median(pf)) if len(pf) else float("nan"),
@@ -727,6 +787,7 @@ def paired_pf_vs_ft(
 
 
 # --- Firth penalized logistic (quasi-separation guard, revue 2026-05-29) ----
+
 
 def _firth_irls(X: np.ndarray, y: np.ndarray, max_iter: int = 1000, tol: float = 1e-8):
     """Faithful Firth penalized-likelihood logistic fit (Heinze & Schemper 2002).
@@ -776,10 +837,10 @@ def firth_or(
 
     ``worsened_pf`` has **1 / 19** events in meniscus → near-complete
     separation, so plain ML logistic returns OR ≈ 24 (≈ 47 once adjusted) with
-    an unstable, enormous CI — a *ghost number* that must not anchor the paper
+    an unstable, enormous CI  a *ghost number* that must not anchor the paper
     (revue-methodo 2026-05-29). Firth's penalised likelihood (Jeffreys prior)
     yields a finite, stable estimate and a profile-penalised-likelihood CI.
-    Optionally adjusts for ``covariates`` (e.g. ``female``, ``age_at_trauma``) —
+    Optionally adjusts for ``covariates`` (e.g. ``female``, ``age_at_trauma``)
     this powers the headline **sex+age-adjusted** PF robustness analysis.
 
     Uses the ``firthlogist`` package when importable (profile-LR CI); otherwise a
@@ -819,28 +880,39 @@ def firth_or(
 
         fl = FirthLogisticRegression(alpha=round(1 - ci, 4))
         fl.fit(Xnoint, y)
-        beta = float(fl.coef_[0])             # _cyclops is feature index 0
+        beta = float(fl.coef_[0])  # _cyclops is feature index 0
         lo, hi = fl.ci_[0]
         ci_lo_b, ci_hi_b = float(lo), float(hi)
         pval = float(fl.pvals_[0])
         method = "firthlogist(profile-LR)"
-    except Exception:  # noqa: BLE001 — package absent or API drift → faithful fallback
+    except Exception:  # noqa: BLE001  package absent or API drift → faithful fallback
         Xint = np.column_stack([np.ones(len(d)), Xnoint])
         b, cov = _firth_irls(Xint, y)
         se = float(np.sqrt(np.diag(cov))[1])  # _cyclops at index 1 (after intercept)
         beta = float(b[1])
         z = float(stats.norm.ppf(1 - (1 - ci) / 2))
         ci_lo_b, ci_hi_b = beta - z * se, beta + z * se
-        pval = float(2 * (1 - stats.norm.cdf(abs(beta) / se))) if se > 0 else float("nan")
+        pval = (
+            float(2 * (1 - stats.norm.cdf(abs(beta) / se))) if se > 0 else float("nan")
+        )
         method = "firth-irls(wald)"
 
     return dict(
-        outcome=outcome_col, cyclops=cyclops, meniscus=meniscus, covariates=cov_present,
+        outcome=outcome_col,
+        cyclops=cyclops,
+        meniscus=meniscus,
+        covariates=cov_present,
         odds_ratio=float(np.exp(beta)),
-        or_ci_lo=float(np.exp(ci_lo_b)), or_ci_hi=float(np.exp(ci_hi_b)),
-        beta=float(beta), p=float(pval), n=int(len(d)),
-        n_events_cyclops=ev_cyc, n_events_meniscus=ev_men,
-        method=method, separation_ml=bool(separation), min_cell=min_cell,
+        or_ci_lo=float(np.exp(ci_lo_b)),
+        or_ci_hi=float(np.exp(ci_hi_b)),
+        beta=float(beta),
+        p=float(pval),
+        n=int(len(d)),
+        n_events_cyclops=ev_cyc,
+        n_events_meniscus=ev_men,
+        method=method,
+        separation_ml=bool(separation),
+        min_cell=min_cell,
     )
 
 
@@ -855,7 +927,7 @@ def sensitivity_covariate(
 ) -> dict:
     """Logistic sensitivity: group effect on a binary outcome WITH vs WITHOUT covariates.
 
-    Consensus point — sport/occupation sensitivity (run *with* and *without*
+    Consensus point  sport/occupation sensitivity (run *with* and *without*
     ``Pivot`` and ``Travail physique``). Fits two logistic regressions of
     ``outcome_col`` (e.g. ``worsened_pf``) on the group indicator: a crude
     model and an adjusted model that adds the covariates. Returns both odds
@@ -882,18 +954,32 @@ def sensitivity_covariate(
     # worsened_pf has 1/20 meniscus events → ML separation makes the plain-logit
     # OR (24 → 47) a ghost number; Firth gives a stable OR + CI (revue 2026-05-29).
     if use_firth:
-        crude = firth_or(df_patient_wide, outcome_col, group_col, cyclops, meniscus,
-                         covariates=())
-        adj = firth_or(df_patient_wide, outcome_col, group_col, cyclops, meniscus,
-                       covariates=covariates)
+        crude = firth_or(
+            df_patient_wide, outcome_col, group_col, cyclops, meniscus, covariates=()
+        )
+        adj = firth_or(
+            df_patient_wide,
+            outcome_col,
+            group_col,
+            cyclops,
+            meniscus,
+            covariates=covariates,
+        )
         return dict(
-            outcome=outcome_col, cyclops=cyclops, meniscus=meniscus,
+            outcome=outcome_col,
+            cyclops=cyclops,
+            meniscus=meniscus,
             covariates=adj["covariates"],
-            or_crude=crude["odds_ratio"], p_crude=crude["p"], n_crude=crude["n"],
-            or_adjusted=adj["odds_ratio"], p_adjusted=adj["p"], n_adjusted=adj["n"],
+            or_crude=crude["odds_ratio"],
+            p_crude=crude["p"],
+            n_crude=crude["n"],
+            or_adjusted=adj["odds_ratio"],
+            p_adjusted=adj["p"],
+            n_adjusted=adj["n"],
             or_crude_ci=(crude["or_ci_lo"], crude["or_ci_hi"]),
             or_adjusted_ci=(adj["or_ci_lo"], adj["or_ci_hi"]),
-            method=adj["method"], separation_ml=adj["separation_ml"],
+            method=adj["method"],
+            separation_ml=adj["separation_ml"],
             adjusted_ok=bool(np.isfinite(adj["odds_ratio"])),
         )
 
@@ -911,7 +997,7 @@ def sensitivity_covariate(
             coef = m.params.get("_cyclops", float("nan"))
             pval = m.pvalues.get("_cyclops", float("nan"))
             return float(np.exp(coef)), float(pval), int(d.shape[0])
-        except Exception as exc:  # noqa: BLE001 — separation / singular design
+        except Exception as exc:  # noqa: BLE001  separation / singular design
             return float("nan"), float("nan"), int(d.shape[0])
 
     or_crude, p_crude, n_crude = _fit("_y ~ _cyclops", df)
@@ -922,21 +1008,29 @@ def sensitivity_covariate(
     or_adj, p_adj, n_adj = _fit(f"_y ~ {rhs}", adj_data)
 
     return dict(
-        outcome=outcome_col, cyclops=cyclops, meniscus=meniscus,
+        outcome=outcome_col,
+        cyclops=cyclops,
+        meniscus=meniscus,
         covariates=cov_present,
-        or_crude=or_crude, p_crude=p_crude, n_crude=n_crude,
-        or_adjusted=or_adj, p_adjusted=p_adj, n_adjusted=n_adj,
+        or_crude=or_crude,
+        p_crude=p_crude,
+        n_crude=n_crude,
+        or_adjusted=or_adj,
+        p_adjusted=p_adj,
+        n_adjusted=n_adj,
         adjusted_ok=bool(np.isfinite(or_adj)),
     )
 
 
 def tost_equivalence(
-    x: Sequence[float], y: Sequence[float], bound: float,
+    x: Sequence[float],
+    y: Sequence[float],
+    bound: float,
 ) -> dict:
     """Two one-sided tests (TOST) for equivalence of two independent means.
 
     Replaces the logical error of reading a non-significant difference test
-    (e.g. baseline MWU p=0.78) as "groups are equivalent" — *absence of evidence
+    (e.g. baseline MWU p=0.78) as "groups are equivalent"  *absence of evidence
     is not evidence of absence*. TOST instead tests whether the mean difference
     lies **within** an equivalence margin ``±bound``: H0 = |μx − μy| ≥ bound,
     H1 = within ±bound. The TOST p is ``max(p_lower, p_upper)``; ``p < α`` ⇒
@@ -951,23 +1045,44 @@ def tost_equivalence(
     x, y = x[~np.isnan(x)], y[~np.isnan(y)]
     nx, ny = len(x), len(y)
     if nx < 2 or ny < 2:
-        return dict(mean_diff=float("nan"), bound=float(bound), tost_p=float("nan"),
-                    p_lower=float("nan"), p_upper=float("nan"), df=0)
+        return dict(
+            mean_diff=float("nan"),
+            bound=float(bound),
+            tost_p=float("nan"),
+            p_lower=float("nan"),
+            p_upper=float("nan"),
+            df=0,
+        )
     mdiff = float(x.mean() - y.mean())
-    sp = math.sqrt(((nx - 1) * x.var(ddof=1) + (ny - 1) * y.var(ddof=1)) / (nx + ny - 2))
+    sp = math.sqrt(
+        ((nx - 1) * x.var(ddof=1) + (ny - 1) * y.var(ddof=1)) / (nx + ny - 2)
+    )
     se = sp * math.sqrt(1.0 / nx + 1.0 / ny)
     df = nx + ny - 2
     if se == 0:
         equiv = abs(mdiff) < bound
-        return dict(mean_diff=mdiff, bound=float(bound), tost_p=0.0 if equiv else 1.0,
-                    p_lower=float("nan"), p_upper=float("nan"), df=df)
-    t_lower = (mdiff + bound) / se          # H0: diff <= -bound
-    t_upper = (mdiff - bound) / se          # H0: diff >= +bound
+        return dict(
+            mean_diff=mdiff,
+            bound=float(bound),
+            tost_p=0.0 if equiv else 1.0,
+            p_lower=float("nan"),
+            p_upper=float("nan"),
+            df=df,
+        )
+    t_lower = (mdiff + bound) / se  # H0: diff <= -bound
+    t_upper = (mdiff - bound) / se  # H0: diff >= +bound
     p_lower = float(stats.t.sf(t_lower, df))
     p_upper = float(stats.t.cdf(t_upper, df))
-    return dict(mean_diff=mdiff, bound=float(bound), t_lower=float(t_lower),
-                t_upper=float(t_upper), p_lower=p_lower, p_upper=p_upper,
-                tost_p=float(max(p_lower, p_upper)), df=int(df))
+    return dict(
+        mean_diff=mdiff,
+        bound=float(bound),
+        t_lower=float(t_lower),
+        t_upper=float(t_upper),
+        p_lower=p_lower,
+        p_upper=p_upper,
+        tost_p=float(max(p_lower, p_upper)),
+        df=int(df),
+    )
 
 
 def baseline_block_balance(
@@ -982,12 +1097,12 @@ def baseline_block_balance(
 
     Addresses the reviewer point (revue 2026-05-29) that "baseline equivalent
     (MWU p=0.78)" was tested on the global 6-sum, not on the block that carries
-    the outcome — and that a non-significant difference is not equivalence.
+    the outcome  and that a non-significant difference is not equivalence.
     Reports the MWU p, the SMD, and a TOST equivalence p within ``±bound``
     (default = 0.5 pooled SD, a "small" SMD margin) on ``col``.
 
     Use ``col='lesion_pf_S1'`` for the PF block (carries the primary contrast)
-    and ``col='lesion_ft_S1'`` for the FT block — the latter is needed to read
+    and ``col='lesion_ft_S1'`` for the FT block  the latter is needed to read
     the PF−FT topographic *contrast* causally, since a baseline FT gap would
     confound the localisation. Note ``bound`` is **data-derived** (0.5·s_pooled
     of *this* block), so the equivalence box rescales per block.
@@ -1001,8 +1116,15 @@ def baseline_block_balance(
     x = sub.loc[sub[group_col] == cyclops, col].astype(float).values
     y = sub.loc[sub[group_col] == meniscus, col].astype(float).values
     if len(x) < 2 or len(y) < 2:
-        return dict(col=col, n_cyclops=len(x), n_meniscus=len(y), mwu_p=float("nan"),
-                    smd=float("nan"), tost_p=float("nan"), equivalent=False)
+        return dict(
+            col=col,
+            n_cyclops=len(x),
+            n_meniscus=len(y),
+            mwu_p=float("nan"),
+            smd=float("nan"),
+            tost_p=float("nan"),
+            equivalent=False,
+        )
     try:
         _, p = stats.mannwhitneyu(x, y, alternative="two-sided")
     except ValueError:
@@ -1016,10 +1138,16 @@ def baseline_block_balance(
         bound = EQUIV_SMD_MARGIN * sp if sp > 0 else EQUIV_SMD_MARGIN
     tost = tost_equivalence(x, y, bound=bound)
     return dict(
-        col=col, n_cyclops=int(len(x)), n_meniscus=int(len(y)),
-        median_cyclops=float(np.median(x)), median_meniscus=float(np.median(y)),
-        mwu_p=float(p), smd=float(smd), tost_bound=float(bound),
-        tost_p=float(tost["tost_p"]), equivalent=bool(tost["tost_p"] < 0.05),
+        col=col,
+        n_cyclops=int(len(x)),
+        n_meniscus=int(len(y)),
+        median_cyclops=float(np.median(x)),
+        median_meniscus=float(np.median(y)),
+        mwu_p=float(p),
+        smd=float(smd),
+        tost_bound=float(bound),
+        tost_p=float(tost["tost_p"]),
+        equivalent=bool(tost["tost_p"] < 0.05),
     )
 
 
@@ -1031,24 +1159,29 @@ def baseline_pf_balance(
     meniscus: str = "meniscus",
     bound: Optional[float] = None,
 ) -> dict:
-    """Baseline balance on the **PF block at S1** — thin wrapper over
+    """Baseline balance on the **PF block at S1**  thin wrapper over
     :func:`baseline_block_balance` (kept for API stability). See that function;
     pass ``col='lesion_ft_S1'`` there for the symmetric FT check."""
     return baseline_block_balance(
-        df_wide, col=col, group_col=group_col,
-        cyclops=cyclops, meniscus=meniscus, bound=bound,
+        df_wide,
+        col=col,
+        group_col=group_col,
+        cyclops=cyclops,
+        meniscus=meniscus,
+        bound=bound,
     )
 
 
-def evalue_or(or_point: float, or_ci_lo: Optional[float] = None,
-              common_outcome: bool = True) -> dict:
+def evalue_or(
+    or_point: float, or_ci_lo: Optional[float] = None, common_outcome: bool = True
+) -> dict:
     """E-value (VanderWeele & Ding 2017) for an odds ratio.
 
     The minimum strength of association (on the risk-ratio scale) that an
     unmeasured confounder would need with **both** the exposure and the outcome
     to fully explain away the observed effect. Large E-value ⇒ the finding is
     robust to plausible unmeasured confounding (relevant given the unmeasured
-    PF-specific confounders — dysplasia, quadriceps status — named in 04.3).
+    PF-specific confounders  dysplasia, quadriceps status  named in 04.3).
 
     For a **common** outcome (worsened_pf ≈ 57% in cyclops) the OR overstates the
     RR, so we approximate ``RR ≈ sqrt(OR)`` (VanderWeele's recommendation);
@@ -1058,8 +1191,9 @@ def evalue_or(or_point: float, or_ci_lo: Optional[float] = None,
     -------
     dict ``{evalue_point, evalue_ci, rr_approx, method}``.
     """
+
     def _ev(rr: float) -> float:
-        rr = max(rr, 1.0 / rr)              # fold to ≥ 1
+        rr = max(rr, 1.0 / rr)  # fold to ≥ 1
         return float(rr + math.sqrt(rr * (rr - 1.0)))
 
     rr = math.sqrt(or_point) if common_outcome else float(or_point)
@@ -1087,7 +1221,7 @@ def h3_risk_factors(
     n_boot: int = N_BOOT_DEFAULT,
     seed: int = RANDOM_SEED,
 ) -> pd.DataFrame:
-    """H3 family (F2) — intrinsic factors vs PF progression, within one subset.
+    """H3 family (F2)  intrinsic factors vs PF progression, within one subset.
 
     Pass the **cyclops** subset joined to patient covariates. For each factor,
     the association with ``outcome_col`` (Δ patellofemoral score) is tested by
@@ -1099,7 +1233,7 @@ def h3_risk_factors(
     * binary 0/1 (female, tabac, …)    -> Mann-Whitney U + Cliff's δ (+ BCa CI)
     * multilevel (pivot 0/1/2)         -> Kruskal-Wallis + ε²
 
-    ``inter_surgery_d`` is deliberately **excluded** (mediator — see the DAG in
+    ``inter_surgery_d`` is deliberately **excluded** (mediator  see the DAG in
     ``[[02.1-design-etude]]``; analysed as H4 outcome instead). All H3 results
     are exploratory.
 
@@ -1118,33 +1252,57 @@ def h3_risk_factors(
             continue
         x = pd.to_numeric(df[f], errors="coerce")
         r = spearman_bca(x.values, y_all.values, n_boot=n_boot, seed=seed)
-        rows.append(dict(factor=f, kind="continuous", test="Spearman rho",
-                         effect_name="rho", effect=round(float(r["rho"]), 4),
-                         ci_lo=round(float(r["ci_lo"]), 4),
-                         ci_hi=round(float(r["ci_hi"]), 4),
-                         p=float(r["pvalue"]), n=int(r["n"])))
+        rows.append(
+            dict(
+                factor=f,
+                kind="continuous",
+                test="Spearman rho",
+                effect_name="rho",
+                effect=round(float(r["rho"]), 4),
+                ci_lo=round(float(r["ci_lo"]), 4),
+                ci_hi=round(float(r["ci_hi"]), 4),
+                p=float(r["pvalue"]),
+                n=int(r["n"]),
+            )
+        )
         pvals.append(float(r["pvalue"]))
 
     for f in binary:
         if f not in df.columns:
             continue
         sub = df[[f, outcome_col]].apply(pd.to_numeric, errors="coerce").dropna()
-        a = sub.loc[sub[f] == 1, outcome_col].values   # exposed (=1)
-        b = sub.loc[sub[f] == 0, outcome_col].values   # reference (=0)
+        a = sub.loc[sub[f] == 1, outcome_col].values  # exposed (=1)
+        b = sub.loc[sub[f] == 0, outcome_col].values  # reference (=0)
         if len(a) < 2 or len(b) < 2:
-            rows.append(dict(factor=f, kind="binary", test="MWU + Cliff delta",
-                             effect_name="cliffs_delta", effect=float("nan"),
-                             ci_lo=float("nan"), ci_hi=float("nan"),
-                             p=float("nan"), n=int(len(a) + len(b))))
+            rows.append(
+                dict(
+                    factor=f,
+                    kind="binary",
+                    test="MWU + Cliff delta",
+                    effect_name="cliffs_delta",
+                    effect=float("nan"),
+                    ci_lo=float("nan"),
+                    ci_hi=float("nan"),
+                    p=float("nan"),
+                    n=int(len(a) + len(b)),
+                )
+            )
             pvals.append(1.0)
             continue
         m = mwu_with_effects(a, b, n_boot=n_boot, seed=seed)
-        rows.append(dict(factor=f, kind="binary", test="MWU + Cliff delta",
-                         effect_name="cliffs_delta",
-                         effect=round(float(m["cliffs_delta"]), 4),
-                         ci_lo=round(float(m["delta_ci_lo"]), 4),
-                         ci_hi=round(float(m["delta_ci_hi"]), 4),
-                         p=float(m["pvalue"]), n=int(len(a) + len(b))))
+        rows.append(
+            dict(
+                factor=f,
+                kind="binary",
+                test="MWU + Cliff delta",
+                effect_name="cliffs_delta",
+                effect=round(float(m["cliffs_delta"]), 4),
+                ci_lo=round(float(m["delta_ci_lo"]), 4),
+                ci_hi=round(float(m["delta_ci_hi"]), 4),
+                p=float(m["pvalue"]),
+                n=int(len(a) + len(b)),
+            )
+        )
         pvals.append(float(m["pvalue"]))
 
     for f in multilevel:
@@ -1153,19 +1311,34 @@ def h3_risk_factors(
         sub = df[[f, outcome_col]].apply(pd.to_numeric, errors="coerce").dropna()
         try:
             kd = kw_dunn(sub, group_col=f, value_col=outcome_col)
-            rows.append(dict(factor=f, kind="multilevel",
-                             test="Kruskal-Wallis + epsilon^2",
-                             effect_name="epsilon_sq",
-                             effect=round(float(kd["epsilon_sq"]), 4),
-                             ci_lo=float("nan"), ci_hi=float("nan"),
-                             p=float(kd["pvalue"]), n=int(kd["n"])))
+            rows.append(
+                dict(
+                    factor=f,
+                    kind="multilevel",
+                    test="Kruskal-Wallis + epsilon^2",
+                    effect_name="epsilon_sq",
+                    effect=round(float(kd["epsilon_sq"]), 4),
+                    ci_lo=float("nan"),
+                    ci_hi=float("nan"),
+                    p=float(kd["pvalue"]),
+                    n=int(kd["n"]),
+                )
+            )
             pvals.append(float(kd["pvalue"]))
-        except Exception:  # noqa: BLE001 — empty cell / single group
-            rows.append(dict(factor=f, kind="multilevel",
-                             test="Kruskal-Wallis + epsilon^2",
-                             effect_name="epsilon_sq", effect=float("nan"),
-                             ci_lo=float("nan"), ci_hi=float("nan"),
-                             p=float("nan"), n=int(sub.shape[0])))
+        except Exception:  # noqa: BLE001  empty cell / single group
+            rows.append(
+                dict(
+                    factor=f,
+                    kind="multilevel",
+                    test="Kruskal-Wallis + epsilon^2",
+                    effect_name="epsilon_sq",
+                    effect=float("nan"),
+                    ci_lo=float("nan"),
+                    ci_hi=float("nan"),
+                    p=float("nan"),
+                    n=int(sub.shape[0]),
+                )
+            )
             pvals.append(1.0)
 
     out = pd.DataFrame(rows)

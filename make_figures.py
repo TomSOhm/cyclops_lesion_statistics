@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-"""make_figures.py — regenerate every manuscript figure (300 dpi, English).
+"""make_figures.py  regenerate every manuscript figure (300 dpi, English).
 
 Reproducible (``RANDOM_SEED = 42``), idempotent figure builder for the
 cyclops-vs-meniscus knee-surgery study. It reads the canonical analysis
-artefacts — ``results/results.json`` (all scalars), the per-compartment /
-Table-1 CSVs, the posterior NetCDFs (``idata_m3.nc``, ``idata_m5.nc``) — and
+artefacts  ``results/results.json`` (all scalars), the per-compartment /
+Table-1 CSVs, the posterior NetCDFs (``idata_m3.nc``, ``idata_m5.nc``)  and
 re-derives the patient-level frames straight from the preprocessing pipeline,
 then writes the figure manifest to ``figures/``:
 
@@ -17,7 +17,7 @@ then writes the figure manifest to ``figures/``:
     fig7_h4_delay.png              inter-surgical delay ECDF + LogNormal fit
     figS1_slopegraph_pf.png        (supplementary) PF score S1→S2 by group
 
-Every number is sourced from the artefacts — nothing is hard-coded. Re-running
+Every number is sourced from the artefacts  nothing is hard-coded. Re-running
 overwrites the PNGs in place.
 
 It edits/creates nothing outside ``figures/`` (chart-expert scope) and never
@@ -46,6 +46,7 @@ for _stream in (sys.stdout, sys.stderr):
 
 # Headless backend (no display in the run environment).
 import matplotlib  # noqa: E402
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
@@ -68,6 +69,7 @@ FIG_DIR = ROOT / "figures"
 # Loading helpers
 # ---------------------------------------------------------------------------
 
+
 def _load_results() -> dict:
     with open(RESULTS_DIR / "results.json", "r", encoding="utf-8") as fh:
         return json.load(fh)
@@ -79,7 +81,7 @@ def _load_idata(name: str):
 
     path = RESULTS_DIR / name
     if not path.exists():
-        print(f"  [warn] {name} not found — skipping dependent figure.")
+        print(f"  [warn] {name} not found  skipping dependent figure.")
         return None
     try:
         return az.from_netcdf(str(path))
@@ -91,7 +93,7 @@ def _load_idata(name: str):
 def _build_frames():
     """Re-derive the wide / patient frames via the canonical pipeline."""
     df = loaders.load_combined()
-    df = pp.apply_date_hygiene(df)      # composite-key bug fix (consensus I.1)
+    df = pp.apply_date_hygiene(df)  # composite-key bug fix (consensus I.1)
     df = pp.add_derived(df)
     wide = pp.to_wide(df)
     patient = pp.to_patient(df)
@@ -112,6 +114,7 @@ def _smd_binary(a: pd.Series, b: pd.Series) -> float:
 # ---------------------------------------------------------------------------
 # Figure builders (each returns the written Path)
 # ---------------------------------------------------------------------------
+
 
 def make_fig0a(patient: pd.DataFrame) -> Path:
     """First-glance demographic panel by group (age, % female, BMI)."""
@@ -135,27 +138,47 @@ def _covariate_smd_rows(patient: pd.DataFrame) -> list[tuple[str, float]]:
     m = patient[patient.group == "meniscus"]
     rows = [
         ("Female (sex)", _smd_binary(c["female"], m["female"])),
-        ("Age at trauma", tf.smd_continuous(
-            pd.to_numeric(c["age_at_trauma"], errors="coerce").values,
-            pd.to_numeric(m["age_at_trauma"], errors="coerce").values)),
-        ("Pivot / contact sport", _smd_binary(
-            (pd.to_numeric(c["pivot_pivot_contact"], errors="coerce") >= 1).astype(float),
-            (pd.to_numeric(m["pivot_pivot_contact"], errors="coerce") >= 1).astype(float))),
-        ("Physical occupation", _smd_binary(c["travail_physique"], m["travail_physique"])),
+        (
+            "Age at trauma",
+            tf.smd_continuous(
+                pd.to_numeric(c["age_at_trauma"], errors="coerce").values,
+                pd.to_numeric(m["age_at_trauma"], errors="coerce").values,
+            ),
+        ),
+        (
+            "Pivot / contact sport",
+            _smd_binary(
+                (pd.to_numeric(c["pivot_pivot_contact"], errors="coerce") >= 1).astype(
+                    float
+                ),
+                (pd.to_numeric(m["pivot_pivot_contact"], errors="coerce") >= 1).astype(
+                    float
+                ),
+            ),
+        ),
+        (
+            "Physical occupation",
+            _smd_binary(c["travail_physique"], m["travail_physique"]),
+        ),
         ("Smoking", _smd_binary(c["tabac"], m["tabac"])),
-        ("BMI", tf.smd_continuous(
-            pd.to_numeric(c["imc"], errors="coerce").values,
-            pd.to_numeric(m["imc"], errors="coerce").values)),
+        (
+            "BMI",
+            tf.smd_continuous(
+                pd.to_numeric(c["imc"], errors="coerce").values,
+                pd.to_numeric(m["imc"], errors="coerce").values,
+            ),
+        ),
     ]
     return [(lbl, v) for lbl, v in rows if np.isfinite(v)]
 
 
 def make_fig1(patient: pd.DataFrame, results: dict) -> Path:
-    """View 1 — Love plot of baseline COVARIATE SMDs (Cyclops − Meniscus)."""
+    """View 1  Love plot of baseline COVARIATE SMDs (Cyclops − Meniscus)."""
     rows = _covariate_smd_rows(patient)
     fig = viz.love_plot_smd(
-        rows, baseline_score_p=float(results.get("baseline_s1_p", float("nan"))),
-        title="Baseline covariate balance (SMD) — view 1: covariables",
+        rows,
+        baseline_score_p=float(results.get("baseline_s1_p", float("nan"))),
+        title="Baseline covariate balance (SMD)  view 1: covariables",
     )
     out = viz.save_pub_fig(fig, "fig1_baseline_balance", FIG_DIR)
     plt.close(fig)
@@ -163,10 +186,12 @@ def make_fig1(patient: pd.DataFrame, results: dict) -> Path:
 
 
 def make_fig1b(results: dict) -> Path | None:
-    """View 2 — Baseline CARTILAGE balance, PF + FT only, SAME love-plot style."""
+    """View 2  Baseline CARTILAGE balance, PF + FT only, SAME love-plot style."""
     rows = []
-    for lvl, lbl in (("pf", "PF cartilage S1 (trochlea+patella)"),
-                     ("ft", "FT cartilage S1 (tibial+condylar)")):
+    for lvl, lbl in (
+        ("pf", "PF cartilage S1 (trochlea+patella)"),
+        ("ft", "FT cartilage S1 (tibial+condylar)"),
+    ):
         smd = results.get(f"baseline_{lvl}_smd")
         if smd is None:
             continue
@@ -174,7 +199,8 @@ def make_fig1b(results: dict) -> Path | None:
     if not rows:
         return None
     fig = viz.love_plot_smd(
-        rows, title="Baseline cartilage balance (SMD) — view 2: PF / FT blocks",
+        rows,
+        title="Baseline cartilage balance (SMD)  view 2: PF / FT blocks",
     )
     out = viz.save_pub_fig(fig, "fig1b_baseline_cartilage", FIG_DIR)
     plt.close(fig)
@@ -182,13 +208,14 @@ def make_fig1b(results: dict) -> Path | None:
 
 
 def make_fig1c(patient: pd.DataFrame, results: dict) -> Path:
-    """View 3 — All covariables + GLOBAL cartilage, SAME love-plot style."""
+    """View 3  All covariables + GLOBAL cartilage, SAME love-plot style."""
     rows = _covariate_smd_rows(patient)
     smd_global = results.get("baseline_total_smd")
     if smd_global is not None:
         rows.append(("Cartilage S1 (global 6-sum)", float(smd_global)))
     fig = viz.love_plot_smd(
-        rows, title="Baseline balance (SMD) — view 3: all covariables + global cartilage",
+        rows,
+        title="Baseline balance (SMD)  view 3: all covariables + global cartilage",
     )
     out = viz.save_pub_fig(fig, "fig1c_baseline_global", FIG_DIR)
     plt.close(fig)
@@ -208,7 +235,8 @@ def make_fig2(wide: pd.DataFrame, results: dict) -> Path:
         if d and d.get("N"):
             worsened[g] = 100.0 * d["k"] / d["N"]
     fig = viz.raincloud_progression(
-        wide, value_col="delta_lesion_pf",
+        wide,
+        value_col="delta_lesion_pf",
         worsened_pct=worsened,
         cliff_delta=results.get("pf_cliff_delta"),
         perm_p=results.get("pf_perm_p"),
@@ -258,7 +286,8 @@ def make_fig6(idata_m3, results: dict) -> Path | None:
     if idata_m3 is None:
         return None
     fig = viz.diagnostics_m3(
-        idata_m3, convergence=results.get("m3_convergence"),
+        idata_m3,
+        convergence=results.get("m3_convergence"),
     )
     out = viz.save_pub_fig(fig, "fig6_m3_diagnostics", FIG_DIR)
     plt.close(fig)
@@ -273,7 +302,9 @@ def make_fig7(wide: pd.DataFrame, idata_m5, results: dict) -> Path:
     }
     medians = {g: v for g, v in medians.items() if v is not None}
     fig = viz.delay_ecdf_fit(
-        wide, idata=idata_m5, medians=medians or None,
+        wide,
+        idata=idata_m5,
+        medians=medians or None,
     )
     out = viz.save_pub_fig(fig, "fig7_h4_delay", FIG_DIR)
     plt.close(fig)
@@ -312,13 +343,13 @@ def _hdi94(arr) -> tuple[float, float]:
     a = np.sort(np.asarray(arr).ravel())
     n = len(a)
     k = max(1, int(np.floor(0.94 * n)))
-    w = a[k - 1:] - a[: n - k + 1]
+    w = a[k - 1 :] - a[: n - k + 1]
     i = int(np.argmin(w))
     return float(a[i]), float(a[i + k - 1])
 
 
 def make_fig8(idata_exch, results: dict) -> Path | None:
-    """Honest global δ̄ (diluted) vs localised PF — the de-biasing forest.
+    """Honest global δ̄ (diluted) vs localised PF  the de-biasing forest.
 
     From the **neutral exchangeable** M3: the knee-wide δ̄ (includes 0 → honest,
     not overclaimed), the six per-compartment δ_c, and the DERIVED PF−FT contrast
@@ -338,27 +369,48 @@ def make_fig8(idata_exch, results: dict) -> Path | None:
         vals = dc.sel({comp_dim: c}).values
         lo_, hi_ = _hdi94(vals)
         blk = "PF" if c in SITES_PF else "FT"
-        rows.append((f"delta {c}", float(vals.mean()), lo_, hi_,
-                     float((vals > 0).mean()), blk))
+        rows.append((
+            f"delta {c}",
+            float(vals.mean()),
+            lo_,
+            hi_,
+            float((vals > 0).mean()),
+            blk,
+        ))
     m = results["m3_derived_pf_contrast_mean"]
     lo, hi = results["m3_derived_pf_contrast_hdi"]
-    rows.append(("PF - FT (derived)", m, lo, hi,
-                 results["m3_derived_pf_contrast_p_gt0"], "contrast"))
+    rows.append((
+        "PF - FT (derived)",
+        m,
+        lo,
+        hi,
+        results["m3_derived_pf_contrast_p_gt0"],
+        "contrast",
+    ))
 
-    colors = {"global": "#444444", "PF": "#1b7837", "FT": "#999999", "contrast": "#762a83"}
+    colors = {
+        "global": "#444444",
+        "PF": "#1b7837",
+        "FT": "#999999",
+        "contrast": "#762a83",
+    }
     fig, ax = plt.subplots(figsize=(7.6, 0.5 * len(rows) + 1.6))
     y = np.arange(len(rows))[::-1]
     for yi, (lbl, mm, lo_, hi_, pp_, blk) in zip(y, rows):
         ax.plot([lo_, hi_], [yi, yi], color=colors[blk], lw=2.2, solid_capstyle="round")
         ax.plot(mm, yi, "o", color=colors[blk], ms=6)
-        ax.text(hi_, yi, f"  P(>0)={pp_:.2f}", va="center", fontsize=8, color=colors[blk])
+        ax.text(
+            hi_, yi, f"  P(>0)={pp_:.2f}", va="center", fontsize=8, color=colors[blk]
+        )
     ax.axvline(0, color="k", lw=0.9, ls="--")
     ax.set_yticks(y)
     ax.set_yticklabels([r[0] for r in rows])
     ax.set_xlabel("Group x Time interaction δ (logit scale), 94% HDI")
-    ax.set_title("M3: honest global δ̄ (diluted, includes 0) vs localised PF\n"
-                 "(derived from the neutral exchangeable model — no PF/FT imposed)",
-                 fontsize=10)
+    ax.set_title(
+        "M3: honest global δ̄ (diluted, includes 0) vs localised PF\n"
+        "(derived from the neutral exchangeable model  no PF/FT imposed)",
+        fontsize=10,
+    )
     fig.tight_layout()
     out = viz.save_pub_fig(fig, "fig8_global_vs_localised", FIG_DIR)
     plt.close(fig)
@@ -374,9 +426,21 @@ def make_fig9(results: dict) -> Path | None:
     """
     items = [
         ("Crude", results.get("pf_or_crude"), results.get("pf_or_crude_ci")),
-        ("Adj. sex + age", results.get("pf_or_adj_sex_age"), results.get("pf_or_adj_sex_age_ci")),
-        ("Adj. sex + age + BMI", results.get("pf_or_adj_sex_age_imc"), results.get("pf_or_adj_sex_age_imc_ci")),
-        ("Adj. delay (time-at-risk)", results.get("pf_or_adj_delay"), results.get("pf_or_adj_delay_ci")),
+        (
+            "Adj. sex + age",
+            results.get("pf_or_adj_sex_age"),
+            results.get("pf_or_adj_sex_age_ci"),
+        ),
+        (
+            "Adj. sex + age + BMI",
+            results.get("pf_or_adj_sex_age_imc"),
+            results.get("pf_or_adj_sex_age_imc_ci"),
+        ),
+        (
+            "Adj. delay (time-at-risk)",
+            results.get("pf_or_adj_delay"),
+            results.get("pf_or_adj_delay_ci"),
+        ),
     ]
     items = [(l, o, ci) for l, o, ci in items if o and ci]
     if not items:
@@ -386,15 +450,22 @@ def make_fig9(results: dict) -> Path | None:
     for yi, (lbl, o, ci) in zip(y, items):
         ax.plot(ci, [yi, yi], color="#1b7837", lw=2.2, solid_capstyle="round")
         ax.plot(o, yi, "o", color="#1b7837", ms=6)
-        ax.text(ci[1], yi, f"  {o:.1f} [{ci[0]:.1f}, {ci[1]:.1f}]", va="center", fontsize=8)
+        ax.text(
+            ci[1], yi, f"  {o:.1f} [{ci[0]:.1f}, {ci[1]:.1f}]", va="center", fontsize=8
+        )
     ax.axvline(1, color="k", lw=0.9, ls="--")
     ax.set_xscale("log")
     ax.set_yticks(y)
     ax.set_yticklabels([i[0] for i in items])
-    ax.set_xlabel("Odds ratio for patellofemoral worsening (Firth penalised, log scale)")
+    ax.set_xlabel(
+        "Odds ratio for patellofemoral worsening (Firth penalised, log scale)"
+    )
     ev, evci = results.get("pf_evalue_point"), results.get("pf_evalue_ci")
-    ax.set_title(f"PF-worsening OR — Firth (E-value {ev} / CI-bound {evci}; "
-                 "ML OR=24 was quasi-separation)", fontsize=10)
+    ax.set_title(
+        f"PF-worsening OR  Firth (E-value {ev} / CI-bound {evci}; "
+        "ML OR=24 was quasi-separation)",
+        fontsize=10,
+    )
     fig.tight_layout()
     out = viz.save_pub_fig(fig, "fig9_firth_or_forest", FIG_DIR)
     plt.close(fig)
@@ -405,19 +476,20 @@ def make_fig9(results: dict) -> Path | None:
 # Main
 # ---------------------------------------------------------------------------
 
+
 def main() -> list[Path]:
     np.random.seed(RANDOM_SEED)
     FIG_DIR.mkdir(parents=True, exist_ok=True)
     viz.set_pub_style()
 
     print("=" * 72)
-    print(f"make_figures.py — seed={RANDOM_SEED}, dpi={viz.PUB_DPI}")
+    print(f"make_figures.py  seed={RANDOM_SEED}, dpi={viz.PUB_DPI}")
     print("=" * 72)
 
     results = _load_results()
     _, wide, patient = _build_frames()
-    idata_m3 = _load_idata("idata_m3.nc")                  # two_block (back-compat)
-    idata_exch = _load_idata("idata_m3_exchangeable.nc")   # neutral primary (δ̄)
+    idata_m3 = _load_idata("idata_m3.nc")  # two_block (back-compat)
+    idata_exch = _load_idata("idata_m3_exchangeable.nc")  # neutral primary (δ̄)
     idata_m5 = _load_idata("idata_m5.nc")
 
     written: list[Path] = []
@@ -441,7 +513,7 @@ def main() -> list[Path]:
     for name, fn in builders:
         try:
             path = fn()
-        except Exception as exc:  # noqa: BLE001 — report and continue
+        except Exception as exc:  # noqa: BLE001  report and continue
             print(f"  [FAIL] {name}: {exc!r}")
             continue
         if path is None:
@@ -449,7 +521,7 @@ def main() -> list[Path]:
             continue
         size = path.stat().st_size if path.exists() else 0
         status = "OK " if size > 0 else "EMPTY"
-        print(f"  [{status}] {path.name:32s} {size/1024:7.1f} KB")
+        print(f"  [{status}] {path.name:32s} {size / 1024:7.1f} KB")
         written.append(path)
 
     print("-" * 72)

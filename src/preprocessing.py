@@ -30,6 +30,7 @@ DAYS_PER_YEAR: float = 365.25
 
 # --- Hygiene ---------------------------------------------------------------
 
+
 def apply_date_hygiene(
     df: pd.DataFrame,
     date_cols: Iterable[str] = ("date_de_naissance", "date_du_trauma"),
@@ -45,7 +46,7 @@ def apply_date_hygiene(
 
     .. note::
        **Composite patient key.** The ``Anonyme`` id is *reused* across the
-       two sheets — 19 ids (1–19) appear in **both** meniscus and cyclops
+       two sheets  19 ids (1–19) appear in **both** meniscus and cyclops
        (revue-methodo-2026-05 §2.6, consensus point I.1). Grouping by
        ``id_col`` alone therefore merges distinct patients and corrupts the
        birth/trauma dates of the shared ids. We group by the composite key
@@ -77,8 +78,11 @@ def apply_date_hygiene(
             # min() silently hides a real divergence (revue-methodo 2026-05-29:
             # patient #9 had trauma dates 2 months apart, not 1-day rounding).
             span = out.groupby(by)[col].transform(
-                lambda s: (s.dropna().max() - s.dropna().min()).days
-                if s.notna().sum() >= 2 else 0
+                lambda s: (
+                    (s.dropna().max() - s.dropna().min()).days
+                    if s.notna().sum() >= 2
+                    else 0
+                )
             )
             drift = span > 1
             if drift.any():
@@ -95,6 +99,7 @@ def apply_date_hygiene(
 
 # --- Date-anomaly detection (revue-methodo 2026-05-29) ---------------------
 
+
 def detect_date_anomalies(
     df: pd.DataFrame,
     id_col: str = "anonyme",
@@ -105,13 +110,13 @@ def detect_date_anomalies(
 
     Detects, per composite patient ``(group, anonyme)``:
 
-    * **static-date drift** — ``date_de_naissance`` / ``date_du_trauma`` differing
+    * **static-date drift**  ``date_de_naissance`` / ``date_du_trauma`` differing
       by more than ``drift_tol_days`` between the S1 and S2 rows (e.g. patient #9
       had trauma dates ~2 months apart). :func:`apply_date_hygiene` resolves these
       by ``min`` but the divergence flags a source-data issue to fix by hand.
       **Call this on the RAW frame (before** :func:`apply_date_hygiene` **)** so
       the drift is still visible; negative delays are detectable before or after.
-    * **negative trauma_to_surgery_d** — surgery dated *before* the trauma
+    * **negative trauma_to_surgery_d**  surgery dated *before* the trauma
       (impossible; e.g. #38 = −488 d), almost always a placeholder/typo date.
 
     None of these touch the cartilage scores or the patellofemoral Δ (which
@@ -173,6 +178,7 @@ def detect_date_anomalies(
 
 # --- Scale collapse {0, 1, ≥2} ---------------------------------------------
 
+
 def collapse_scores(
     df: pd.DataFrame,
     sites: Iterable[str] = tuple(SITES),
@@ -214,6 +220,7 @@ def collapse_scores(
 
 # --- Surgery numbering ----------------------------------------------------
 
+
 def add_surgery_num(
     df: pd.DataFrame,
     id_col: str = "anonyme",
@@ -238,7 +245,8 @@ def add_surgery_num(
     """
     out = df.copy()
     out["surgery_num"] = (
-        out.groupby([group_col, id_col])[date_col]
+        out
+        .groupby([group_col, id_col])[date_col]
         .rank(method="first", ascending=True)
         .astype("Int64")
     )
@@ -247,6 +255,7 @@ def add_surgery_num(
 
 
 # --- Derived variables -----------------------------------------------------
+
 
 def add_derived(
     df: pd.DataFrame,
@@ -317,9 +326,9 @@ def add_derived(
     # Sexe=1 → mean 1.79 m / 84 kg, Sexe=2 → 1.66 m / 65 kg → 1 = Homme (male),
     # 2 = Femme (female). ``female`` = 1 iff Sexe == 2.
     if "sexe" in out.columns:
-        out["female"] = (
-            pd.to_numeric(out["sexe"], errors="coerce") == 2
-        ).astype("Int64")
+        out["female"] = (pd.to_numeric(out["sexe"], errors="coerce") == 2).astype(
+            "Int64"
+        )
 
     # --- IMC (BMI): derive from taille/poids when not recorded ------------
     # ``imc`` is empty in this cohort (0/138) yet height and weight are complete
@@ -327,14 +336,16 @@ def add_derived(
     # confounder is usable in H3 / M4 / sensitivity (revue 2026-05-29). ``taille``
     # is in metres here; fall back to cm→m for any value that looks like cm.
     if {"taille", "poids"}.issubset(out.columns):
-        _imc = pd.to_numeric(out["imc"], errors="coerce") if "imc" in out.columns else None
+        _imc = (
+            pd.to_numeric(out["imc"], errors="coerce") if "imc" in out.columns else None
+        )
         if _imc is None or _imc.notna().sum() == 0:
             _taille = pd.to_numeric(out["taille"], errors="coerce")
             _poids = pd.to_numeric(out["poids"], errors="coerce")
             _taille_m = _taille.where(_taille < 3.0, _taille / 100.0)
-            out["imc"] = (_poids / (_taille_m ** 2)).round(2)
+            out["imc"] = (_poids / (_taille_m**2)).round(2)
 
-    # surgery_num (idempotent — adds if missing)
+    # surgery_num (idempotent  adds if missing)
     if "surgery_num" not in out.columns:
         out = add_surgery_num(out, id_col=id_col, group_col=group_col)
 
@@ -365,6 +376,7 @@ def add_derived(
 
 # --- Pivots ---------------------------------------------------------------
 
+
 def to_wide(
     df_long: pd.DataFrame,
     sites: Iterable[str] = tuple(SITES),
@@ -390,14 +402,22 @@ def to_wide(
         Expected shape ``(69, N)``.
     """
     if "surgery_num" not in df_long.columns:
-        raise ValueError("df_long must contain 'surgery_num' — call add_derived first.")
+        raise ValueError("df_long must contain 'surgery_num'  call add_derived first.")
 
     sites = list(sites)
     block_cols = ["lesion_pf", "lesion_ft"]
     total_cols = ["lesion_total", "lesion_total_strict", "lesion_total_permissive"]
-    values = sites + block_cols + total_cols + [
-        "lesion_any", "n_sites_observed", "date_chir", "trauma_to_surgery_d",
-    ]
+    values = (
+        sites
+        + block_cols
+        + total_cols
+        + [
+            "lesion_any",
+            "n_sites_observed",
+            "date_chir",
+            "trauma_to_surgery_d",
+        ]
+    )
     values = [v for v in values if v in df_long.columns]
 
     wide = df_long.pivot_table(
@@ -470,8 +490,5 @@ def to_patient(
         Expected shape ``(69, N)``.
     """
     cols = [c for c in static_cols if c in df_long.columns]
-    out = (
-        df_long.groupby([group_col, id_col], as_index=False)[cols]
-        .first()
-    )
+    out = df_long.groupby([group_col, id_col], as_index=False)[cols].first()
     return out

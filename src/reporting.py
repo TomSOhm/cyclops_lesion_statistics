@@ -18,20 +18,21 @@ from constants import HDI_PROB, SITES
 
 
 # ============================================================================
-# Table 1 — baseline cohort summary
+# Table 1  baseline cohort summary
 # ============================================================================
+
 
 def _fmt_median_iqr(s: pd.Series) -> str:
     """Format a numeric series as ``median [Q1–Q3]`` with one decimal."""
-    return f"{s.median():.1f} [{s.quantile(.25):.1f}–{s.quantile(.75):.1f}]"
+    return f"{s.median():.1f} [{s.quantile(0.25):.1f}–{s.quantile(0.75):.1f}]"
 
 
 def _pooled_sd(a: pd.Series, b: pd.Series) -> float:
     """Pooled SD used by Cohen's d-style SMD (descriptive only on ordinal)."""
     na, nb = len(a), len(b)
-    return float(np.sqrt(
-        ((na - 1) * a.var(ddof=1) + (nb - 1) * b.var(ddof=1)) / (na + nb - 2)
-    ))
+    return float(
+        np.sqrt(((na - 1) * a.var(ddof=1) + (nb - 1) * b.var(ddof=1)) / (na + nb - 2))
+    )
 
 
 def _row_continuous(var: str, a: pd.Series, b: pd.Series, g_a: str, g_b: str) -> dict:
@@ -45,9 +46,12 @@ def _row_continuous(var: str, a: pd.Series, b: pd.Series, g_a: str, g_b: str) ->
     sp = _pooled_sd(a, b)
     smd = (a.mean() - b.mean()) / sp if sp > 0 else float("nan")
     return {
-        "variable": var, "level": "median [IQR]",
-        g_a: _fmt_median_iqr(a), g_b: _fmt_median_iqr(b),
-        "pvalue": f"{p:.3f}", "smd": f"{smd:+.2f}",
+        "variable": var,
+        "level": "median [IQR]",
+        g_a: _fmt_median_iqr(a),
+        g_b: _fmt_median_iqr(b),
+        "pvalue": f"{p:.3f}",
+        "smd": f"{smd:+.2f}",
     }
 
 
@@ -63,8 +67,13 @@ def _smd_binary(p1: float, p2: float) -> float:
 
 
 def _rows_categorical(
-    var: str, df_patient: pd.DataFrame, sa: pd.DataFrame, sb: pd.DataFrame,
-    g_a: str, g_b: str, group_col: str,
+    var: str,
+    df_patient: pd.DataFrame,
+    sa: pd.DataFrame,
+    sb: pd.DataFrame,
+    g_a: str,
+    g_b: str,
+    group_col: str,
 ) -> list[dict]:
     """List of Table 1 rows for one categorical variable (one row per level).
 
@@ -97,7 +106,8 @@ def _rows_categorical(
         na = int((sa[var] == lvl).sum())
         nb = int((sb[var] == lvl).sum())
         out.append({
-            "variable": var, "level": str(lvl),
+            "variable": var,
+            "level": str(lvl),
             g_a: _fmt_n_pct(na, len(sa)),
             g_b: _fmt_n_pct(nb, len(sb)),
             "pvalue": f"{p:.3f}" if lvl == levels[0] else "",
@@ -107,19 +117,25 @@ def _rows_categorical(
 
 
 def _fmt_n_pct(n: int, denom: int) -> str:
-    """Format ``n (xx.x%)`` safely; returns ``—`` if denom == 0."""
+    """Format ``n (xx.x%)`` safely; returns ```` if denom == 0."""
     if denom <= 0:
-        return "—"
+        return ""
     return f"{n} ({100 * n / denom:.1f}%)"
 
 
 def make_table1(
     df_patient: pd.DataFrame,
     continuous: Iterable[str] = (
-        "age_at_trauma", "imc", "taille", "poids",
+        "age_at_trauma",
+        "imc",
+        "taille",
+        "poids",
     ),
     categorical: Iterable[str] = (
-        "sexe", "pivot_pivot_contact", "travail_physique", "tabac",
+        "sexe",
+        "pivot_pivot_contact",
+        "travail_physique",
+        "tabac",
     ),
     group_col: str = "group",
 ) -> pd.DataFrame:
@@ -149,9 +165,14 @@ def make_table1(
     sb = df_patient[df_patient[group_col] == g_b]
 
     rows: list[dict] = [
-        {"variable": "n", "level": "",
-         g_a: str(len(sa)), g_b: str(len(sb)),
-         "pvalue": "", "smd": ""}
+        {
+            "variable": "n",
+            "level": "",
+            g_a: str(len(sa)),
+            g_b: str(len(sb)),
+            "pvalue": "",
+            "smd": "",
+        }
     ]
 
     for var in continuous:
@@ -174,6 +195,7 @@ def make_table1(
 # ============================================================================
 # ArviZ summary wrapper (uses modern ci_prob / ci_kind API)
 # ============================================================================
+
 
 def summary_bayes(
     idata,
@@ -206,7 +228,7 @@ def summary_bayes(
     # P(>0) per variable
     p_gt_0 = {}
     posterior = idata.posterior
-    for v in (var_names or list(posterior.data_vars)):
+    for v in var_names or list(posterior.data_vars):
         if v not in posterior.data_vars:
             continue
         vals = posterior[v].values.ravel()
@@ -225,14 +247,16 @@ def summary_bayes(
         # multi-dim: parse coord from name e.g. "beta_c[trochlée]"
         if "[" not in name:
             return float((arr.values > 0).mean())
-        coord_val = name[name.index("[") + 1:name.rindex("]")]
+        coord_val = name[name.index("[") + 1 : name.rindex("]")]
         # Pick last dim (excluding chain/draw). Guard for scalar posteriors
-        # whose dims are {chain, draw} only — defensive: return overall P(>0).
+        # whose dims are {chain, draw} only  defensive: return overall P(>0).
         extra_dims = [d for d in arr.dims if d not in ("chain", "draw")]
         if not extra_dims:
             return float((arr.values > 0).mean())
         last_dim = extra_dims[-1]
-        sub = arr.sel({last_dim: coord_val}) if coord_val in arr[last_dim].values else arr
+        sub = (
+            arr.sel({last_dim: coord_val}) if coord_val in arr[last_dim].values else arr
+        )
         return float((sub.values > 0).mean())
 
     summ["P(>0)"] = [_p_gt(n) for n in summ.index]
@@ -243,8 +267,11 @@ def summary_bayes(
 # Markdown export
 # ============================================================================
 
+
 def export_to_markdown(
-    table_df: pd.DataFrame, path: Path | str, title: str = "",
+    table_df: pd.DataFrame,
+    path: Path | str,
+    title: str = "",
 ) -> Path:
     """Write a DataFrame as a markdown table (suitable for Obsidian).
 
@@ -271,6 +298,7 @@ def export_to_markdown(
 # ============================================================================
 # Auto-narrative formatters (interpretability)
 # ============================================================================
+
 
 def format_test_result(res: dict, test_name: str = "mwu") -> str:
     """Translate a frequentist test dict into a 1-2 sentence French narrative.
@@ -324,10 +352,7 @@ def format_test_result(res: dict, test_name: str = "mwu") -> str:
     if t == "fisher":
         odds = res.get("odds_ratio", float("nan"))
         midp = res.get("mid_p", float("nan"))
-        return (
-            f"Fisher exact p = {p:.3f} (mid-p = {midp:.3f}, {sig}); "
-            f"OR = {odds:.2f}."
-        )
+        return f"Fisher exact p = {p:.3f} (mid-p = {midp:.3f}, {sig}); OR = {odds:.2f}."
     if t == "spearman":
         rho = res["rho"]
         lo, hi = res["ci_lo"], res["ci_hi"]
@@ -339,16 +364,14 @@ def format_test_result(res: dict, test_name: str = "mwu") -> str:
     if t == "kw":
         H = res["statistic"]
         eps = res.get("epsilon_sq", float("nan"))
-        return (
-            f"Kruskal-Wallis H = {H:.2f} (p = {p:.3f}, {sig}); "
-            f"ε² = {eps:.3f}."
-        )
+        return f"Kruskal-Wallis H = {H:.2f} (p = {p:.3f}, {sig}); ε² = {eps:.3f}."
     return repr(res)
 
 
 # ============================================================================
-# English verdict phrases (consensus point G — single Bayesian decision rule)
+# English verdict phrases (consensus point G  single Bayesian decision rule)
 # ============================================================================
+
 
 def verdict_bayes_en(
     idata,
@@ -364,9 +387,9 @@ def verdict_bayes_en(
     Two decision regimes, because using a **one-sided** P(effect>0)≥threshold
     rule on an effect whose **direction was suggested by the data** double-counts
     the data (the Bayesian analogue of choosing a one-sided test after seeing the
-    sign — revue-methodo 2026-05-29):
+    sign  revue-methodo 2026-05-29):
 
-    * ``two_sided=True`` (**default — for POST-HOC estimands** such as the
+    * ``two_sided=True`` (**default  for POST-HOC estimands** such as the
       patellofemoral contrast ``delta_pf`` / ``contrast_pf_ft``): the estimand is
       "supported" iff the ``hdi_prob`` **HDI excludes 0** (a direction-agnostic
       credible rule); ``P(effect>0)`` is reported only **descriptively**::
@@ -374,7 +397,7 @@ def verdict_bayes_en(
         "PF contrast supported: 94% HDI [+1.42, +4.05] excludes 0
          (two-sided credible rule; P(effect>0)=99.8%, descriptive)."
 
-    * ``two_sided=False`` (**for a PRE-SPECIFIED directional estimand** — e.g. the
+    * ``two_sided=False`` (**for a PRE-SPECIFIED directional estimand**  e.g. the
       global knee-wide δ̄ under the directional H1 "cyclops worsen cartilage"):
       the legitimate one-sided rule ``P(effect>0)≥threshold`` (0.95 primary /
       0.90 secondary).
@@ -417,10 +440,17 @@ def verdict_bayes_en(
             f"(two-sided credible rule; P(effect>0) = {p_gt:.1%}, descriptive)."
         )
         return dict(
-            var=var, label=label, rule="two_sided",
-            p_gt0=p_gt, p_direction=max(p_gt, 1 - p_gt), threshold=None,
-            supported=supported, hdi_lo=hdi_lo, hdi_hi=hdi_hi,
-            hdi_excludes_0=excludes0, sentence=sentence,
+            var=var,
+            label=label,
+            rule="two_sided",
+            p_gt0=p_gt,
+            p_direction=max(p_gt, 1 - p_gt),
+            threshold=None,
+            supported=supported,
+            hdi_lo=hdi_lo,
+            hdi_hi=hdi_hi,
+            hdi_excludes_0=excludes0,
+            sentence=sentence,
         )
 
     p = p_gt if direction == "greater" else (1.0 - p_gt)
@@ -433,15 +463,22 @@ def verdict_bayes_en(
         f"{int(hdi_prob * 100)}% HDI [{hdi_lo:+.2f}, {hdi_hi:+.2f}]."
     )
     return dict(
-        var=var, label=label, rule="one_sided_prespecified",
-        p_gt0=p_gt, p_direction=p, threshold=threshold,
-        supported=supported, hdi_lo=hdi_lo, hdi_hi=hdi_hi,
-        hdi_excludes_0=excludes0, sentence=sentence,
+        var=var,
+        label=label,
+        rule="one_sided_prespecified",
+        p_gt0=p_gt,
+        p_direction=p,
+        threshold=threshold,
+        supported=supported,
+        hdi_lo=hdi_lo,
+        hdi_hi=hdi_hi,
+        hdi_excludes_0=excludes0,
+        sentence=sentence,
     )
 
 
 def confidence_phrase_en(p: float, claim: str) -> str:
-    """\"we are X% confident that <claim>\" — point-G narrative helper."""
+    """\"we are X% confident that <claim>\"  point-G narrative helper."""
     return f"we are {p:.0%} confident that {claim}"
 
 
@@ -493,7 +530,7 @@ def _hdi_from_samples(vals: np.ndarray, hdi_prob: float) -> tuple[float, float]:
     if n == 0:
         return float("nan"), float("nan")
     k = max(1, int(np.floor(hdi_prob * n)))
-    widths = s[k - 1:] - s[: n - k + 1]
+    widths = s[k - 1 :] - s[: n - k + 1]
     i = int(np.argmin(widths))
     return float(s[i]), float(s[i + k - 1])
 
@@ -540,18 +577,23 @@ def interpret_bayes(
     verdict = (
         "effet probable hors équivalence pratique"
         if excludes and p_dir >= 0.95
-        else "effet probable" if p_dir >= 0.95
-        else "effet incertain" if p_dir >= 0.80
+        else "effet probable"
+        if p_dir >= 0.95
+        else "effet incertain"
+        if p_dir >= 0.80
         else "absence d'effet plausible"
     )
     narrative = (
-        f"{var} = {mean:+.2f} (HDI {int(hdi_prob*100)}% "
+        f"{var} = {mean:+.2f} (HDI {int(hdi_prob * 100)}% "
         f"[{hdi_lo:+.2f}, {hdi_hi:+.2f}]), pd = {p_dir:.2%} {direction}, "
         f"ROPE% = {rope_pct:.1f}% → {verdict}."
     )
     return dict(
-        mean=mean, hdi_lo=hdi_lo, hdi_hi=hdi_hi,
-        p_direction=p_dir, rope_pct=rope_pct,
+        mean=mean,
+        hdi_lo=hdi_lo,
+        hdi_hi=hdi_hi,
+        p_direction=p_dir,
+        rope_pct=rope_pct,
         hdi_excludes_rope=bool(excludes),
         narrative=narrative,
     )

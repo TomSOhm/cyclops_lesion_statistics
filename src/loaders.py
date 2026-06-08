@@ -16,7 +16,7 @@ import pandas as pd
 
 DATA_PATH: Path = Path(__file__).resolve().parents[1] / "data_paper_cyclops_stats.xlsx"
 
-# Flexum (pre-S2 extension deficit, in degrees) — a separate workbook with the
+# Flexum (pre-S2 extension deficit, in degrees)  a separate workbook with the
 # same two-sheet (Ménisque / Cyclop) layout but a single measurement column.
 # Negative values = loss of extension (a fixed-flexion / flexum, the mechanical
 # driver of patellofemoral overload in cyclops syndrome). Kept out of git
@@ -113,6 +113,7 @@ def load_combined(path: Path = DATA_PATH) -> pd.DataFrame:
     combined = pd.concat([m, c], ignore_index=True)
     # Ensure lesion columns are nullable Int64 (Cyclops may carry NaNs)
     from constants import SITES  # local import to avoid cycle at module load
+
     for col in SITES:
         if col in combined.columns:
             combined[col] = combined[col].astype("Int64")

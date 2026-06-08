@@ -46,7 +46,7 @@ DELTA_CMAP: str = "magma_r"
 def set_style() -> None:
     """Apply project-wide matplotlib / seaborn defaults.
 
-    Idempotent — safe to call at the top of every notebook.
+    Idempotent  safe to call at the top of every notebook.
     """
     sns.set_theme(
         style="whitegrid",
@@ -89,7 +89,7 @@ def save_fig(fig, nb_id: str, slug: str, html: bool = False) -> Path:
     if hasattr(fig, "write_image"):
         try:
             fig.write_image(str(png_path), scale=2)
-        except Exception:  # noqa: BLE001 — kaleido may be missing
+        except Exception:  # noqa: BLE001  kaleido may be missing
             pass
         if html:
             fig.write_html(str(base.with_suffix(".html")))
@@ -142,7 +142,7 @@ def slopegraph_paired(
             )
         )
     fig.update_layout(
-        title="Lesion total per patient — S1 → S2",
+        title="Lesion total per patient  S1 → S2",
         xaxis=dict(
             tickmode="array", tickvals=[1, 2], ticktext=["S1", "S2"], title="Surgery"
         ),
@@ -188,7 +188,7 @@ def sankey_transitions(
             link=dict(source=source, target=target, value=value),
         )
     )
-    title = "S1 → S2 transitions" + (f" — {group}" if group else "")
+    title = "S1 → S2 transitions" + (f"  {group}" if group else "")
     fig.update_layout(title=title, height=500, width=700)
     return fig
 
@@ -216,17 +216,18 @@ def heatmap_patient_site_time(
     s_long = df_long.copy()
     s_long["__row_score__"] = s_long[sites].sum(axis=1, min_count=1)
     pivot_scores = s_long.pivot_table(
-        index=[group_col, id_col], columns="time",
-        values="__row_score__", aggfunc="first",
+        index=[group_col, id_col],
+        columns="time",
+        values="__row_score__",
+        aggfunc="first",
     )
     if "S1" in pivot_scores.columns and "S2" in pivot_scores.columns:
         pivot_scores["delta"] = pivot_scores["S2"] - pivot_scores["S1"]
     else:
         pivot_scores["delta"] = 0
     # Sort within each group by delta desc, group order = meniscus first
-    order = (
-        pivot_scores.reset_index()
-        .sort_values([group_col, "delta"], ascending=[True, False])
+    order = pivot_scores.reset_index().sort_values(
+        [group_col, "delta"], ascending=[True, False]
     )
     order["label"] = order[group_col].str[0].str.upper() + order[id_col].astype(str)
     label_order = order["label"].tolist()
@@ -240,24 +241,32 @@ def heatmap_patient_site_time(
         long_sub = sub.melt(
             id_vars=[id_col, group_col],
             value_vars=sites,
-            var_name="site", value_name="score",
+            var_name="site",
+            value_name="score",
         )
         long_sub["label"] = long_sub[group_col].str[0].str.upper() + long_sub[
             id_col
         ].astype(str)
         mat = long_sub.pivot_table(
-            index="label", columns="site", values="score", aggfunc="first",
+            index="label",
+            columns="site",
+            values="score",
+            aggfunc="first",
         )
         mat = mat.reindex(index=label_order, columns=sites)
 
-        is_s2 = (t == "S2")
-        cbar_kws = (
-            dict(label="score", ticks=[0, 1, 2]) if is_s2 else None
-        )
+        is_s2 = t == "S2"
+        cbar_kws = dict(label="score", ticks=[0, 1, 2]) if is_s2 else None
         hm = sns.heatmap(
-            mat.astype(float), ax=ax, cmap=LESION_CMAP,
-            vmin=0, vmax=2, cbar=is_s2, cbar_kws=cbar_kws,
-            linewidths=0.3, linecolor="white",
+            mat.astype(float),
+            ax=ax,
+            cmap=LESION_CMAP,
+            vmin=0,
+            vmax=2,
+            cbar=is_s2,
+            cbar_kws=cbar_kws,
+            linewidths=0.3,
+            linecolor="white",
         )
         if is_s2:
             cbar = hm.collections[0].colorbar
@@ -454,7 +463,7 @@ def raincloud_delays(
             ax=ax,
             orient="v",
         )
-    except Exception:  # noqa: BLE001 — graceful fallback
+    except Exception:  # noqa: BLE001  graceful fallback
         sns.violinplot(
             x=group_col,
             y=value,
@@ -501,9 +510,9 @@ def posterior_forest(idata, var_name: str, comp_names: Optional[Sequence[str]] =
         fig = axes.figure
     try:
         annotate_forest_clinical_bounds(ax0)
-    except Exception:  # noqa: BLE001 — annotation must never break the figure
+    except Exception:  # noqa: BLE001  annotation must never break the figure
         pass
-    fig.suptitle(f"Posterior 94% HDI — {var_name}", y=1.02)
+    fig.suptitle(f"Posterior 94% HDI  {var_name}", y=1.02)
     return fig
 
 
@@ -543,7 +552,7 @@ def plot_trace_az(
         figsize=(11, 1.6 * len(var_names) + 1),
     )
     fig = axes.ravel()[0].figure if hasattr(axes, "ravel") else axes.figure
-    fig.suptitle(f"Trace — {', '.join(var_names)}", y=1.02)
+    fig.suptitle(f"Trace  {', '.join(var_names)}", y=1.02)
     fig.tight_layout()
     return _save_or_return(fig, savefig)
 
@@ -560,7 +569,7 @@ def plot_pair_az(idata, var_names: Sequence[str], savefig: Optional[Path | str] 
         divergences=True,
     )
     fig = axes[0, 0].figure if hasattr(axes, "shape") else axes.figure
-    fig.suptitle(f"Pair plot — {', '.join(var_names)}", y=1.02)
+    fig.suptitle(f"Pair plot  {', '.join(var_names)}", y=1.02)
     return _save_or_return(fig, savefig)
 
 
@@ -596,7 +605,7 @@ def plot_energy_az(idata, savefig: Optional[Path | str] = None):
     """Wrap ``az.plot_energy`` (NUTS energy / BFMI diagnostic).
 
     Bimodality or marginal/E_T separation flags potential funnel / divergence
-    issues — see escalation table in [[02.5-modeles-bayesiens]] §7.
+    issues  see escalation table in [[02.5-modeles-bayesiens]] §7.
     """
     import arviz as az
 
@@ -672,7 +681,7 @@ def plot_cutpoints(idata, var_name: str = "cut", savefig: Optional[Path | str] =
 
     Plots each ``cut[k]`` posterior mean with a horizontal HDI 94 % band.
     A stable gap between consecutive cutpoints supports the proportional-odds
-    assumption — see :func:`bayes_models.proportional_odds_check`.
+    assumption  see :func:`bayes_models.proportional_odds_check`.
     """
     import arviz as az
 
@@ -690,7 +699,7 @@ def plot_cutpoints(idata, var_name: str = "cut", savefig: Optional[Path | str] =
     ax.set_yticks(range(len(means)))
     ax.set_yticklabels([f"cut[{k}]" for k in range(len(means))])
     ax.set_xlabel("Latent logit scale")
-    ax.set_title(f"Ordered cutpoints (HDI 94%) — {var_name}")
+    ax.set_title(f"Ordered cutpoints (HDI 94%)  {var_name}")
     fig.tight_layout()
     return _save_or_return(fig, savefig)
 
@@ -716,9 +725,11 @@ def slopegraph_paired_annotated(
 
     groups = list(df_wide[group_col].dropna().unique())
     fig = make_subplots(
-        rows=1, cols=len(groups),
+        rows=1,
+        cols=len(groups),
         subplot_titles=[g.capitalize() for g in groups],
-        shared_yaxes=True, horizontal_spacing=0.08,
+        shared_yaxes=True,
+        horizontal_spacing=0.08,
     )
     rng = np.random.default_rng(RANDOM_SEED)
     for col_i, grp in enumerate(groups, start=1):
@@ -732,23 +743,27 @@ def slopegraph_paired_annotated(
                     mode="lines+markers",
                     line=dict(color=GROUP_PALETTE.get(grp, "gray"), width=1),
                     marker=dict(size=5, color=GROUP_PALETTE.get(grp, "gray")),
-                    opacity=0.45, showlegend=False,
+                    opacity=0.45,
+                    showlegend=False,
                 ),
-                row=1, col=col_i,
+                row=1,
+                col=col_i,
             )
         # Median trajectory (bold)
         med_s1 = float(sub[value_s1].median())
         med_s2 = float(sub[value_s2].median())
         fig.add_trace(
             go.Scatter(
-                x=[1, 2], y=[med_s1, med_s2],
+                x=[1, 2],
+                y=[med_s1, med_s2],
                 mode="lines+markers",
                 line=dict(color="black", width=4),
                 marker=dict(size=10, color="black", symbol="diamond"),
                 name=f"{grp} median",
                 showlegend=(col_i == 1),
             ),
-            row=1, col=col_i,
+            row=1,
+            col=col_i,
         )
         # Worsening %
         deltas = sub[value_s2] - sub[value_s1]
@@ -756,20 +771,30 @@ def slopegraph_paired_annotated(
         pct_stable = float((deltas == 0).mean() * 100.0)
         pct_better = float((deltas < 0).mean() * 100.0)
         fig.add_annotation(
-            x=1.5, y=sub[[value_s1, value_s2]].max().max() * 1.02,
-            text=(f"↑ {pct_worse:.0f}% — = {pct_stable:.0f}% — "
-                  f"↓ {pct_better:.0f}% (n = {len(sub)})"),
-            showarrow=False, font=dict(size=11),
-            row=1, col=col_i,
+            x=1.5,
+            y=sub[[value_s1, value_s2]].max().max() * 1.02,
+            text=(
+                f"↑ {pct_worse:.0f}%  = {pct_stable:.0f}%  "
+                f"↓ {pct_better:.0f}% (n = {len(sub)})"
+            ),
+            showarrow=False,
+            font=dict(size=11),
+            row=1,
+            col=col_i,
         )
         fig.update_xaxes(
-            tickmode="array", tickvals=[1, 2], ticktext=["S1", "S2"],
-            row=1, col=col_i,
+            tickmode="array",
+            tickvals=[1, 2],
+            ticktext=["S1", "S2"],
+            row=1,
+            col=col_i,
         )
     fig.update_layout(
         title=f"Trajectoires S1 → S2 par groupe ({value_s1.replace('_S1', '')})",
         yaxis_title="lesion_total (0–12)",
-        template="plotly_white", height=520, width=900,
+        template="plotly_white",
+        height=520,
+        width=900,
     )
     return fig
 
@@ -791,10 +816,13 @@ def sankey_transitions_normalized(
 
     groups = list(df_wide[group_col].dropna().unique())
     fig = make_subplots(
-        rows=1, cols=len(groups),
+        rows=1,
+        cols=len(groups),
         specs=[[{"type": "sankey"} for _ in groups]],
-        subplot_titles=[f"{g.capitalize()} (n={int((df_wide[group_col]==g).sum())})"
-                        for g in groups],
+        subplot_titles=[
+            f"{g.capitalize()} (n={int((df_wide[group_col] == g).sum())})"
+            for g in groups
+        ],
         horizontal_spacing=0.05,
     )
     for col_i, grp in enumerate(groups, start=1):
@@ -817,17 +845,27 @@ def sankey_transitions_normalized(
         value = counts["pct"].tolist()
         fig.add_trace(
             go.Sankey(
-                node=dict(label=all_labels, pad=12, thickness=14,
-                          color=GROUP_PALETTE.get(grp, "gray")),
-                link=dict(source=source, target=target, value=value,
-                          customdata=counts["n"].tolist(),
-                          hovertemplate="%{value:.1f}% (n = %{customdata})<extra></extra>"),
+                node=dict(
+                    label=all_labels,
+                    pad=12,
+                    thickness=14,
+                    color=GROUP_PALETTE.get(grp, "gray"),
+                ),
+                link=dict(
+                    source=source,
+                    target=target,
+                    value=value,
+                    customdata=counts["n"].tolist(),
+                    hovertemplate="%{value:.1f}% (n = %{customdata})<extra></extra>",
+                ),
             ),
-            row=1, col=col_i,
+            row=1,
+            col=col_i,
         )
     fig.update_layout(
         title="Transitions S1 → S2 normalisées intra-groupe (%)",
-        height=500, width=1000,
+        height=500,
+        width=1000,
     )
     return fig
 
@@ -849,13 +887,21 @@ def annotate_forest_clinical_bounds(
     cohen_small, cohen_medium : float
         Cohen effect-size band boundaries (symmetric).
     """
-    ax.axvspan(rope[0], rope[1], color="#fdd", alpha=0.4,
-               label=f"ROPE [{rope[0]:+.2f}, {rope[1]:+.2f}]")
+    ax.axvspan(
+        rope[0],
+        rope[1],
+        color="#fdd",
+        alpha=0.4,
+        label=f"ROPE [{rope[0]:+.2f}, {rope[1]:+.2f}]",
+    )
     for sign in (-1, +1):
-        ax.axvspan(sign * cohen_small, sign * cohen_medium,
-                   color="#cfe8c2", alpha=0.25)
-        ax.axvspan(sign * cohen_medium, sign * (cohen_medium + 0.3),
-                   color="#9fcb86", alpha=0.20)
+        ax.axvspan(sign * cohen_small, sign * cohen_medium, color="#cfe8c2", alpha=0.25)
+        ax.axvspan(
+            sign * cohen_medium,
+            sign * (cohen_medium + 0.3),
+            color="#9fcb86",
+            alpha=0.20,
+        )
     ax.axvline(0, color="black", linestyle=":", linewidth=0.8, alpha=0.6)
 
 
@@ -895,9 +941,7 @@ def make_clinical_summary_card(
     sub = wide[[group_col, delta_col]].dropna()
     groups = sorted(sub[group_col].unique())
     if len(groups) != 2:
-        raise ValueError(
-            f"Expected 2 groups for clinical card, got {groups!r}."
-        )
+        raise ValueError(f"Expected 2 groups for clinical card, got {groups!r}.")
     g_a, g_b = groups
     a = sub.loc[sub[group_col] == g_a, delta_col].astype(float).values
     b = sub.loc[sub[group_col] == g_b, delta_col].astype(float).values
@@ -906,23 +950,36 @@ def make_clinical_summary_card(
 
     # (0,0) violin + box
     sns.violinplot(
-        x=group_col, y=delta_col, data=sub, ax=axes[0, 0],
-        palette=GROUP_PALETTE, inner="box", cut=0,
+        x=group_col,
+        y=delta_col,
+        data=sub,
+        ax=axes[0, 0],
+        palette=GROUP_PALETTE,
+        inner="box",
+        cut=0,
     )
     sns.stripplot(
-        x=group_col, y=delta_col, data=sub, ax=axes[0, 0],
-        color="black", alpha=0.4, jitter=0.15, size=4,
+        x=group_col,
+        y=delta_col,
+        data=sub,
+        ax=axes[0, 0],
+        color="black",
+        alpha=0.4,
+        jitter=0.15,
+        size=4,
     )
     axes[0, 0].axhline(0, color="grey", linestyle=":")
-    axes[0, 0].set_title(
-        f"Δ {delta_col} par groupe (n={len(a)} vs {len(b)})"
-    )
+    axes[0, 0].set_title(f"Δ {delta_col} par groupe (n={len(a)} vs {len(b)})")
 
     # (0,1) histogram overlay
     for grp, arr in [(g_a, a), (g_b, b)]:
         axes[0, 1].hist(
-            arr, bins=15, alpha=0.55, density=True,
-            color=GROUP_PALETTE.get(grp, "gray"), label=grp,
+            arr,
+            bins=15,
+            alpha=0.55,
+            density=True,
+            color=GROUP_PALETTE.get(grp, "gray"),
+            label=grp,
         )
     axes[0, 1].axvline(0, color="grey", linestyle=":")
     axes[0, 1].set_title(f"Distribution Δ {delta_col}")
@@ -935,14 +992,20 @@ def make_clinical_summary_card(
     d = res["cliffs_delta"]
     lo, hi = res["delta_ci_lo"], res["delta_ci_hi"]
     axes[1, 0].errorbar(
-        d, 0, xerr=[[d - lo], [hi - d]], fmt="o", color="#3b8bba",
-        capsize=4, markersize=10, label=f"Cliff's δ = {d:+.2f}",
+        d,
+        0,
+        xerr=[[d - lo], [hi - d]],
+        fmt="o",
+        color="#3b8bba",
+        capsize=4,
+        markersize=10,
+        label=f"Cliff's δ = {d:+.2f}",
     )
     annotate_forest_clinical_bounds(axes[1, 0], rope=rope)
     axes[1, 0].set_xlim(-1, 1)
     axes[1, 0].set_yticks([])
     axes[1, 0].set_title(
-        f"Cliff's δ ({res.get('cliffs_delta_magnitude', '?')}) — p = {res['pvalue']:.3f}"
+        f"Cliff's δ ({res.get('cliffs_delta_magnitude', '?')})  p = {res['pvalue']:.3f}"
     )
     axes[1, 0].set_xlabel("Cliff's δ")
     axes[1, 0].legend(loc="upper right", fontsize=8)
@@ -955,23 +1018,26 @@ def make_clinical_summary_card(
         axes[1, 1].axvline(0, color="black", linestyle=":")
         p_above = float((vals > 0).mean())
         pd_val = max(p_above, 1 - p_above)
-        axes[1, 1].set_title(
-            f"Posterior {bayes_var} — pd = {pd_val:.2%}"
-        )
+        axes[1, 1].set_title(f"Posterior {bayes_var}  pd = {pd_val:.2%}")
         axes[1, 1].set_xlabel(bayes_var)
         axes[1, 1].set_ylabel("Densité")
     else:
         axes[1, 1].text(
-            0.5, 0.5,
+            0.5,
+            0.5,
             "Posterior bayésien\n(idata non fourni)",
-            ha="center", va="center", transform=axes[1, 1].transAxes,
-            fontsize=11, color="#888",
+            ha="center",
+            va="center",
+            transform=axes[1, 1].transAxes,
+            fontsize=11,
+            color="#888",
         )
         axes[1, 1].set_axis_off()
 
     fig.suptitle(
         f"Synthèse clinique : {g_a} vs {g_b} ({delta_col})",
-        y=1.02, fontsize=13,
+        y=1.02,
+        fontsize=13,
     )
     fig.tight_layout()
     return _save_or_return(fig, savefig)
@@ -984,7 +1050,7 @@ def make_clinical_summary_card(
 # are self-contained matplotlib figures with English titles/axes/legends, a
 # locked Cyclops-vs-Meniscus Set2 palette, and a fixed 300 dpi raster export.
 # They never mutate input frames and read every number from the analysis
-# artefacts (results.json / idata_*.nc / the preprocessing pipeline) — no
+# artefacts (results.json / idata_*.nc / the preprocessing pipeline)  no
 # value is hard-coded.
 # ===========================================================================
 
@@ -1015,7 +1081,7 @@ def set_pub_style() -> None:
     """Apply the publication matplotlib/seaborn theme (300 dpi, clean serif-grid).
 
     Idempotent. Distinct from :func:`set_style` (notebook context, 150 dpi):
-    this sets the manuscript defaults used by ``make_figures.py`` — larger
+    this sets the manuscript defaults used by ``make_figures.py``  larger
     fonts, 300 dpi raster export, tight bounding box, and the locked Set2
     palette. ``DejaVu Sans`` carries the Greek/maths glyphs (δ, μ, ±, ≥) used
     in captions, so no LaTeX is required.
@@ -1090,14 +1156,16 @@ def love_plot_smd(
         by absolute magnitude (largest imbalance at top).
     baseline_score_p : float, optional
         If given, annotates the equivalence of the S1 lesion score (e.g.
-        ``p = 0.78``) as a caption — the outcome itself is balanced even
+        ``p = 0.78``) as a caption  the outcome itself is balanced even
         though some covariates are not.
     thresholds : (float, float)
         Vertical guide lines at |SMD| = 0.10 (negligible) and 0.25
         (Austin's "meaningful imbalance" cut).
     title : str
     """
-    rows = sorted(smd_rows, key=lambda kv: abs(kv[1]))  # smallest first → top is largest
+    rows = sorted(
+        smd_rows, key=lambda kv: abs(kv[1])
+    )  # smallest first → top is largest
     labels = [r[0] for r in rows]
     vals = [float(r[1]) for r in rows]
     y = np.arange(len(rows))
@@ -1117,8 +1185,16 @@ def love_plot_smd(
     colors = ["#d1495b" if abs(v) >= t2 else "#3b6ea5" for v in vals]
     ax.scatter(vals, y, s=110, color=colors, zorder=3, edgecolor="white", linewidth=0.8)
     for yi, v in zip(y, vals):
-        ax.annotate(f"{v:+.2f}", (v, yi), xytext=(0, 9), textcoords="offset points",
-                    ha="center", va="bottom", fontsize=9, color="#333")
+        ax.annotate(
+            f"{v:+.2f}",
+            (v, yi),
+            xytext=(0, 9),
+            textcoords="offset points",
+            ha="center",
+            va="bottom",
+            fontsize=9,
+            color="#333",
+        )
 
     ax.set_yticks(y)
     ax.set_yticklabels(labels)
@@ -1131,19 +1207,35 @@ def love_plot_smd(
 
     # Threshold legend.
     from matplotlib.lines import Line2D
+
     handles = [
-        Line2D([0], [0], color="#888", linestyle=":", label="|SMD| = 0.10 (negligible)"),
-        Line2D([0], [0], color="#888", linestyle="--", label="|SMD| = 0.25 (meaningful)"),
-        Line2D([0], [0], marker="o", color="w", markerfacecolor="#d1495b",
-               markersize=9, label="|SMD| ≥ 0.25"),
+        Line2D(
+            [0], [0], color="#888", linestyle=":", label="|SMD| = 0.10 (negligible)"
+        ),
+        Line2D(
+            [0], [0], color="#888", linestyle="--", label="|SMD| = 0.25 (meaningful)"
+        ),
+        Line2D(
+            [0],
+            [0],
+            marker="o",
+            color="w",
+            markerfacecolor="#d1495b",
+            markersize=9,
+            label="|SMD| ≥ 0.25",
+        ),
     ]
     ax.legend(handles=handles, loc="lower right", framealpha=0.9)
 
     if baseline_score_p is not None:
         ax.text(
-            0.02, 0.02,
+            0.02,
+            0.02,
             f"Baseline S1 lesion score: equivalent\n(Mann–Whitney p = {baseline_score_p:.2f})",
-            transform=ax.transAxes, ha="left", va="bottom", fontsize=9.5,
+            transform=ax.transAxes,
+            ha="left",
+            va="bottom",
+            fontsize=9.5,
             bbox=dict(boxstyle="round,pad=0.4", fc="#f4f9f0", ec="#9fcb86"),
         )
     fig.tight_layout()
@@ -1191,7 +1283,10 @@ def raincloud_progression(
         # Half-violin (cloud) offset to the left of the category centre.
         try:
             vp = ax.violinplot(
-                vals, positions=[i], widths=0.8, showextrema=False,
+                vals,
+                positions=[i],
+                widths=0.8,
+                showextrema=False,
                 showmedians=False,
             )
             for b in vp["bodies"]:
@@ -1201,21 +1296,32 @@ def raincloud_progression(
                 b.set_facecolor(color)
                 b.set_edgecolor("#555")
                 b.set_alpha(0.55)
-        except Exception:  # noqa: BLE001 — degenerate (all-equal) violins
+        except Exception:  # noqa: BLE001  degenerate (all-equal) violins
             pass
         # Slim boxplot at the centre.
         bp = ax.boxplot(
-            vals, positions=[i], widths=0.12, vert=True, patch_artist=True,
-            showfliers=False, medianprops=dict(color="black", linewidth=1.6),
+            vals,
+            positions=[i],
+            widths=0.12,
+            vert=True,
+            patch_artist=True,
+            showfliers=False,
+            medianprops=dict(color="black", linewidth=1.6),
             boxprops=dict(facecolor="white", edgecolor="#333"),
-            whiskerprops=dict(color="#333"), capprops=dict(color="#333"),
+            whiskerprops=dict(color="#333"),
+            capprops=dict(color="#333"),
             manage_ticks=False,
         )
         # Rain: jittered points to the right.
         jitter = rng.uniform(0.06, 0.30, size=len(vals))
         ax.scatter(
-            i + jitter, vals + rng.normal(0, 0.04, size=len(vals)),
-            s=26, color=color, edgecolor="white", linewidth=0.4, alpha=0.85,
+            i + jitter,
+            vals + rng.normal(0, 0.04, size=len(vals)),
+            s=26,
+            color=color,
+            edgecolor="white",
+            linewidth=0.4,
+            alpha=0.85,
             zorder=3,
         )
         # Worsened % annotation above each group.
@@ -1224,8 +1330,13 @@ def raincloud_progression(
         else:
             pct = float((vals > 0).mean() * 100.0)
         ax.text(
-            i, ax.get_ylim()[1], f"worsened\n{pct:.0f}%  (n={len(vals)})",
-            ha="center", va="bottom", fontsize=10, fontweight="bold",
+            i,
+            ax.get_ylim()[1],
+            f"worsened\n{pct:.0f}%  (n={len(vals)})",
+            ha="center",
+            va="bottom",
+            fontsize=10,
+            fontweight="bold",
             color=color,
         )
 
@@ -1247,8 +1358,14 @@ def raincloud_progression(
         bits.append(f"permutation p {p_txt}")
     if bits:
         ax.text(
-            0.5, -0.16, "  •  ".join(bits), transform=ax.transAxes,
-            ha="center", va="top", fontsize=10.5, color="#222",
+            0.5,
+            -0.16,
+            "  •  ".join(bits),
+            transform=ax.transAxes,
+            ha="center",
+            va="top",
+            fontsize=10.5,
+            color="#222",
         )
     fig.tight_layout()
     return fig
@@ -1273,22 +1390,40 @@ def per_compartment_bars(
     # Order: PF block first (trochlée, rotule), then FT block.
     block_rank = {"PF": 0, "FT": 1}
     df["__brank"] = df["block"].map(block_rank).fillna(9)
-    df = df.sort_values(["__brank", "compartment"], kind="stable").reset_index(drop=True)
+    df = df.sort_values(["__brank", "compartment"], kind="stable").reset_index(
+        drop=True
+    )
 
     labels = [SITE_LABELS.get(c, c) for c in df["compartment"]]
     x = np.arange(len(df))
     w = 0.38
 
     fig, ax = plt.subplots(figsize=(7.4, 4.8))
-    ax.bar(x - w / 2, df["worsened_pct_cyc"], width=w,
-           color=_group_color("cyclops"), edgecolor="#555", label="Cyclops")
-    ax.bar(x + w / 2, df["worsened_pct_men"], width=w,
-           color=_group_color("meniscus"), edgecolor="#555", label="Meniscus")
+    ax.bar(
+        x - w / 2,
+        df["worsened_pct_cyc"],
+        width=w,
+        color=_group_color("cyclops"),
+        edgecolor="#555",
+        label="Cyclops",
+    )
+    ax.bar(
+        x + w / 2,
+        df["worsened_pct_men"],
+        width=w,
+        color=_group_color("meniscus"),
+        edgecolor="#555",
+        label="Meniscus",
+    )
 
     # Value labels on bars.
     for xi, vc, vm in zip(x, df["worsened_pct_cyc"], df["worsened_pct_men"]):
-        ax.text(xi - w / 2, vc + 1.0, f"{vc:.0f}", ha="center", va="bottom", fontsize=8.5)
-        ax.text(xi + w / 2, vm + 1.0, f"{vm:.0f}", ha="center", va="bottom", fontsize=8.5)
+        ax.text(
+            xi - w / 2, vc + 1.0, f"{vc:.0f}", ha="center", va="bottom", fontsize=8.5
+        )
+        ax.text(
+            xi + w / 2, vm + 1.0, f"{vm:.0f}", ha="center", va="bottom", fontsize=8.5
+        )
 
     # Block separator + block labels.
     n_pf = int((df["block"] == "PF").sum())
@@ -1296,18 +1431,34 @@ def per_compartment_bars(
         sep = n_pf - 0.5
         ax.axvline(sep, color="#444", linestyle="--", linewidth=1.3)
         ymax = max(df["worsened_pct_cyc"].max(), df["worsened_pct_men"].max())
-        ax.text((n_pf - 1) / 2, ymax * 1.12, "Patellofemoral (PF)",
-                ha="center", va="bottom", fontsize=11, fontweight="bold",
-                color="#3b3b6b")
-        ax.text((n_pf + len(df) - 1) / 2, ymax * 1.12, "Femorotibial (FT)",
-                ha="center", va="bottom", fontsize=11, fontweight="bold",
-                color="#6b3b3b")
+        ax.text(
+            (n_pf - 1) / 2,
+            ymax * 1.12,
+            "Patellofemoral (PF)",
+            ha="center",
+            va="bottom",
+            fontsize=11,
+            fontweight="bold",
+            color="#3b3b6b",
+        )
+        ax.text(
+            (n_pf + len(df) - 1) / 2,
+            ymax * 1.12,
+            "Femorotibial (FT)",
+            ha="center",
+            va="bottom",
+            fontsize=11,
+            fontweight="bold",
+            color="#6b3b3b",
+        )
 
     ax.set_xticks(x)
     ax.set_xticklabels(labels)
     ax.set_ylabel("Patients worsening (%)")
     ax.set_xlabel("Compartment")
-    ax.set_ylim(0, max(df["worsened_pct_cyc"].max(), df["worsened_pct_men"].max()) * 1.28 + 5)
+    ax.set_ylim(
+        0, max(df["worsened_pct_cyc"].max(), df["worsened_pct_men"].max()) * 1.28 + 5
+    )
     ax.set_title(title)
     ax.legend(loc="upper right", framealpha=0.9)
     fig.tight_layout()
@@ -1336,7 +1487,7 @@ def topographic_specificity(
     of patients** and the count printed inside. Bubbles are coloured by region:
     green = **PF-specific** (ΔPF > 0, ΔFT ≤ 0), red = **FT involved** (ΔFT > 0),
     grey = neither. The ``ΔPF = ΔFT`` diagonal and the zero axes are drawn for
-    reference. The whole story — *the damage lands in PF, FT is spared* — reads
+    reference. The whole story  *the damage lands in PF, FT is spared*  reads
     in one glance: the mass hugs the ΔFT = 0 row at ΔPF > 0.
 
     Replaces the earlier paired-slope spaghetti (unreadable line crossings).
@@ -1366,22 +1517,46 @@ def topographic_specificity(
     # Shade the PF-specific region (ΔPF > 0, ΔFT ≤ 0).
     ax.axhspan(lo, 0, xmin=0, xmax=1, color="#e8f3e6", zorder=0)
     # Identity diagonal + zero axes.
-    ax.plot([lo, hi], [lo, hi], ls="--", color="#bbbbbb", lw=1.1, zorder=1,
-            label="ΔPF = ΔFT (equal worsening)")
+    ax.plot(
+        [lo, hi],
+        [lo, hi],
+        ls="--",
+        color="#bbbbbb",
+        lw=1.1,
+        zorder=1,
+        label="ΔPF = ΔFT (equal worsening)",
+    )
     ax.axhline(0, color="#777", ls=":", lw=1.0, zorder=1)
     ax.axvline(0, color="#777", ls=":", lw=1.0, zorder=1)
 
     for (x, yv), k in counts.items():
         if x > 0 and yv <= 0:
-            color = "#1b7837"      # PF-specific
+            color = "#1b7837"  # PF-specific
         elif yv > 0:
-            color = "#d1495b"      # FT involved
+            color = "#d1495b"  # FT involved
         else:
-            color = "#9aa7b3"      # neither
-        ax.scatter(x, yv, s=90 + 130 * k, color=color, alpha=0.85,
-                   edgecolor="white", linewidth=1.0, zorder=3)
-        ax.text(x, yv, str(k), ha="center", va="center", fontsize=9.5,
-                fontweight="bold", color="white", zorder=4)
+            color = "#9aa7b3"  # neither
+        ax.scatter(
+            x,
+            yv,
+            s=90 + 130 * k,
+            color=color,
+            alpha=0.85,
+            edgecolor="white",
+            linewidth=1.0,
+            zorder=3,
+        )
+        ax.text(
+            x,
+            yv,
+            str(k),
+            ha="center",
+            va="center",
+            fontsize=9.5,
+            fontweight="bold",
+            color="white",
+            zorder=4,
+        )
 
     pf_specific = sum(k for (x, yv), k in counts.items() if x > 0 and yv <= 0)
     both = sum(k for (x, yv), k in counts.items() if x > 0 and yv > 0)
@@ -1394,18 +1569,30 @@ def topographic_specificity(
     ax.set_xlim(lo, hi)
     ax.set_ylim(lo, hi)
     ax.set_aspect("equal", adjustable="box")
-    ax.set_xlabel("ΔPF — patellofemoral worsening (S2 − S1)")
-    ax.set_ylabel("ΔFT — femorotibial worsening (S2 − S1)")
+    ax.set_xlabel("ΔPF  patellofemoral worsening (S2 − S1)")
+    ax.set_ylabel("ΔFT  femorotibial worsening (S2 − S1)")
 
     # Region key + counts box (top-left, clear of the data mass at bottom-right).
-    txt = (f"PF-specific (ΔPF>0, ΔFT≤0): {pf_specific}\n"
-           f"FT also worsens (ΔFT>0): {n_ft_worsened}\n"
-           f"neither: {neither}   ·   n = {n}")
-    ax.text(0.03, 0.97, txt, transform=ax.transAxes, ha="left", va="top",
-            fontsize=9, bbox=dict(boxstyle="round,pad=0.45", fc="#ffffff",
-                                  ec="#bbbbbb"), zorder=5)
+    txt = (
+        f"PF-specific (ΔPF>0, ΔFT≤0): {pf_specific}\n"
+        f"FT also worsens (ΔFT>0): {n_ft_worsened}\n"
+        f"neither: {neither}   ·   n = {n}"
+    )
+    ax.text(
+        0.03,
+        0.97,
+        txt,
+        transform=ax.transAxes,
+        ha="left",
+        va="top",
+        fontsize=9,
+        bbox=dict(boxstyle="round,pad=0.45", fc="#ffffff", ec="#bbbbbb"),
+        zorder=5,
+    )
 
-    banner = [f"Within-patient: {n_pf_worsened}/{n} worsen PF, only {n_ft_worsened}/{n} worsen FT"]
+    banner = [
+        f"Within-patient: {n_pf_worsened}/{n} worsen PF, only {n_ft_worsened}/{n} worsen FT"
+    ]
     stat_bits = []
     if rank_biserial is not None:
         stat_bits.append(f"matched-pairs r = {rank_biserial:+.2f}")
@@ -1474,14 +1661,26 @@ def forest_m3(
         lo, hi = _hdi_interval(vals)
         p_gt0 = float((vals > 0).mean())
         color = "#2a7f62" if (lo > 0 or hi < 0) else "#b08900"
-        ax.plot([lo, hi], [yi, yi], color=color, linewidth=3.0, solid_capstyle="round",
-                zorder=2)
-        ax.scatter([mean], [yi], s=85, color=color, edgecolor="white", linewidth=0.9,
-                   zorder=3)
+        ax.plot(
+            [lo, hi],
+            [yi, yi],
+            color=color,
+            linewidth=3.0,
+            solid_capstyle="round",
+            zorder=2,
+        )
+        ax.scatter(
+            [mean], [yi], s=85, color=color, edgecolor="white", linewidth=0.9, zorder=3
+        )
         ax.annotate(
             f"{mean:+.2f}  [{lo:+.2f}, {hi:+.2f}]   P(>0)={p_gt0:.2f}",
-            (hi, yi), xytext=(8, 0), textcoords="offset points",
-            ha="left", va="center", fontsize=9, color="#333",
+            (hi, yi),
+            xytext=(8, 0),
+            textcoords="offset points",
+            ha="left",
+            va="center",
+            fontsize=9,
+            color="#333",
         )
 
     ax.axvline(0, color="#222", linestyle="--", linewidth=1.2, zorder=1)
@@ -1531,7 +1730,9 @@ def diagnostics_m3(
         # Trace.
         for ch in chains:
             axes[r, 0].plot(
-                da.sel(chain=ch).values, linewidth=0.6, alpha=0.8,
+                da.sel(chain=ch).values,
+                linewidth=0.6,
+                alpha=0.8,
                 label=f"chain {int(ch)}",
             )
         axes[r, 0].set_ylabel(v)
@@ -1543,9 +1744,15 @@ def diagnostics_m3(
         try:
             az.plot_rank(idata, var_names=[v], ax=axes[r, 1], kind="bars")
             axes[r, 1].set_title("Rank plot" if r == 0 else "")
-        except Exception:  # noqa: BLE001 — fall back to ESS-less marker
-            axes[r, 1].text(0.5, 0.5, "rank plot unavailable",
-                            ha="center", va="center", transform=axes[r, 1].transAxes)
+        except Exception:  # noqa: BLE001  fall back to ESS-less marker
+            axes[r, 1].text(
+                0.5,
+                0.5,
+                "rank plot unavailable",
+                ha="center",
+                va="center",
+                transform=axes[r, 1].transAxes,
+            )
         axes[r, 1].set_ylabel("")
 
     sup = title
@@ -1612,8 +1819,14 @@ def delay_ecdf_fit(
         color = _group_color(grp)
         # Empirical ECDF (step).
         ecdf_y = np.arange(1, len(vals) + 1) / len(vals)
-        ax.step(vals, ecdf_y, where="post", color=color, linewidth=2.0,
-                label=f"{GROUP_LABELS.get(grp, grp)} (empirical, n={len(vals)})")
+        ax.step(
+            vals,
+            ecdf_y,
+            where="post",
+            color=color,
+            linewidth=2.0,
+            label=f"{GROUP_LABELS.get(grp, grp)} (empirical, n={len(vals)})",
+        )
         # Fitted LogNormal CDF.
         if grp in post_params:
             mu, sigma = post_params[grp]
@@ -1623,16 +1836,31 @@ def delay_ecdf_fit(
             mu, sigma = float(logv.mean()), float(logv.std(ddof=1))
             fit_src = "MLE"
         cdf = _st.norm.cdf((np.log(grid) - mu) / sigma)
-        ax.plot(grid, cdf, color=color, linestyle="--", linewidth=1.6, alpha=0.9,
-                label=f"{GROUP_LABELS.get(grp, grp)} LogNormal ({fit_src})")
+        ax.plot(
+            grid,
+            cdf,
+            color=color,
+            linestyle="--",
+            linewidth=1.6,
+            alpha=0.9,
+            label=f"{GROUP_LABELS.get(grp, grp)} LogNormal ({fit_src})",
+        )
         # Median guide.
         med = (medians or {}).get(grp)
         if med is None:
             med = float(np.median(vals))
         ax.axvline(med, color=color, linestyle=":", linewidth=1.2, alpha=0.8)
-        ax.annotate(f"median {med:.0f} d", (med, 0.5),
-                    xytext=(6, 0), textcoords="offset points",
-                    rotation=90, va="center", ha="left", fontsize=9, color=color)
+        ax.annotate(
+            f"median {med:.0f} d",
+            (med, 0.5),
+            xytext=(6, 0),
+            textcoords="offset points",
+            rotation=90,
+            va="center",
+            ha="left",
+            fontsize=9,
+            color=color,
+        )
 
     ax.set_xlabel("Inter-surgical delay (days)")
     ax.set_ylabel("Cumulative probability")
@@ -1641,10 +1869,14 @@ def delay_ecdf_fit(
     ax.set_title(title)
     ax.legend(loc="lower right", framealpha=0.92, fontsize=8.5)
     ax.text(
-        0.02, 0.97,
+        0.02,
+        0.97,
         "Mediator (downstream of group), not a confounder:\n"
-        "cyclops are re-operated sooner — adjusting it strengthens the PF effect.",
-        transform=ax.transAxes, ha="left", va="top", fontsize=9,
+        "cyclops are re-operated sooner  adjusting it strengthens the PF effect.",
+        transform=ax.transAxes,
+        ha="left",
+        va="top",
+        fontsize=9,
         bbox=dict(boxstyle="round,pad=0.4", fc="#f7f7f7", ec="#bbb"),
     )
     fig.tight_layout()
@@ -1682,12 +1914,21 @@ def slopegraph_pf_mpl(
         for a, b, j in zip(s1, s2, jit):
             ax.plot([0 + j, 1 + j], [a, b], color=color, alpha=0.4, linewidth=1.0)
         # Median trajectory.
-        ax.plot([0, 1], [np.median(s1), np.median(s2)], color="black",
-                linewidth=3.0, marker="D", markersize=8, zorder=4,
-                label="median")
+        ax.plot(
+            [0, 1],
+            [np.median(s1), np.median(s2)],
+            color="black",
+            linewidth=3.0,
+            marker="D",
+            markersize=8,
+            zorder=4,
+            label="median",
+        )
         deltas = s2 - s1
         pct_worse = float((deltas > 0).mean() * 100.0)
-        ax.set_title(f"{GROUP_LABELS.get(grp, grp)}\nworsened {pct_worse:.0f}% (n={len(sub)})")
+        ax.set_title(
+            f"{GROUP_LABELS.get(grp, grp)}\nworsened {pct_worse:.0f}% (n={len(sub)})"
+        )
         ax.set_xticks([0, 1])
         ax.set_xticklabels(["S1", "S2"])
         ax.set_xlim(-0.3, 1.3)
@@ -1698,7 +1939,7 @@ def slopegraph_pf_mpl(
     return fig
 
 
-# --- fig10 : flexum — the mechanical driver -------------------------------
+# --- fig10 : flexum  the mechanical driver -------------------------------
 
 
 def flexum_panel(
@@ -1713,11 +1954,11 @@ def flexum_panel(
 ):
     """Two-panel flexum figure: group separation + intra-cyclops dose-response.
 
-    (a) Pre-S2 extension deficit by group — cyclops carry a flexum (−3…−10°),
+    (a) Pre-S2 extension deficit by group  cyclops carry a flexum (−3…−10°),
     meniscus sit at 0° (no nodule), a near-total separation (Fisher p tiny).
     (b) Within cyclops, the flexum *depth* vs the patellofemoral progression
     Δ_PF, with the Spearman ρ: a present/absent **mechanistic marker**, not a
-    graded dose (ρ ≈ 0). The honest pair — strong group signal, no within-group
+    graded dose (ρ ≈ 0). The honest pair  strong group signal, no within-group
     dose-response.
     """
     order = [g for g in ("meniscus", "cyclops") if g in df_flexum[group_col].unique()]
@@ -1725,32 +1966,70 @@ def flexum_panel(
 
     fig, (axa, axb) = plt.subplots(1, 2, figsize=(11.0, 4.6))
 
-    # (a) deficit by group — box + strip.
-    sns.boxplot(data=df_flexum, x=group_col, y=flexum_col, order=order,
-                hue=group_col, palette=pal, legend=False, width=0.5,
-                showcaps=False, fliersize=0, boxprops=dict(alpha=0.35), ax=axa)
-    sns.stripplot(data=df_flexum, x=group_col, y=flexum_col, order=order,
-                  hue=group_col, palette=pal, legend=False, jitter=0.22,
-                  size=5, alpha=0.8, edgecolor="white", linewidth=0.4, ax=axa)
+    # (a) deficit by group  box + strip.
+    sns.boxplot(
+        data=df_flexum,
+        x=group_col,
+        y=flexum_col,
+        order=order,
+        hue=group_col,
+        palette=pal,
+        legend=False,
+        width=0.5,
+        showcaps=False,
+        fliersize=0,
+        boxprops=dict(alpha=0.35),
+        ax=axa,
+    )
+    sns.stripplot(
+        data=df_flexum,
+        x=group_col,
+        y=flexum_col,
+        order=order,
+        hue=group_col,
+        palette=pal,
+        legend=False,
+        jitter=0.22,
+        size=5,
+        alpha=0.8,
+        edgecolor="white",
+        linewidth=0.4,
+        ax=axa,
+    )
     axa.axhline(0, color="#222", lw=0.9, ls="--")
     axa.set_xlabel("")
-    axa.set_ylabel("Pre-S2 extension deficit (°) — flexum")
+    axa.set_ylabel("Pre-S2 extension deficit (°)  flexum")
     axa.set_xticklabels([GROUP_LABELS.get(g, g) for g in order])
     axa.set_title("(a) Flexum by group")
     if fisher_p is not None:
-        axa.text(0.5, 0.03, f"any flexum: Fisher p = {fisher_p:.1e}",
-                 transform=axa.transAxes, ha="center", va="bottom", fontsize=9,
-                 bbox=dict(boxstyle="round,pad=0.3", fc="#f4f9f0", ec="#9fcb86"))
+        axa.text(
+            0.5,
+            0.03,
+            f"any flexum: Fisher p = {fisher_p:.1e}",
+            transform=axa.transAxes,
+            ha="center",
+            va="bottom",
+            fontsize=9,
+            bbox=dict(boxstyle="round,pad=0.3", fc="#f4f9f0", ec="#9fcb86"),
+        )
 
     # (b) dose-response within cyclops: deficit (positive degrees) vs Δ_PF.
-    cyc = df_flexum[(df_flexum[group_col] == "cyclops")
-                    & df_flexum[delta_col].notna()].copy()
+    cyc = df_flexum[
+        (df_flexum[group_col] == "cyclops") & df_flexum[delta_col].notna()
+    ].copy()
     cyc["deficit"] = -cyc[flexum_col].astype(float)
     rng = np.random.default_rng(RANDOM_SEED)
     jx = cyc["deficit"].values + rng.uniform(-0.18, 0.18, len(cyc))
     jy = cyc[delta_col].astype(float).values + rng.uniform(-0.06, 0.06, len(cyc))
-    axb.scatter(jx, jy, s=46, color=_group_color("cyclops"), alpha=0.8,
-                edgecolor="white", linewidth=0.5)
+    axb.scatter(
+        jx,
+        jy,
+        s=46,
+        color=_group_color("cyclops"),
+        alpha=0.8,
+        edgecolor="white",
+        linewidth=0.5,
+    )
     axb.axhline(0, color="#222", lw=0.8, ls=":")
     axb.set_xlabel("Flexum depth (° of extension lost)")
     axb.set_ylabel("Δ patellofemoral lesion score (S2 − S1)")
@@ -1762,13 +2041,22 @@ def flexum_panel(
         if spearman_p is not None:
             verdict = "no graded dose-response" if spearman_p > 0.05 else "graded"
             lab += f"\np = {spearman_p:.2f} → {verdict}"
-        axb.text(0.03, 0.97, lab, transform=axb.transAxes, ha="left", va="top",
-                 fontsize=9.5,
-                 bbox=dict(boxstyle="round,pad=0.4", fc="#fff3e9", ec="#fc8d62"))
+        axb.text(
+            0.03,
+            0.97,
+            lab,
+            transform=axb.transAxes,
+            ha="left",
+            va="top",
+            fontsize=9.5,
+            bbox=dict(boxstyle="round,pad=0.4", fc="#fff3e9", ec="#fc8d62"),
+        )
 
-    fig.suptitle("Flexum — the mechanical driver "
-                 "(present in cyclops, absent in meniscus)",
-                 fontsize=12, fontweight="bold")
+    fig.suptitle(
+        "Flexum  the mechanical driver (present in cyclops, absent in meniscus)",
+        fontsize=12,
+        fontweight="bold",
+    )
     fig.tight_layout(rect=(0, 0, 1, 0.95))
     return fig
 
@@ -1791,19 +2079,42 @@ def descriptive_demographics(patient: pd.DataFrame, group_col: str = "group"):
 
     fig, axs = plt.subplots(1, 3, figsize=(12.0, 4.2))
     # (a) age
-    sns.violinplot(data=p, x=group_col, y="age_at_trauma", order=order,
-                   hue=group_col, palette=pal, legend=False, inner="quartile",
-                   cut=0, ax=axs[0])
-    sns.stripplot(data=p, x=group_col, y="age_at_trauma", order=order,
-                  color="#333", size=3, alpha=0.5, jitter=0.18, ax=axs[0])
+    sns.violinplot(
+        data=p,
+        x=group_col,
+        y="age_at_trauma",
+        order=order,
+        hue=group_col,
+        palette=pal,
+        legend=False,
+        inner="quartile",
+        cut=0,
+        ax=axs[0],
+    )
+    sns.stripplot(
+        data=p,
+        x=group_col,
+        y="age_at_trauma",
+        order=order,
+        color="#333",
+        size=3,
+        alpha=0.5,
+        jitter=0.18,
+        ax=axs[0],
+    )
     axs[0].set_title("(a) Âge au trauma")
     axs[0].set_xlabel("")
     axs[0].set_ylabel("Âge (ans)")
     axs[0].set_xticklabels([GROUP_LABELS.get(g, g) for g in order])
     # (b) % female
-    fem = (p.groupby(group_col)["female"].mean().reindex(order) * 100.0)
-    axs[1].bar(range(len(order)), fem.values, color=[pal[g] for g in order],
-               width=0.6, edgecolor="white")
+    fem = p.groupby(group_col)["female"].mean().reindex(order) * 100.0
+    axs[1].bar(
+        range(len(order)),
+        fem.values,
+        color=[pal[g] for g in order],
+        width=0.6,
+        edgecolor="white",
+    )
     for i, v in enumerate(fem.values):
         axs[1].text(i, v + 1.5, f"{v:.0f}%", ha="center", va="bottom", fontsize=10)
     axs[1].set_xticks(range(len(order)))
@@ -1812,17 +2123,39 @@ def descriptive_demographics(patient: pd.DataFrame, group_col: str = "group"):
     axs[1].set_ylabel("% féminin")
     axs[1].set_title("(b) Sexe (% féminin)")
     # (c) BMI
-    sns.violinplot(data=p, x=group_col, y="imc", order=order, hue=group_col,
-                   palette=pal, legend=False, inner="quartile", cut=0, ax=axs[2])
-    sns.stripplot(data=p, x=group_col, y="imc", order=order, color="#333",
-                  size=3, alpha=0.5, jitter=0.18, ax=axs[2])
+    sns.violinplot(
+        data=p,
+        x=group_col,
+        y="imc",
+        order=order,
+        hue=group_col,
+        palette=pal,
+        legend=False,
+        inner="quartile",
+        cut=0,
+        ax=axs[2],
+    )
+    sns.stripplot(
+        data=p,
+        x=group_col,
+        y="imc",
+        order=order,
+        color="#333",
+        size=3,
+        alpha=0.5,
+        jitter=0.18,
+        ax=axs[2],
+    )
     axs[2].set_title("(c) IMC")
     axs[2].set_xlabel("")
     axs[2].set_ylabel("IMC (kg/m²)")
     axs[2].set_xticklabels([GROUP_LABELS.get(g, g) for g in order])
 
-    fig.suptitle("Démographie de base par groupe (cyclops vs méniscus)",
-                 fontsize=12, fontweight="bold")
+    fig.suptitle(
+        "Démographie de base par groupe (cyclops vs méniscus)",
+        fontsize=12,
+        fontweight="bold",
+    )
     fig.tight_layout(rect=(0, 0, 1, 0.95))
     return fig
 
@@ -1830,8 +2163,8 @@ def descriptive_demographics(patient: pd.DataFrame, group_col: str = "group"):
 def descriptive_lesion_baseline(wide: pd.DataFrame, group_col: str = "group"):
     """First-glance baseline cartilage view by group at S1.
 
-    (a) Total S1 lesion load (sum of 6 compartments) by group — box + strip;
-    (b) per-compartment prevalence of any lesion (score ≥ 1) at S1 by group —
+    (a) Total S1 lesion load (sum of 6 compartments) by group  box + strip;
+    (b) per-compartment prevalence of any lesion (score ≥ 1) at S1 by group
     grouped bars. Shows the starting cartilage state the equivalence test
     (fig1b) summarises.
     """
@@ -1842,12 +2175,33 @@ def descriptive_lesion_baseline(wide: pd.DataFrame, group_col: str = "group"):
 
     fig, (axa, axb) = plt.subplots(1, 2, figsize=(11.8, 4.4))
     # (a) total S1 load
-    sns.boxplot(data=w, x=group_col, y="lesion_total_S1", order=order,
-                hue=group_col, palette=pal, legend=False, width=0.5,
-                showcaps=False, fliersize=0, boxprops=dict(alpha=0.35), ax=axa)
-    sns.stripplot(data=w, x=group_col, y="lesion_total_S1", order=order,
-                  hue=group_col, palette=pal, legend=False, jitter=0.2,
-                  size=4, alpha=0.7, ax=axa)
+    sns.boxplot(
+        data=w,
+        x=group_col,
+        y="lesion_total_S1",
+        order=order,
+        hue=group_col,
+        palette=pal,
+        legend=False,
+        width=0.5,
+        showcaps=False,
+        fliersize=0,
+        boxprops=dict(alpha=0.35),
+        ax=axa,
+    )
+    sns.stripplot(
+        data=w,
+        x=group_col,
+        y="lesion_total_S1",
+        order=order,
+        hue=group_col,
+        palette=pal,
+        legend=False,
+        jitter=0.2,
+        size=4,
+        alpha=0.7,
+        ax=axa,
+    )
     axa.set_title("(a) Charge lésionnelle S1 (somme 6 compartiments)")
     axa.set_xlabel("")
     axa.set_ylabel("Score lésionnel total S1")
@@ -1864,17 +2218,30 @@ def descriptive_lesion_baseline(wide: pd.DataFrame, group_col: str = "group"):
             store.append(100.0 * float((sub >= 1).mean()) if len(sub) else 0.0)
     x = np.arange(len(labels))
     bw = 0.38
-    axb.bar(x - bw / 2, men_v, bw, label=GROUP_LABELS.get("meniscus", "meniscus"),
-            color=_group_color("meniscus"), edgecolor="white")
-    axb.bar(x + bw / 2, cyc_v, bw, label=GROUP_LABELS.get("cyclops", "cyclops"),
-            color=_group_color("cyclops"), edgecolor="white")
+    axb.bar(
+        x - bw / 2,
+        men_v,
+        bw,
+        label=GROUP_LABELS.get("meniscus", "meniscus"),
+        color=_group_color("meniscus"),
+        edgecolor="white",
+    )
+    axb.bar(
+        x + bw / 2,
+        cyc_v,
+        bw,
+        label=GROUP_LABELS.get("cyclops", "cyclops"),
+        color=_group_color("cyclops"),
+        edgecolor="white",
+    )
     axb.set_xticks(x)
     axb.set_xticklabels(labels, rotation=20, ha="right")
     axb.set_ylabel("% avec lésion ≥ 1 à S1")
     axb.set_title("(b) Prévalence lésionnelle par compartiment (S1)")
     axb.legend(fontsize=8)
 
-    fig.suptitle("État cartilagineux de départ (S1) par groupe",
-                 fontsize=12, fontweight="bold")
+    fig.suptitle(
+        "État cartilagineux de départ (S1) par groupe", fontsize=12, fontweight="bold"
+    )
     fig.tight_layout(rect=(0, 0, 1, 0.95))
     return fig

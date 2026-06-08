@@ -1,8 +1,8 @@
-"""lino_stats — Dual-population bayesian analysis of paired knee-surgery cohort.
+"""lino_stats  Dual-population bayesian analysis of paired knee-surgery cohort.
 
 Shared constants and lazy interpretability re-exports for the flat ``src/``
-module layout (each analysis module — loaders, preprocessing, viz, tests_freq,
-bayes_models, reporting — is a top-level module on ``pythonpath = ["src"]``).
+module layout (each analysis module  loaders, preprocessing, viz, tests_freq,
+bayes_models, reporting  is a top-level module on ``pythonpath = ["src"]``).
 
 Modules
 -------
@@ -73,16 +73,16 @@ N_CYCLOPS_ROWS: int = 98
 N_ROWS: int = 138
 
 # Ordinal score bounds. NATIVE scale is 0–3 (Outerbridge grade-3 in 2 rows on
-# trochlée/rotule) — kept for the descriptive raw-frequency table and
+# trochlée/rotule)  kept for the descriptive raw-frequency table and
 # sensitivity analyses. For MODELLING (M3) the scale is COLLAPSED to {0,1,≥2}
 # (consensus point A): grade 3 → 2. The collapse is information-neutral on the
 # PF signal (§2.2: PF δ 0.533 → 0.532) and clinically justified (ICRS/Outerbridge
 # grades 2 = deep loss and 3 = exposed bone form one "advanced lesion" pole).
 SCORE_MIN: int = 0
-SCORE_MAX: int = 3            # native scale (descriptive)
+SCORE_MAX: int = 3  # native scale (descriptive)
 SCORE_MAX_COLLAPSED: int = 2  # collapsed {0,1,≥2} scale (modelling)
 
-# Sensitivity priors on β_c (contract §4.3, M3) — pass 2 sensitivity grid.
+# Sensitivity priors on β_c (contract §4.3, M3)  pass 2 sensitivity grid.
 SENSITIVITY_PRIOR_SIGMAS: tuple[float, ...] = (0.5, 1.0, 5.0)
 
 # HDI mass (Kruschke convention, contract §2)
@@ -95,7 +95,7 @@ N_BOOT_DEFAULT: int = 10000
 CI_DEFAULT: float = 0.95
 
 # Equivalence (TOST) margin for baseline-balance checks. The equivalence box is
-# ±(EQUIV_SMD_MARGIN × pooled SD) on the raw scale — i.e. an SMD margin of this
+# ±(EQUIV_SMD_MARGIN × pooled SD) on the raw scale  i.e. an SMD margin of this
 # value. 0.5 = Cohen's "small" boundary: a difference below half a pooled SD is
 # treated as clinically negligible. Single source of truth for the TOST bound in
 # baseline_block_balance (was hardcoded inline before).
@@ -134,6 +134,7 @@ NUTS_KWARGS_ESCALATED: dict = dict(
 
 # --- Public interpretability helpers (append-only re-exports) --------------
 
+
 def __getattr__(name: str):
     """Lazy re-export of sibling-module helpers (avoids eager imports / cycles)."""
     _lazy_map = {
@@ -156,6 +157,7 @@ def __getattr__(name: str):
     }
     if name in _lazy_map:
         import importlib
+
         mod_name, attr = _lazy_map[name]
         mod = importlib.import_module(mod_name)
         return getattr(mod, attr)
