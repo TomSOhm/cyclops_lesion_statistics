@@ -128,7 +128,7 @@ Pourquoi **2 événements ne peuvent pas identifier un seuil ordinal supérieur*
 
 ¹ SMD sur la version binarisée (pivot ≥ 1), comme au §01 ; le $p = 0{,}060$ est le chi² sur les 3 niveaux. *(Source : `results/table1.csv`.)*
 
-**Lecture des $p$ de la Table 1.** Aucun $p$ n'est $< 0{,}05$ : à $n = 20$ méniscus on ne **détecte** aucune différence — mais ce n'est **pas** une preuve d'équivalence, le plus souvent juste un **manque de puissance**. La SMD le démontre : l'âge ($p = 0{,}084$ *mais* SMD $+0{,}49$) et le sexe ($p = 0{,}188$ *mais* SMD $+0{,}37$) sont en réalité **déséquilibrés** — le $p$ les manque, la SMD les voit. D'où le choix de décider sur la SMD, pas sur le $p$, à ce stade.
+**Lecture des $p$ de la Table 1.** Aucun $p$ n'est $< 0{,}05$ : à $n = 20$ méniscus on ne **détecte** aucune différence mais ce n'est **pas** une preuve d'équivalence, le plus souvent juste un **manque de puissance**. La SMD le démontre : l'âge ($p = 0{,}084$ *mais* SMD $+0{,}49$) et le sexe ($p = 0{,}188$ *mais* SMD $+0{,}37$) sont en réalité **déséquilibrés** le $p$ les manque, la SMD les voit. D'où le choix de décider sur la SMD, pas sur le $p$, à ce stade.
 
 ![Figure 0a  démographie de base par groupe](../figures/fig0a_demographics.png)
 
@@ -220,7 +220,7 @@ $$
 **Hypothèse nulle.** $H_0$ : les deux distributions sont **les mêmes**  de façon équivalente $P(X>Y)=P(Y>X)=\tfrac12$ (aucune **dominance stochastique**, ni groupe ne tend à être plus haut). La **$p$-value** = probabilité, sous $H_0$, d'observer un $U$ aussi extrême que le nôtre.
 
 > [!IMPORTANT]
-> **Comment lire une $p$ — et pourquoi ce n'est *pas* « on est sûr à $1-p$ ».** Une $p$-value fréquentiste se lit **sous $H_0$** : « *si* $H_0$ (aucune différence) était vraie, quelle serait la probabilité d'observer un écart **au moins aussi extrême** que le nôtre ? ». Elle ne dit **pas** « il y a $1-p$ de chances que l'effet soit réel » (l'erreur d'interprétation la plus courante). La lecture juste a trois temps : **(1)** poser $H_0$ ; **(2)** « sous $H_0$, seulement $p$ de chances d'un tel écart » ; **(3)** décider — si $p < \alpha = 0{,}05$ on **rejette $H_0$** et on conclut à l'effet (au risque $\alpha$ de se tromper), sinon on **ne conclut rien** (*absence de preuve ≠ preuve d'absence*). Même grille pour **Fisher** (proportions) et, en miroir, pour la **TOST** (où $H_0$ est la *non-équivalence*). Seules les **probabilités a posteriori** $P(\cdot \mid \text{données})$ du §05 se lisent vraiment « **on est sûr à X %** » : elles portent sur l'**hypothèse**, pas sur les données. Chaque résultat ci-dessous est donc accompagné d'une phrase de lecture explicite.
+> **Comment lire une $p$ et pourquoi ce n'est *pas* « on est sûr à $1-p$ ».** Une $p$-value fréquentiste se lit **sous $H_0$** : « *si* $H_0$ (aucune différence) était vraie, quelle serait la probabilité d'observer un écart **au moins aussi extrême** que le nôtre ? ». Elle ne dit **pas** « il y a $1-p$ de chances que l'effet soit réel » (l'erreur d'interprétation la plus courante). La lecture juste a trois temps : **(1)** poser $H_0$ ; **(2)** « sous $H_0$, seulement $p$ de chances d'un tel écart » ; **(3)** décider si $p < \alpha = 0{,}05$ on **rejette $H_0$** et on conclut à l'effet (au risque $\alpha$ de se tromper), sinon on **ne conclut rien** (*absence de preuve ≠ preuve d'absence*). Même grille pour **Fisher** (proportions) et, en miroir, pour la **TOST** (où $H_0$ est la *non-équivalence*). Seules les **probabilités a posteriori** $P(\cdot \mid \text{données})$ du §05 se lisent vraiment « **on est sûr à X %** » : elles portent sur l'**hypothèse**, pas sur les données. Chaque résultat ci-dessous est donc accompagné d'une phrase de lecture explicite.
 
 **Lien direct avec Cliff's δ (l'effet du §02).** $U$ se renormalise **exactement** en taille d'effet : la corrélation rang-bisériale $r = \tfrac{2U_x}{n_x n_y} - 1 = $ **Cliff's δ**. Autrement dit MWU (la significativité) et Cliff's δ (l'ampleur) sont la **même mécanique** : δ n'est que $U$ ramené sur $[-1,+1]$.
 
@@ -304,7 +304,7 @@ où $x$ = `lesion_pf_S1` (cyclops) et $y$ = `lesion_pf_S1` (méniscus). Numériq
 
 La SMD de $-0{,}009$ veut dire que le point estimé de la différence est **quasiment exactement au milieu** de la boîte $[-0{,}292\,;\,+0{,}292]$ : on ne peut pas rêver mieux comme ligne de départ commune.
 
-**Lecture (PF).** Le MWU ($p = 0{,}818$) dit seulement « aucune différence *détectée* » — insuffisant pour conclure quoi que ce soit. C'est la **TOST** qui tranche : $p_{\text{TOST}} = 0{,}034 < 0{,}05$ → on **rejette la non-équivalence**, donc on **conclut *positivement* à l'équivalence** : la différence d'état PF de départ tient, à 90 % de confiance, dans la marge négligeable $\pm 0{,}292$. Autrement dit on est **sûr** que les deux groupes partent du **même niveau cartilagineux PF** — la condition qui rend tout le contraste PF à venir interprétable comme une vraie progression.
+**Lecture (PF).** Le MWU ($p = 0{,}818$) dit seulement « aucune différence *détectée* » insuffisant pour conclure quoi que ce soit. C'est la **TOST** qui tranche : $p_{\text{TOST}} = 0{,}034 < 0{,}05$ → on **rejette la non-équivalence**, donc on **conclut *positivement* à l'équivalence** : la différence d'état PF de départ tient, à 90 % de confiance, dans la marge négligeable $\pm 0{,}292$. Autrement dit on est **sûr** que les deux groupes partent du **même niveau cartilagineux PF** la condition qui rend tout le contraste PF à venir interprétable comme une vraie progression.
 
 > [!NOTE]
 > **Pourquoi le TOST passe « tout juste » ($p = 0{,}034$) ?**
@@ -320,7 +320,7 @@ La SMD de $-0{,}009$ veut dire que le point estimé de la différence est **quas
 
 C'est exactement le piège du `[!WARNING]` du §2 : le MWU non-significatif ($0{,}770$) **ne prouve pas** l'équivalence. Le TOST, lui, **échoue** ($0{,}186$) parce que le centre n'est **pas** collé à zéro (SMD $+0{,}26$) : les cyclops démarrent avec un léger excès de lésion fémorotibiale. Détail subtil : la borne FT ($\Delta = 0{,}437$) est **plus large** que la PF ($0{,}292$) car le bloc FT est intrinsèquement plus dispersé ($s_{\text{pooled}} \approx 0{,}87$ contre $0{,}58$)  et **malgré** cette boîte plus généreuse, la différence n'y tient pas.
 
-**Lecture (FT).** Ici $p_{\text{TOST}} = 0{,}186 > 0{,}05$ : on **ne peut pas** conclure à l'équivalence (l'IC à 90 % déborde de la boîte $\pm 0{,}437$). Ce n'est pas « les FT *diffèrent*, prouvé » mais « les FT **ne sont pas prouvés équivalents** » — et cette nuance suffit à reléguer le contraste topographique PF−FT au statut exploratoire (§6).
+**Lecture (FT).** Ici $p_{\text{TOST}} = 0{,}186 > 0{,}05$ : on **ne peut pas** conclure à l'équivalence (l'IC à 90 % déborde de la boîte $\pm 0{,}437$). Ce n'est pas « les FT *diffèrent*, prouvé » mais « les FT **ne sont pas prouvés équivalents** » et cette nuance suffit à reléguer le contraste topographique PF−FT au statut exploratoire (§6).
 
 > [!IMPORTANT]
 > **Pourquoi tester FT alors que l'hypothèse porte sur PF ?** Parce que le **contraste topographique PF−FT** (§05) compare la progression du bloc PF *à* celle du bloc FT. Le lire causalement  « l'effet est **en PF**, pas en FT »  exige que **les deux** blocs partent du même niveau à S1. PF part équilibré (lecture propre) ; FT **non**. La conséquence sur l'étude est détaillée au §6.
@@ -561,7 +561,7 @@ La **figure 10** a deux panneaux : **(a)** le flexum par groupe  les cyclops s'�
 Lecture **honnête en deux temps**, et c'est tout l'intérêt :
 
 - **Le moteur est présent là où la casse arrive.** Le flexum sépare les groupes de façon quasi-totale (29/49 vs 0/20, Fisher $p \approx 1{,}4\times10^{-6}$). **Lecture :** sous $H_0$ « le flexum est aussi fréquent dans les deux groupes », une séparation aussi nette n'arriverait qu'avec une probabilité de l'ordre de $1{,}4\times10^{-6}$ → on rejette $H_0$ et on conclut que **le mécanisme physique pré-spécifié est présent chez les cyclops et absent chez les méniscus**. Le chaînon *cyclope → flexum* est solide.
-- **Mais le flexum agit comme un marqueur présent/absent, pas comme une dose graduée.** Parmi les cyclops, la **profondeur** du flexum ne prédit **pas** l'ampleur de l'aggravation PF. **Lecture :** $\rho = +0{,}035$, $p = 0{,}81 > 0{,}05$ → on **ne rejette pas** $H_0$ « aucune corrélation monotone », donc **aucun gradient n'est détecté** — ce qui n'est **pas** « pas d'effet » mais « **pas de dose-réponse graduée détectée** » (*absence de preuve ≠ preuve d'absence*). Raisons plausibles : plage étroite (surtout $-5°$), un **instantané** pré-S2 face à une usure **cumulée**, mécanisme à **seuil** plutôt que gradué, et faible $n$ porteur de déficit.
+- **Mais le flexum agit comme un marqueur présent/absent, pas comme une dose graduée.** Parmi les cyclops, la **profondeur** du flexum ne prédit **pas** l'ampleur de l'aggravation PF. **Lecture :** $\rho = +0{,}035$, $p = 0{,}81 > 0{,}05$ → on **ne rejette pas** $H_0$ « aucune corrélation monotone », donc **aucun gradient n'est détecté** ce qui n'est **pas** « pas d'effet » mais « **pas de dose-réponse graduée détectée** » (*absence de preuve ≠ preuve d'absence*). Raisons plausibles : plage étroite (surtout $-5°$), un **instantané** pré-S2 face à une usure **cumulée**, mécanisme à **seuil** plutôt que gradué, et faible $n$ porteur de déficit.
 
 Le flexum **renforce donc le mécanisme** (présent/absent tracke le groupe) sans fournir de gradient  exactement le genre de nuance qu'un papier rigoureux **rapporte** au lieu de la masquer.
 
@@ -1000,7 +1000,7 @@ Les barres PF et contraste sont vertes (excluent 0), la barre FT est orange/ocre
 Les nombres canoniques de décision (modèle **échangeable**, le neutre) :
 
 - **Estimand primaire  δ̄ = +0.247**, HDI 94 % **[−0.861, +1.405]**, **P(δ̄ > 0) = 0.66**. Sous le seuil 0.95 → **NON CONCLUANT** (dilution attendue). Décalage de base γ = **−3.13**.
-- **Contraste PF dérivé** (du postérieur échangeable neutre) = **+2.29**, HDI **[0.86, 3.63]**, **P(>0) = 0.999** — on est **sûr à 99,9 %** que la progression PF dépasse la progression FT, et ce **sans** que le modèle ait jamais « vu » la partition PF/FT (lecture non circulaire).
+- **Contraste PF dérivé** (du postérieur échangeable neutre) = **+2.29**, HDI **[0.86, 3.63]**, **P(>0) = 0.999** on est **sûr à 99,9 %** que la progression PF dépasse la progression FT, et ce **sans** que le modèle ait jamais « vu » la partition PF/FT (lecture non circulaire).
 - **Modèle two-block** (descriptif uniquement) : δ_PF = **+2.44**, δ_FT = **−0.77**, contraste = **+3.21** [1.15, 5.30].
 - **LOO** : favorise **faiblement** le two-block (avertissements Pareto-k̂ → **indicatif, pas décisif**).
 - **Convergence** : max R̂ = **1.002**, ESS_bulk min = **1557**, **0 divergence**.
