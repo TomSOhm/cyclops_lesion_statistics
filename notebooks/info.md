@@ -214,7 +214,7 @@ $$
 $U_x$ **compte**, sur les $n_x\times n_y$ paires (cyclops $i$, méniscus $j$), combien de fois une valeur cyclops dépasse une valeur méniscus (ex æquo comptés $\tfrac12$) :
 
 $$
-U_x = \#\{(i,j): x_i > y_j\} + \tfrac12\,\#\{x_i = y_j\}
+U_x = card(\{(i,j): x_i > y_j\}) + \tfrac12\,card(\{x_i = y_j\})
 $$
 
 **Hypothèse nulle.** $H_0$ : les deux distributions sont **les mêmes**  de façon équivalente $P(X>Y)=P(Y>X)=\tfrac12$ (aucune **dominance stochastique**, ni groupe ne tend à être plus haut). La **$p$-value** = probabilité, sous $H_0$, d'observer un $U$ aussi extrême que le nôtre.
