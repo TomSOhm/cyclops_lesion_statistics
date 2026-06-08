@@ -624,7 +624,7 @@ On veut faire deux choses à la fois, et la première est une affaire d'**honnê
 **BH-FDR en une phrase.** On classe les `m` p-values par ordre croissant `p(1) ≤ … ≤ p(m)`, puis on compare chaque `p(k)` au seuil **`k/m · q`** ; on rejette toutes les hypothèses jusqu'au plus grand `k` qui passe encore sous son seuil.
 
 $$
-\text{rejeter } H_{(1)},\dots,H_{(k^\*)} \quad\text{où}\quad k^\* = \max\Big\{\, k : p_{(k)} \le \tfrac{k}{m}\,q \,\Big\}, \quad q = 0.10
+\text{rejeter } H_{(1)},\dots,H_{(k^*)} \quad\text{où}\quad k^* = \max\{\, k : p_{(k)} \le \tfrac{k}{m}\,q \,\}, \quad q = 0.10
 $$
 
 **Table des % d'aggravation par compartiment** (cyclops vs méniscus), avec la décision BH :
