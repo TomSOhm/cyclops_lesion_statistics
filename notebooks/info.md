@@ -538,8 +538,7 @@ Données : `data/flexum.xlsx` (« flexum avant S2 », en degrés ; $0$ = extensi
 - **Séparation :** table $2\times2$ « flexum présent ($<0$) vs absent » × groupe → `fisher_exact_2x2`. MWU/Cliff sur les degrés signés via `mwu_with_effects`.
 - **Dose-réponse :** sur les cyclops, $\text{profondeur} = -\text{flexum}$ (degrés perdus, $\ge 0$) corrélée à $\Delta_{\text{PF}}$ via `spearman_bca` (BCa $B=10000$, seed 42).
 
-> [!NOTE]
-> **Appariement.** Le fichier `flexum.xlsx` a été **réaligné sur la numérotation de la cohorte** (`1…49` côté cyclops, après la reclassification du patient 25, qui décale d'un cran les identifiants ≥ 26) : l'inner-join sur `(group, anonyme)` apparie désormais **49/49 cyclops** en **1:1**  chaque valeur de flexum face au bon patient, ce qui restaure le compte **29/49** *et* corrige l'appariement de la dose-réponse. Côté méniscus, la feuille liste 49 lignes (toutes à 0°) dont seules les **20** de la cohorte sont retenues : le surplus, à 0°, est sans effet.
+
 
 #### 4 · Résultat
 
