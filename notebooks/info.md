@@ -557,7 +557,7 @@ La **figure 10** a deux panneaux : **(a)** le flexum par groupe  les cyclops s'�
 
 #### 5 · Interprétation
 
-Lecture **honnête en deux temps**, et c'est tout l'intérêt :
+Lecture **en deux temps**:
 
 - **Le moteur est présent là où la casse arrive.** Le flexum sépare les groupes de façon quasi-totale (29/49 vs 0/20, Fisher $p \approx 1{,}4\times10^{-6}$). **Lecture :** sous $H_0$ « le flexum est aussi fréquent dans les deux groupes », une séparation aussi nette n'arriverait qu'avec une probabilité de l'ordre de $1{,}4\times10^{-6}$ → on rejette $H_0$ et on conclut que **le mécanisme physique pré-spécifié est présent chez les cyclops et absent chez les méniscus**. Le chaînon *cyclope → flexum* est solide.
 - **Mais le flexum agit comme un marqueur présent/absent, pas comme une dose graduée.** Parmi les cyclops, la **profondeur** du flexum ne prédit **pas** l'ampleur de l'aggravation PF. **Lecture :** $\rho = +0{,}035$, $p = 0{,}81 > 0{,}05$ → on **ne rejette pas** $H_0$ « aucune corrélation monotone », donc **aucun gradient n'est détecté** ce qui n'est **pas** « pas d'effet » mais « **pas de dose-réponse graduée détectée** » (*absence de preuve ≠ preuve d'absence*). Raisons plausibles : plage étroite (surtout $-5°$), un **instantané** pré-S2 face à une usure **cumulée**, mécanisme à **seuil** plutôt que gradué, et faible $n$ porteur de déficit.
