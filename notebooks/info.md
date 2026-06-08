@@ -540,9 +540,24 @@ Données : `data/flexum.xlsx` (« flexum avant S2 », en degrés ; $0$ = extensi
 
 #### 3bis · Note de méthode : le bootstrap BCa sur le dose-réponse du flexum
 
-**Ce que le bootstrap ré-échantillonne.** Sur les 49 cyclops, on dispose de 49 paires $(\text{profondeur}_i, \Delta_{\text{PF},i})$. Le bootstrap tire $10\,000$ fois, avec remise, un échantillon de 49 paires, puis recalcule $\rho$ à chaque tirage. Le ré-échantillonnage est **apparié** : un seul jeu d'indices est appliqué aux deux colonnes à la fois, ce qui préserve le couplage flexum/aggravation (ré-échantillonner les deux variables séparément détruirait la corrélation que l'on cherche à estimer). On obtient une distribution empirique de $10\,000$ valeurs de $\rho$, qui approxime la variabilité d'échantillonnage de l'estimateur.
+**Pourquoi BCa, et pas le percentile brut.** $\rho$ est borné dans $[-1, +1]$ et sa loi d'échantillonnage devient asymétrique près des bords et à petit effectif. L'intervalle percentile (quantiles $2{,}5\%$ et $97{,}5\%$ des tirages) suppose une distribution symétrique et un estimateur sans biais. BCa corrige ces deux défauts par un terme de **biais** $z_0$ et un terme d'**accélération** $a$. Correction au second ordre, invariante par transformation monotone, donc adaptée à une statistique bornée et asymétrique comme $\rho$ (ou Cliff $\delta$).
 
-**Pourquoi la variante BCa, et pas le percentile brut.** $\rho$ est borné dans $[-1, +1]$ et sa loi d'échantillonnage devient asymétrique près des bords et à petit effectif. L'intervalle percentile (quantiles $2{,}5\%$ et $97{,}5\%$ des tirages) suppose au contraire une distribution symétrique et un estimateur sans biais. BCa corrige ces deux défauts : un terme de **biais** $z_0$ recentre les bornes si la distribution bootstrap n'est pas centrée sur $\hat\rho$, et un terme d'**accélération** $a$, estimé par jackknife, étire les bornes de façon asymétrique lorsque la variance de l'estimateur dépend de son niveau. Quand $z_0 = a = 0$, BCa redonne exactement le percentile. C'est une correction au second ordre, invariante par transformation monotone, donc adaptée à une statistique bornée et asymétrique comme $\rho$ (ou Cliff $\delta$).
+**Le processus de calcul, pas à pas** ($B = 10\,000$, seed 42, $n = 49$ paires cyclops ; code dans `src/tests_freq.py`, fonctions `spearman_bca`, `_bca_ci`, `_bca_endpoints`) :
+
+1. **Estimation ponctuelle.** $\hat\theta = \rho$ sur l'échantillon complet ($= +0{,}035$). *(l.201)*
+2. **Bootstrap.** Tirer $B$ fois 49 paires avec remise, ré-échantillonnage **apparié** (un seul jeu d'indices `idx = rng.integers(0, n, size=n)` appliqué à $x$ et $y$, l.210, pour préserver le couplage flexum/$\Delta_{\text{PF}}$ ; les ré-échantillonner séparément détruirait la corrélation estimée). Recalculer $\rho$ à chaque tirage $\to \{\theta^*_1, \dots, \theta^*_B\}$.
+3. **Jackknife (leave-one-out).** Retirer chaque paire $i$, recalculer $\rho$ sur les $n-1$ restantes $\to \{\theta_{(1)}, \dots, \theta_{(n)}\}$ *(sert uniquement à $a$, l.217-231)*.
+4. **Correction de biais $z_0$** *(l.146-148)* :
+$$p = \frac{\#\{\theta^*_b < \hat\theta\}}{B}, \qquad z_0 = \Phi^{-1}(p).$$
+Distribution bootstrap centrée sur $\hat\theta \Rightarrow p = 0{,}5 \Rightarrow z_0 = 0$ (pas de biais) ; décalée $\Rightarrow z_0 \ne 0$. *($p$ borné pour éviter $\pm\infty$.)*
+5. **Accélération $a$** *(l.151-163)*, asymétrie (skewness) jackknife :
+$$a = \frac{\sum_i (\bar\theta_{(\cdot)} - \theta_{(i)})^3}{6\,\big[\sum_i (\bar\theta_{(\cdot)} - \theta_{(i)})^2\big]^{3/2}}, \qquad \bar\theta_{(\cdot)} = \text{moyenne des } \theta_{(i)}.$$
+Mesure à quelle vitesse l'écart-type de l'estimateur change avec son niveau ; $a = 0 \Rightarrow$ symétrique. *(Variance jackknife nulle $\Rightarrow$ repli sur $a = 0$, soit le percentile, avec warning.)*
+6. **Percentiles ajustés** *(l.165-169)*. Au lieu de $z_{\text{lo}} = \Phi^{-1}(0{,}025) = -1{,}96$ et $z_{\text{hi}} = +1{,}96$ :
+$$\alpha_{\text{lo}} = \Phi\!\Big(z_0 + \tfrac{z_0 + z_{\text{lo}}}{1 - a\,(z_0 + z_{\text{lo}})}\Big), \qquad \alpha_{\text{hi}} = \Phi\!\Big(z_0 + \tfrac{z_0 + z_{\text{hi}}}{1 - a\,(z_0 + z_{\text{hi}})}\Big).$$
+7. **Bornes** *(l.170-171)*. $\text{lo} = $ quantile $\alpha_{\text{lo}}$ des tirages bootstrap, $\text{hi} = $ quantile $\alpha_{\text{hi}}$ $\to [-0{,}25 ; +0{,}32]$.
+
+**Cas limite (vérification).** Si $z_0 = a = 0$, alors $\alpha_{\text{lo}} = \Phi(z_{\text{lo}}) = 0{,}025$ et $\alpha_{\text{hi}} = 0{,}975$ : BCa redevient le percentile brut. Les termes $z_0$ et $a$ ne font que **décaler** (biais) et **étirer asymétriquement** (skew) les coupures par rapport à $2{,}5 / 97{,}5$.
 
 **Comment lire l'intervalle obtenu.** Le résultat est $\rho = +0{,}035$, IC BCa $95\%$ $[-0{,}25 ; +0{,}32]$. Ici l'intervalle est l'objet inférentiel central, pas la p-value. Il dit que les données sont compatibles avec tout gradient monotone allant d'un effet négatif modéré à un effet positif modéré, que zéro est largement à l'intérieur, et que seul un gradient **fort** ($|\rho| \gtrsim 0{,}35$) est exclu.
 
