@@ -222,7 +222,7 @@ $$
 > [!IMPORTANT]
 > **Comment lire une $p$ et pourquoi ce n'est *pas* « on est sûr à $1-p$ ».** Une $p$-value fréquentiste se lit **sous $H_0$** : « *si* $H_0$ (aucune différence) était vraie, quelle serait la probabilité d'observer un écart **au moins aussi extrême** que le nôtre ? ». Elle ne dit **pas** « il y a $1-p$ de chances que l'effet soit réel » (l'erreur d'interprétation la plus courante). La lecture juste a trois temps : **(1)** poser $H_0$ ; **(2)** « sous $H_0$, seulement $p$ de chances d'un tel écart » ; **(3)** décider si $p < \alpha = 0{,}05$ on **rejette $H_0$** et on conclut à l'effet (au risque $\alpha$ de se tromper), sinon on **ne conclut rien** (*absence de preuve ≠ preuve d'absence*). Même grille pour **Fisher** (proportions) et, en miroir, pour la **TOST** (où $H_0$ est la *non-équivalence*). Seules les **probabilités a posteriori** $P(\cdot \mid \text{données})$ du §05 se lisent vraiment « **on est sûr à X %** » : elles portent sur l'**hypothèse**, pas sur les données. Chaque résultat ci-dessous est donc accompagné d'une phrase de lecture explicite.
 
-**Lien direct avec Cliff's δ (l'effet du §02).** $U$ se renormalise **exactement** en taille d'effet : la corrélation rang-bisériale $r = \tfrac{2U_x}{n_x n_y} - 1 = $ **Cliff's δ**. Autrement dit MWU (la significativité) et Cliff's δ (l'ampleur) sont la **même mécanique** : δ n'est que $U$ ramené sur $[-1,+1]$.
+**Lien direct avec Cliff's δ (l'effet du §02).** $U$ se renormalise **exactement** en taille d'effet : la corrélation rang-bisériale $\text{r} = \frac{2U_x}{n_x n_y} - 1 =$ **Cliff's δ**. Autrement dit MWU (la significativité) et Cliff's δ (l'ampleur) sont la **même mécanique** : δ n'est que $U$ ramené sur $[-1,+1]$.
 
 > [!TIP]
 > **Wilcoxon  deux tests homonymes à ne pas confondre.**
@@ -429,7 +429,7 @@ Trois choix, chacun motivé par la nature des données.
 **La théorie.** Cliff δ se dérive de la statistique $U$ de Mann–Whitney. Avec $R_1$ la somme des rangs du groupe 1 :
 
 $$
-U_1 = R_1 - \frac{n_1(n_1+1)}{2}\qquad \delta = \frac{\#(x>y) - \#(x<y)}{n_1 n_2} = \frac{2U}{n_1 n_2} - 1
+U_1 = R_1 - \frac{n_1(n_1+1)}{2}\qquad \delta = \frac{card(x>y) - card(x<y)}{n_1 n_2} = \frac{2U}{n_1 n_2} - 1
 $$
 
 Autrement dit : on forme **tous** les couples (un cyclops, un méniscus), on compte combien de fois le cyclops est pire ($x>y$), combien de fois il est mieux ($x<y$), et δ est la différence normalisée. δ va de $-1$ (toujours mieux) à $+1$ (toujours pire), $0$ = match nul.
