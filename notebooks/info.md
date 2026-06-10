@@ -40,24 +40,24 @@ flowchart TB
 
 ## Notation
 
-| Symbole                             | Signification                                                                                                                                                           |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **S1 / S2**                   | Les deux chirurgies de chaque patient, ordonnées par date (S1 = première, S2 = seconde)                                                                               |
-| **Δ = S2 − S1**             | Changement intra-patient d'un score entre les deux chirurgies (le « delta apparié »)                                                                                 |
+| Symbole                             | Signification                                                                                                                                                         |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **S1 / S2**                   | Les deux chirurgies de chaque patient, ordonnées par date (S1 = première, S2 = seconde)                                                                             |
+| **Δ = S2 − S1**             | Changement intra-patient d'un score entre les deux chirurgies (le « delta apparié »)                                                                               |
 | **PF = {trochlée, rotule}**  | Bloc fémoro-patellaire  là où on prédit la progression                                                                                                            |
 | **FT = {pte, pti, cfe, cfi}** | Bloc fémoro-tibial  plateaux tibiaux externe/interne et condyles fémoraux externe/interne                                                                           |
 | **SMD**                       | Différence moyenne standardisée  mesure de déséquilibre (seuils Austin : <0,10 négligeable, ≥0,25 notable)                                                      |
 | **MWU / U**                   | Test de Mann–Whitney U (=**Wilcoxon rank-sum**, somme des rangs)  comparaison non paramétrique de **deux groupes indépendants** (cyclops vs méniscus) |
 | **Wilcoxon signed-rank**      | Test**apparié** (sur les différences intra-sujet)  *à ne pas confondre* avec le rank-sum/MWU ci-dessus ; ici : ΔPF vs ΔFT chez le même patient          |
 | **TOST**                      | Test d'équivalence (two one-sided tests)  sert à prouver que deux groupes sont**équivalents**, pas juste « non différents »                               |
-| **Cliff δ**                  | Effet ordinal : proportion de « duels gagnés − perdus » entre les deux groupes, entre −1 et +1                                                                     |
+| **Cliff δ**                  | Effet ordinal : proportion de « duels gagnés − perdus » entre les deux groupes, entre −1 et +1                                                                   |
 | **Firth**                     | Régression logistique pénalisée  stabilise l'OR en cas de quasi-séparation (cellule méniscus = 1/20)                                                             |
 | **OR**                        | Odds ratio  rapport des cotes de progression PF, cyclops vs méniscus                                                                                                 |
-| **E-value**                   | Force minimale d'un facteur de confusion non mesuré qui pourrait expliquer l'association                                                                               |
+| **E-value**                   | Force minimale d'un facteur de confusion non mesuré qui pourrait expliquer l'association                                                                             |
 | **δ̄**                      | Effet knee-wide**moyen** : δ̄ = (1/6) Σ δ_c  l'estimand primaire, conservateur et invariant par partition                                                   |
-| **δ_c**                      | Effet Groupe × Temps**par compartiment** (l'interaction propre à chaque zone du genou)                                                                          |
-| **η**                        | Prédicteur linéaire du modèle hiérarchique (η = β_c·t + γ·g_i + δ_c·t·g_i + u_i)                                                                            |
-| **LOO / ELPD**                | Comparaison de modèles par validation croisée (leave-one-out) ; l'ELPD classe les structures de pooling                                                               |
+| **δ_c**                      | Effet Groupe × Temps**par compartiment** (l'interaction propre à chaque zone du genou)                                                                        |
+| **η**                        | Prédicteur linéaire du modèle hiérarchique (η = β_c·t + γ·g_i + δ_c·t·g_i + u_i)                                                                          |
+| **LOO / ELPD**                | Comparaison de modèles par validation croisée (leave-one-out) ; l'ELPD classe les structures de pooling                                                             |
 
 ---
 
@@ -239,7 +239,7 @@ $$
 > | ---------------------------------------------- | -------------------------------------- | -------------------- |
 > | Continu (âge, IMC, taille, poids)             | **MWU** (`mannwhitneyu`)       | SMD (Cohen)          |
 > | Binaire 2 niveaux (sexe H/F, tabac, pivot…)   | **Fisher exact** 2×2            | SMD binaire (Austin) |
-> | Nominal ≥ 3 niveaux non ordonnés             | **chi²** (`chi2_contingency`) |                    |
+> | Nominal ≥ 3 niveaux non ordonnés             | **chi²** (`chi2_contingency`) |                      |
 > | Scores lésionnels ordinaux (PF / FT / global) | **MWU** + Cliff δ + TOST        | Cliff δ             |
 
 **Le cas binaire 0/1 (sexe H/F) en détail.** MWU *peut* tourner sur du 0/1 (ordre trivial $0<1$), mais il **dégénère en test de proportions**. Avec 2 valeurs distinctes, le classement n'a que **deux blocs d'ex æquo** : les $m$ zéros prennent le rang moyen $(m+1)/2$, les $k$ uns le rang moyen $m+(k+1)/2$. La paire $x>y$ n'arrive que pour $x=1,\,y=0$, d'où :
@@ -312,11 +312,11 @@ La SMD de $-0{,}009$ veut dire que le point estimé de la différence est **quas
 
 **Contre-exemple réel  le bloc FT à S1.** Le même test, appliqué par symétrie à l'autre bloc (`baseline_block_balance(wide, col="lesion_ft_S1")`), donne un verdict **opposé**  et c'est précisément ce qui rend l'exercice instructif :
 
-| Mesure                                               | Valeur               | Lecture                                                                      |
-| ---------------------------------------------------- | -------------------- | ---------------------------------------------------------------------------- |
-| MWU$p$ (test de différence)                       | $0{,}770$          | aucune différence**détectée**                                       |
+| Mesure                                               | Valeur               | Lecture                                                                    |
+| ---------------------------------------------------- | -------------------- | -------------------------------------------------------------------------- |
+| MWU$p$ (test de différence)                       | $0{,}770$          | aucune différence**détectée**                                     |
 | SMD                                                  | $+0{,}262$         | déséquilibre « petit »  cyclops**plus** lésés en FT au départ |
-| TOST$p$ (équivalence, borne $\Delta = 0{,}437$) | $0{,}186 > 0{,}05$ | **équivalent = False** ❌                                             |
+| TOST$p$ (équivalence, borne $\Delta = 0{,}437$) | $0{,}186 > 0{,}05$ | **équivalent = False** ❌                                           |
 
 C'est exactement le piège du `[!WARNING]` du §2 : le MWU non-significatif ($0{,}770$) **ne prouve pas** l'équivalence. Le TOST, lui, **échoue** ($0{,}186$) parce que le centre n'est **pas** collé à zéro (SMD $+0{,}26$) : les cyclops démarrent avec un léger excès de lésion fémorotibiale. Détail subtil : la borne FT ($\Delta = 0{,}437$) est **plus large** que la PF ($0{,}292$) car le bloc FT est intrinsèquement plus dispersé ($s_{\text{pooled}} \approx 0{,}87$ contre $0{,}58$)  et **malgré** cette boîte plus généreuse, la différence n'y tient pas.
 
@@ -439,10 +439,10 @@ Autrement dit : on forme **tous** les couples (un cyclops, un méniscus), on com
 >
 > Distribution de $\Delta_{\mathrm{PF}}$ :
 >
-> | Groupe         |  0 |  1 |  2 |  3 |  4 |  n |
+> | Groupe         |  0 |  1 | 2 | 3 | 4 |  n |
 > | -------------- | -: | -: | -: | -: | -: | -: |
-> | Cyclops (49)   | 21 | 15 |  9 |  3 |  1 | 49 |
-> | Méniscus (20) | 19 |  1 |  |  |  | 20 |
+> | Cyclops (49)   | 21 | 15 | 9 | 3 | 1 | 49 |
+> | Méniscus (20) | 19 |  1 |   |   |   | 20 |
 >
 > On organise un tournoi : chaque cyclops affronte chaque méniscus, soit **49 × 20 = 980 duels**.
 >
@@ -548,13 +548,25 @@ Données : `data/flexum.xlsx` (« flexum avant S2 », en degrés ; $0$ = extensi
 2. **Bootstrap.** Tirer $B$ fois 49 paires avec remise, ré-échantillonnage **apparié** (un seul jeu d'indices `idx = rng.integers(0, n, size=n)` appliqué à $x$ et $y$, l.210, pour préserver le couplage flexum/$\Delta_{\text{PF}}$ ; les ré-échantillonner séparément détruirait la corrélation estimée). Recalculer $\rho$ à chaque tirage $\to \{\theta^*_1, \dots, \theta^*_B\}$.
 3. **Jackknife (leave-one-out).** Retirer chaque paire $i$, recalculer $\rho$ sur les $n-1$ restantes $\to \{\theta_{(1)}, \dots, \theta_{(n)}\}$ *(sert uniquement à $a$, l.217-231)*.
 4. **Correction de biais $z_0$** *(l.146-148)* :
-$$p = \frac{\#\{\theta^*_b < \hat\theta\}}{B}, \qquad z_0 = \Phi^{-1}(p).$$
+
+$$
+p = \frac{\#\{\theta^*_b < \hat\theta\}}{B}, \qquad z_0 = \Phi^{-1}(p).
+$$
+
 Distribution bootstrap centrée sur $\hat\theta \Rightarrow p = 0{,}5 \Rightarrow z_0 = 0$ (pas de biais) ; décalée $\Rightarrow z_0 \ne 0$. *($p$ borné pour éviter $\pm\infty$.)*
 5. **Accélération $a$** *(l.151-163)*, asymétrie (skewness) jackknife :
-$$a = \frac{\sum_i (\bar\theta_{(\cdot)} - \theta_{(i)})^3}{6\,\big[\sum_i (\bar\theta_{(\cdot)} - \theta_{(i)})^2\big]^{3/2}}, \qquad \bar\theta_{(\cdot)} = \text{moyenne des } \theta_{(i)}.$$
+
+$$
+a = \frac{\sum_i (\bar\theta_{(\cdot)} - \theta_{(i)})^3}{6\,\big[\sum_i (\bar\theta_{(\cdot)} - \theta_{(i)})^2\big]^{3/2}}, \qquad \bar\theta_{(\cdot)} = \text{moyenne des } \theta_{(i)}.
+$$
+
 Mesure à quelle vitesse l'écart-type de l'estimateur change avec son niveau ; $a = 0 \Rightarrow$ symétrique. *(Variance jackknife nulle $\Rightarrow$ repli sur $a = 0$, soit le percentile, avec warning.)*
 6. **Percentiles ajustés** *(l.165-169)*. Au lieu de $z_{\text{lo}} = \Phi^{-1}(0{,}025) = -1{,}96$ et $z_{\text{hi}} = +1{,}96$ :
-$$\alpha_{\text{lo}} = \Phi\!\Big(z_0 + \tfrac{z_0 + z_{\text{lo}}}{1 - a\,(z_0 + z_{\text{lo}})}\Big), \qquad \alpha_{\text{hi}} = \Phi\!\Big(z_0 + \tfrac{z_0 + z_{\text{hi}}}{1 - a\,(z_0 + z_{\text{hi}})}\Big).$$
+
+$$
+\alpha_{\text{lo}} = \Phi\!\Big(z_0 + \tfrac{z_0 + z_{\text{lo}}}{1 - a\,(z_0 + z_{\text{lo}})}\Big), \qquad \alpha_{\text{hi}} = \Phi\!\Big(z_0 + \tfrac{z_0 + z_{\text{hi}}}{1 - a\,(z_0 + z_{\text{hi}})}\Big).
+$$
+
 7. **Bornes** *(l.170-171)*. $\text{lo} = $ quantile $\alpha_{\text{lo}}$ des tirages bootstrap, $\text{hi} = $ quantile $\alpha_{\text{hi}}$ $\to [-0{,}25 ; +0{,}32]$.
 
 **Cas limite (vérification).** Si $z_0 = a = 0$, alors $\alpha_{\text{lo}} = \Phi(z_{\text{lo}}) = 0{,}025$ et $\alpha_{\text{hi}} = 0{,}975$ : BCa redevient le percentile brut. Les termes $z_0$ et $a$ ne font que **décaler** (biais) et **étirer asymétriquement** (skew) les coupures par rapport à $2{,}5 / 97{,}5$.
@@ -576,7 +588,7 @@ La **figure 10** a deux panneaux : **(a)** le flexum par groupe  les cyclops s'�
 | **Séparation**   | flexum présent                   | **29/49 cyclops** vs **0/20 méniscus** | quasi-totale                                  |
 |                         | Fisher (présent vs absent)       | **OR → ∞, p = 1,4 × 10⁻⁶**               | le flexum**marque** le groupe           |
 |                         | Cliff δ (degrés signés)        | **−0,59** (large)                            | cyclops nettement plus bas (= plus de flexum) |
-|                         | flexum cyclops                    | médiane**−3°**, min **−10°**       | déficit réel mais modéré                  |
+|                         | flexum cyclops                    | médiane**−3°**, min**−10°**              | déficit réel mais modéré                  |
 | **Dose-réponse** | Spearman ρ (profondeur ↔ Δ_PF) | **+0,035**, IC [−0,25 ; +0,32]               | **≈ 0**                                |
 |                         | p                                 | **0,81** (n = 49)                             | **non concluant**                       |
 
@@ -627,22 +639,82 @@ $$
 \text{rejeter } H_{(1)},\dots,H_{(k^*)} \quad\text{où}\quad k^* = \max\{\, k : p_{(k)} \le \tfrac{k}{m}\,q \,\}, \quad q = 0.10
 $$
 
+$$
+
+
+$$
+
+**Ce que « BH = Oui / Non » veut dire.** Chaque hypothèse nulle $H_{(k)}$ (une par compartiment) affirme « **même progression entre cyclops et méniscus** dans ce compartiment » (aucune dominance stochastique, Cliff $\delta = 0$) ; **rejeter $H_{(1)},\dots,H_{(k^*)}$**, c'est déclarer significatifs les $k^*$ compartiments aux plus petites $p$, tout en garantissant qu'**en moyenne ≤ 10 % de ces rejets sont de faux positifs** ($q = 0{,}10$). Donc **BH = Oui** ⟺ on **rejette $H_{(k)}$** : la progression **diffère** réellement entre les deux groupes dans ce compartiment (le libellé « cyclops » / « méniscus » indique *lequel* s'aggrave davantage) ; **BH = Non** ⟺ on **ne rejette pas** : aucune différence détectable. **Conclusion :** seuls rotule et trochlée sont rejetés *en faveur des cyclops*, PTI et CFE le sont *en sens inverse* (méniscus), PTE et CFI ne le sont pas  exactement le signal PF-spécifique attendu.
+
 **Table des % d'aggravation par compartiment** (cyclops vs méniscus), avec la décision BH :
 
-| Compartiment | Bloc | Cyclops | Méniscus | Cliff δ | BH                        |
-| ------------ | ---- | ------: | --------: | -------: | ------------------------- |
-| Rotule       | PF   |   55.1% |      5.0% |   +0.507 | Oui (cyclops)             |
-| Trochlée    | PF   |   20.4% |      0.0% |   +0.204 | Oui (cyclops)             |
-| PTE          | FT   |    2.0% |     10.0% |  −0.080 | Non                       |
-| PTI          | FT   |    2.0% |     25.0% |  −0.230 | **Oui (méniscus)** |
-| CFE          | FT   |    0.0% |     10.0% |  −0.100 | **Oui (méniscus)** |
-| CFI          | FT   |    0.0% |      5.0% |  −0.050 | Non                       |
+| Compartiment | Bloc | Cyclops | Méniscus | Cliff δ | MWU$p$ | rang$k$ | seuil$ \tfrac{k}{m}q$ | BH ($m=6$, $q=0{,}10$)                |
+| ------------ | ---- | ------: | --------: | -------: | -------: | --------: | ----------------------: | ----------------------------------------- |
+| Rotule       | PF   |   55.1% |      5.0% |   +0.507 |   0.0002 |         1 |                   0.017 | $p<$ seuil → **Oui (cyclops)**   |
+| Trochlée    | PF   |   20.4% |      0.0% |   +0.204 |   0.0313 |         4 |                   0.067 | $p<$ seuil → **Oui (cyclops)**   |
+| PTE          | FT   |    2.0% |     10.0% |  −0.080 |   0.1495 |         6 |                   0.100 | $p>$ seuil → Non                       |
+| PTI          | FT   |    2.0% |     25.0% |  −0.230 |   0.0024 |         2 |                   0.033 | $p<$ seuil → **Oui (méniscus)** |
+| CFE          | FT   |    0.0% |     10.0% |  −0.100 |   0.0273 |         3 |                   0.050 | $p<$ seuil → **Oui (méniscus)** |
+| CFI          | FT   |    0.0% |      5.0% |  −0.050 |   0.1252 |         5 |                   0.083 | $p>$ seuil → Non                       |
+
+où le rang $k$ classe les 6 $p$ par ordre **croissant** et le seuil vaut $\tfrac{k}{m}q = \tfrac{k}{6}\times 0{,}10$. Le step-up retient $k^* = \max\{\,k : p_{(k)} \le \tfrac{k}{m}q\,\} = 4$ (trochlée: $0{,}0313 \le 0{,}067$) : on **rejette les 4 plus petites $p$**  rotule ($k{=}1$), PTI ($k{=}2$), CFE ($k{=}3$), trochlée ($k{=}4$)  tandis que CFI ($k{=}5$ : $0{,}1252 > 0{,}083$) et PTE ($k{=}6$ : $0{,}1495 > 0{,}100$) restent **au-dessus** de leur seuil.
+
+> [!TIP]
+> **L'autre visage de la même décision : la *q-value* (`bh_p_adj`).** Le code **décide** en comparant chaque $p$ au seuil mobile $\tfrac{k}{m}q$ (le paragraphe ci-dessus  c'est `fdrcorrection` qui pose `reject = p ≤ (k/m)·q`) ; **en parallèle**, il calcule pour chaque compartiment une **q-value** = *le plus petit $q$ auquel ce test serait rejeté*. Les deux donnent le **même** ensemble de rejets par construction : la q-value n'est donc pas un autre critère, mais une **lecture équivalente** de la même décision  comparée à une **constante** au lieu d'un seuil mobile : **BH = Oui $\iff$ q-value $\le q = 0{,}10$**.
+
+**Calcul de la q-value, en 3 temps.**
+
+**①** Trier les $m = 6$ valeurs $p$ par ordre croissant, $p_{(1)} \le \dots \le p_{(6)}$, de rang $k$.
+
+**②** Mettre chaque $p$ à l'échelle par $m/k$  le plus petit $p$ (le plus « cueilli » parmi 6) est multiplié par $m$, le plus grand par 1 :
+
+$$
+\tilde{p}_{(k)} = \frac{m}{k}\, p_{(k)}
+$$
+
+**③** Forcer la **monotonie** (une q-value doit croître avec $k$) : on prend le minimum cumulé **en remontant** de $k = m$ vers $k = 1$, plafonné à 1 :
+
+$$
+q_{(k)} = \min\left( \min_{j \ge k} \tilde{p}_{(j)},\; 1 \right)
+$$
+
+Sur nos 6 compartiments :
+
+| $k$ | comp.    | $p_{(k)}$ | $\tilde{p}_{(k)} = \tfrac{6}{k}\,p_{(k)}$ | min cumulé (↑) = q-value           |
+| --: | -------- | --------: | ----------------------------------------- | ----------------------------------- |
+|   1 | rotule   |    0.0002 | 6 × 0.0002 = 0.0012                       | min(0.0012, 0.0072) = **0.0012**     |
+|   2 | PTI      |    0.0024 | 3 × 0.0024 = 0.0072                       | min(0.0072, 0.0469) = **0.0072**     |
+|   3 | CFE      |    0.0273 | 2 × 0.0273 = 0.0546                       | min(0.0546, 0.0469) = **0.0469** ⟵ tiré ↓ |
+|   4 | trochlée |    0.0313 | 1.5 × 0.0313 = 0.0469                     | min(0.0469, 0.1495) = **0.0469**     |
+|   5 | CFI      |    0.1252 | 1.2 × 0.1252 = 0.1502                     | min(0.1502, 0.1495) = **0.1495** ⟵ tiré ↓ |
+|   6 | PTE      |    0.1495 | 1 × 0.1495 = 0.1495                       | **0.1495**                          |
+
+(identique à la colonne `bh_p_adj` de `results/per_compartment.csv`.)
+
+> [!IMPORTANT]
+> **L'étape ③ (monotonie) encode le même « step-up » que le remplissage de `reject` dans le code  et c'est pourquoi le verdict n'est pas une lecture ligne-à-ligne.** Deux q-values sont *tirées vers le bas* par un rang supérieur : **CFE** ($\tilde{p} = 0{,}0546$) hérite du $0{,}0469$ de la trochlée, et **CFI** ($0{,}1502$) hérite du $0{,}1495$ de PTE  d'où les ex æquo CFE = trochlée et CFI = PTE. Une q-value ne peut donc **jamais dépasser celle d'un rang plus élevé** : une ligne ne se juge pas seule sur son propre seuil (une ligne qui échouerait son seuil propre peut être « repêchée » par une ligne supérieure qui passe). Ici le résultat coïncide avec la lecture « $p <$ seuil » du tableau ; en général il peut en différer.
+
+**Lecture équivalente par la q-value** (même verdict que le seuil, par construction) :
+
+$$
+\text{BH = Oui} \iff q_{(k)} \le q = 0{,}10
+$$
+
+rotule 0,001 ✓ · PTI 0,007 ✓ · CFE 0,047 ✓ · trochlée 0,047 ✓ · CFI 0,150 ✗ · PTE 0,150 ✗ → **4 rejets**, cohérent avec $k^* = 4$.
+
+> [!NOTE]
+> **La contamination réelle est meilleure que le plafond de 10 %.** Le $q = 0{,}10$ est la **cible**, pas le risque subi. Le risque effectif se lit sur les q-values : le **maximum** des 4 rejets vaut **0,047**, donc la moisson tient déjà à un FDR $\le 4{,}7\,\%$  faux attendus $\le 0{,}047 \times 4 \approx 0{,}19$, soit moins d'un cinquième d'un compartiment. La borne BH est même plus fine, $\text{FDR} \le \tfrac{m_0}{m}\,q \le q$ (où $m_0$ = nombre de vraies nulles $\le 6$) : comme plusieurs des 6 sont sûrement de vrais effets, $m_0/m < 1$ et le plafond descend encore sous 0,10.
 
 > [!NOTE]
 > **Exemple de dilution  pourquoi la somme efface le signal.** Additionne les 6 compartiments en un score unique (`lesion_total`). Tu mélanges **2 compartiments actifs** (PF, où les cyclops s'aggravent franchement) avec **4 compartiments inertes ou inversés** (FT, où ce sont parfois les méniscus qui s'aggravent). Résultat : l'effet est rétréci à
 >
 > $$
 > \text{Cliff } \bar\delta_{6} = +0.204, \qquad p_{\text{deux-côtés}} = 0.156, \qquad p_{\text{un-côté}} = 0.078.
+> $$
+>
+> $$
+>
+>
 > $$
 >
 > Aucun de ces p n'est décisionnel. Le vrai signal PF a été **noyé** par la moyenne.
@@ -834,9 +906,9 @@ Le forest plot (échelle log, ligne pointillée à OR = 1) empile les estimation
 
 | Modèle                                     |   OR (Firth)   |    IC 95 %    |        p        |
 | ------------------------------------------- | :------------: | :-----------: | :-------------: |
-| **Brut**                              | **17,2** | [2,9 ; 103,5] |              |
+| **Brut**                              | **17,2** | [2,9 ; 103,5] |                |
 | **Ajusté sexe + âge** (co-primaire) | **13,5** | [2,3 ; 80,1] | **0,004** |
-| Ajusté sexe + âge + IMC                   |      13,9      | [2,3 ; 83,4] |              |
+| Ajusté sexe + âge + IMC                   |      13,9      | [2,3 ; 83,4] |                |
 
 - **OR Firth brut = 17,2** [2,9 ; 103,5] (la case de méniscus minimale vaut 1).
 - **Ajusté sexe + âge : OR = 13,5** [2,3 ; 80,1], **p = 0,004**.
@@ -1112,9 +1184,9 @@ La **figure 7** trace deux **ECDF** (fonctions de répartition empiriques cumul�
 | Quantité                                   | Cyclops (cyclops) | Méniscus (ménisque) | Effet                                                         |
 | ------------------------------------------- | ----------------: | --------------------: | ------------------------------------------------------------- |
 | Délai médian (jours)                      |     **240** |         **528** | MWU**p < 0.0001** ; Cliff **δ = −0.67** (large) |
-| LogNormal  médiane (M5)                  |               231 |                   486 |                                                             |
-| Weibull AFT  coef. groupe (M4)            |                 |                     | **−0.69** (délai raccourci chez les cyclops)          |
-| ρ(délai, aggravation PF) chez les cyclops |                 |                     | **ρ = −0.004** (p = 0.97)                              |
+| LogNormal  médiane (M5)                    |               231 |                   486 |                                                               |
+| Weibull AFT  coef. groupe (M4)              |                   |                       | **−0.69** (délai raccourci chez les cyclops)          |
+| ρ(délai, aggravation PF) chez les cyclops |                   |                       | **ρ = −0.004** (p = 0.97)                             |
 
 Les trois approches convergent : **les cyclops sont ré-opérés plus de deux fois plus vite**. Et la corrélation intra-cyclops entre délai et aggravation PF est **nulle** (ρ = −0.004, p = 0.97).
 
@@ -1158,21 +1230,21 @@ C'est la **symétrie** qui rend l'argument propre : **même mètre étalon**, un
 
 Les chiffres de décision, rassemblés (tous alignés sur `results/results.json`). Lecture : **p-value** = significativité, **IC/HDI** = précision, **taille d'effet** = ampleur. La ligne grisée est l'**ancre décisionnelle** (bayésienne, conservatrice) ; le reste est le **support fréquentiste** (caractérise l'ampleur, ne décide pas  cf. vault [[02.4-tests-non-param]] / [[02.3-strategie-stats]]).
 
-| Quantité                                         | § |                              Effet                              |             IC / HDI             |             $p$             | Verdict                            |
-| ------------------------------------------------- | :-: | :--------------------------------------------------------------: | :-------------------------------: | :----------------------------: | ---------------------------------- |
-| **Contraste PF** (cyclops vs ménisque)     | 02 |                 Cliff δ**+0,535** (large)                 |        BCa [0,367 ; 0,684]        | MWU 1×10⁻⁴ ; perm 2×10⁻⁴ | effet**réel**               |
-| Aggravation PF                                    | 02 |          **28/49 (57 %)** vs **1/20 (5 %)**          | M1 [0,44 ; 0,70] vs [0,01 ; 0,23] |                              | non chevauchant                    |
-| Spécificité PF vs FT (intra-cyclops)            | 02 |                          28 PF vs 1 FT                          |         $r_{rb}$ ≈ 1,0         |       Wilcoxon 2×10⁻⁶       | localisé PF                       |
-| Dilution somme-6                                  | 03 |                     Cliff δ**+0,204**                     |                                |       0,156 (2-côtés)       | **noyé** (attendu)          |
-| Réfutation H2 (PTI)                              | 03 |                δ**−0,230** (sens inverse)                |                                |            BH 0,007            | **H2 réfutée**             |
-| **Flexum** présent (cyclops vs ménisque)  | 02b |                 29/49 vs 0/20 ; Cliff δ −0,59                 |                                |  Fisher**1,4×10⁻⁶**  | mécanisme présent                |
-| Flexum → Δ_PF (dose-réponse)                   | 02b |                    Spearman ρ**+0,035**                    |         [−0,25 ; +0,32]         |              0,81              | **pas de gradient**          |
-| **OR PF brut** (Firth)                      | 04 |                         OR**17,2**                         |           [2,9 ; 103,5]           |              ¹             | quasi-séparation gérée          |
-| **OR PF ajusté sexe+âge** (co-primaire)   | 04 |                         OR**13,5**                         |           [2,3 ; 80,1]           |        **0,004**        | **survit à l'ajustement**   |
-| Robustesse OR                                     | 04 | +IMC 13,9 ; +activité 15,3 ² ; +délai 78,9 |                                |                              | stable                             |
-| E-value (sur OR brut)                             | 04 |                          **7,77**                          |           borne IC 2,78           |                              | robuste au confondeur caché       |
-| ⟶**Ancre décisionnelle : δ̄ knee-wide** | 05 |                         **+0,247**                         |       HDI [−0,86 ; +1,40]       |        $P(>0)=0{,}66$        | **non concluant** (honnête) |
-| Contraste PF dérivé (neutre)                    | 05 |                         **+2,29**                         |         HDI [0,86 ; 3,63]         |       $P(>0)=0{,}999$       | localisé, exploratoire            |
+| Quantité                                         | § |                     Effet                     |             IC / HDI             |             $p$             | Verdict                            |
+| ------------------------------------------------- | :-: | :--------------------------------------------: | :-------------------------------: | :----------------------------: | ---------------------------------- |
+| **Contraste PF** (cyclops vs ménisque)     | 02 |           Cliff δ**+0,535** (large)           |        BCa [0,367 ; 0,684]        | MWU 1×10⁻⁴ ; perm 2×10⁻⁴ | effet**réel**               |
+| Aggravation PF                                    | 02 | **28/49 (57 %)** vs **1/20 (5 %)** | M1 [0,44 ; 0,70] vs [0,01 ; 0,23] |                                | non chevauchant                    |
+| Spécificité PF vs FT (intra-cyclops)            | 02 |                 28 PF vs 1 FT                 |         $r_{rb}$ ≈ 1,0         |       Wilcoxon 2×10⁻⁶       | localisé PF                       |
+| Dilution somme-6                                  | 03 |               Cliff δ**+0,204**               |                                  |       0,156 (2-côtés)       | **noyé** (attendu)          |
+| Réfutation H2 (PTI)                              | 03 |          δ**−0,230** (sens inverse)          |                                  |            BH 0,007            | **H2 réfutée**             |
+| **Flexum** présent (cyclops vs ménisque)  | 02b |        29/49 vs 0/20 ; Cliff δ −0,59        |                                  |  Fisher**1,4×10⁻⁶**  | mécanisme présent                |
+| Flexum → Δ_PF (dose-réponse)                   | 02b |             Spearman ρ**+0,035**             |         [−0,25 ; +0,32]         |              0,81              | **pas de gradient**          |
+| **OR PF brut** (Firth)                      | 04 |                OR**17,2**                |           [2,9 ; 103,5]           |               ¹               | quasi-séparation gérée          |
+| **OR PF ajusté sexe+âge** (co-primaire)   | 04 |                OR**13,5**                |           [2,3 ; 80,1]           |        **0,004**        | **survit à l'ajustement**   |
+| Robustesse OR                                     | 04 | +IMC 13,9 ; +activité 15,3 ² ; +délai 78,9 |                                  |                                | stable                             |
+| E-value (sur OR brut)                             | 04 |                 **7,77**                 |           borne IC 2,78           |                                | robuste au confondeur caché       |
+| ⟶**Ancre décisionnelle : δ̄ knee-wide** | 05 |                **+0,247**                |       HDI [−0,86 ; +1,40]       |        $P(>0)=0{,}66$        | **non concluant** (honnête) |
+| Contraste PF dérivé (neutre)                    | 05 |                **+2,29**                |         HDI [0,86 ; 3,63]         |       $P(>0)=0{,}999$       | localisé, exploratoire            |
 
 ¹ La ligne « brut » n'a pas de $p$ de modèle : c'est le 2×2 écrit en logit (Firth pour décoller du bord de la cellule méniscus = 1). Le **$p$ de décision** est celui de l'ajusté : **0,004**. ² OR ajusté **sexe+âge = 13,5** ; OR ajusté **activité (pivot+métier) = 15,3**  deux jeux de covariables distincts (`sensitivity_or_adjusted`), non contradictoires.
 
