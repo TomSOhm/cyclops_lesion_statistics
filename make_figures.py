@@ -25,7 +25,7 @@ touches ``run_all.py`` or the analysis modules other than importing them.
 
 Run::
 
-    C:/Users/salem/miniconda3/envs/dev/python.exe make_figures.py
+    python3 make_figures.py
 """
 
 from __future__ import annotations

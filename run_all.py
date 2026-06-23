@@ -24,9 +24,9 @@ It does **not** touch ``viz.py`` / ``make_figures.py`` (chart-expert scope).
 
 Run::
 
-    C:/Users/salem/miniconda3/envs/dev/python.exe run_all.py
+    python3 run_all.py
     # quick smoke (tiny MCMC, skips escalation):
-    C:/Users/salem/miniconda3/envs/dev/python.exe run_all.py --smoke
+    python3 run_all.py --smoke
 """
 
 from __future__ import annotations

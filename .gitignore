@@ -21,6 +21,9 @@ build/
 
 # Internal planning docs (specs + plans)  not for a public repo
 docs/superpowers/
+graphify-out/.graphify_python
+graphify-out/.graphify_root
+graphify-out/cache
 
 # Patient data (privacy)  kept locally, never tracked. The pipeline reads
 # these from disk; they are out of version control by design.
